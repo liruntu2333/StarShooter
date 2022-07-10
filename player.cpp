@@ -21,7 +21,9 @@
 #define	MODEL_PLAYER		"data/MODEL/cone.obj"			// 読み込むモデル名
 #define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// 読み込むモデル名
 
-#define	VALUE_MOVE			(2.0f)							// 移動量
+#define	VALUE_MOVE			(10.0f)							// 移動量
+#define	VALUE_JUMP			(10)							// 移動量
+#define	VALUE_SIDE_MOVE			(2.0f)							// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// 回転量
 
 #define PLAYER_SHADOW_SIZE	(1.0f)							// 影の大きさ
@@ -71,8 +73,9 @@ HRESULT InitPlayer(void)
 	LoadModel(MODEL_PLAYER, &g_Player.model);
 	g_Player.load = TRUE;
 
-	g_Player.pos = { 0.0f, PLAYER_OFFSET_Y, 0.0f };
-	g_Player.rot = { 0.0f, 0.0f, 0.0f };
+	g_Player.pos = GetFieldEntrance();
+	g_Player.pos.y = PLAYER_OFFSET_Y;
+	g_Player.rot = { 0.0f, XM_PI, 0.0f };
 	g_Player.scl = { 1.0f, 1.0f, 1.0f };
 
 	g_Player.spd = 0.0f;			// 移動スピードクリア
@@ -157,25 +160,31 @@ void UpdatePlayer(void)
 	CAMERA *cam = GetCamera();
 
 	// 移動させちゃう
-	if (GetKeyboardPress(DIK_LEFT))
-	{	// 左へ移動
-		g_Player.spd = VALUE_MOVE;
-		g_Player.dir = XM_PI / 2;
-	}
-	if (GetKeyboardPress(DIK_RIGHT))
-	{	// 右へ移動
-		g_Player.spd = VALUE_MOVE;
-		g_Player.dir = -XM_PI / 2;
-	}
-	if (GetKeyboardPress(DIK_UP))
-	{	// 上へ移動
+	//if (GetKeyboardPress(DIK_LEFT))
+	//{	// 左へ移動
+	//	g_Player.spd = VALUE_MOVE;
+	//	g_Player.dir = XM_PI / 2;
+	//}
+	//if (GetKeyboardPress(DIK_RIGHT))
+	//{	// 右へ移動
+	//	g_Player.spd = VALUE_MOVE;
+	//	g_Player.dir = -XM_PI / 2;
+	//}
+	//if (GetKeyboardPress(DIK_UP))
+	//{	// 上へ移動
+	//	g_Player.spd = VALUE_MOVE;
+	//	g_Player.dir = XM_PI;
+	//}
+	//if (GetKeyboardPress(DIK_DOWN))
+	//{	// 下へ移動
+	//	g_Player.spd = VALUE_MOVE;
+	//	g_Player.dir = 0.0f;
+	//}
+
+	if (true)
+	{
 		g_Player.spd = VALUE_MOVE;
 		g_Player.dir = XM_PI;
-	}
-	if (GetKeyboardPress(DIK_DOWN))
-	{	// 下へ移動
-		g_Player.spd = VALUE_MOVE;
-		g_Player.dir = 0.0f;
 	}
 
 
@@ -188,37 +197,89 @@ void UpdatePlayer(void)
 	}
 #endif
 
-
+	static int vertSpd = 0;
+	static bool inAir = false;
 	//	// Key入力があったら移動処理する
 	if (g_Player.spd > 0.0f)
 	{
 		g_Player.rot.y = g_Player.dir + cam->rot.y;
 
 		// 入力のあった方向へプレイヤーを向かせて移動させる
-		g_Player.pos.x -= sinf(g_Player.rot.y) * g_Player.spd;
-		g_Player.pos.z -= cosf(g_Player.rot.y) * g_Player.spd;
+		//g_Player.pos.x -= sinf(g_Player.rot.y) * g_Player.spd;
+		//g_Player.pos.z -= cosf(g_Player.rot.y) * g_Player.spd;
+		float z = g_Player.pos.z + g_Player.spd;
+
+		XMFLOAT3 sideMvTar = g_Player.pos;
+		if (GetKeyboardPress(DIK_LEFT))
+		{	// 左へ移動
+			sideMvTar.x -= VALUE_SIDE_MOVE;
+		}
+		if (GetKeyboardPress(DIK_RIGHT))
+		{	// 右へ移動
+			sideMvTar.x += VALUE_SIDE_MOVE;
+		}
+
+		if (CheckFieldValid(sideMvTar.x, sideMvTar.z))
+		{
+			g_Player.pos.x = sideMvTar.x;
+		}
+		g_Player.pos.z = z;
+
+		if (IsEndOfRoad(g_Player.pos.x, g_Player.pos.z))
+		{
+			auto const prev = g_Player.pos;
+			g_Player.pos = GetFieldEntrance();
+			g_Player.pos.x = prev.x;
+			if (!inAir)
+			{
+				g_Player.pos.y = PLAYER_OFFSET_Y;
+			}
+			else
+			{
+				g_Player.pos.y = prev.y;
+			}
+			g_Player.rot = { 0.0f, XM_PI, 0.0f };
+			//InitCamera();
+		}
 	}
 
-
-
 	// レイキャストして足元の高さを求める
-	XMFLOAT3 normal = { 0.0f, 1.0f, 0.0f };				// ぶつかったポリゴンの法線ベクトル（向き）
-	XMFLOAT3 hitPosition;								// 交点
-	hitPosition.y = g_Player.pos.y - PLAYER_OFFSET_Y;	// 外れた時用に初期化しておく
-	bool ans = RayHitField(g_Player.pos, &hitPosition, &normal);
-	g_Player.pos.y = hitPosition.y + PLAYER_OFFSET_Y;
-	g_Player.pos.y = PLAYER_OFFSET_Y;
-
+	//XMFLOAT3 normal = { 0.0f, 1.0f, 0.0f };				// ぶつかったポリゴンの法線ベクトル（向き）
+	//XMFLOAT3 hitPosition;								// 交点
+	//hitPosition.y = g_Player.pos.y - PLAYER_OFFSET_Y;	// 外れた時用に初期化しておく
+	//bool ans = RayHitField(g_Player.pos, &hitPosition, &normal);
+	//g_Player.pos.y = hitPosition.y + PLAYER_OFFSET_Y;
+	//g_Player.pos.y = PLAYER_OFFSET_Y;
 
 	// 影もプレイヤーの位置に合わせる
 	XMFLOAT3 pos = g_Player.pos;
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	SetPositionShadow(g_Player.shadowIdx, pos);
 
+	if (!inAir)
+	{
+		if (GetKeyboardTrigger(DIK_SPACE))
+		{
+			inAir = true;
+			vertSpd = VALUE_JUMP;
+		}
+	}
+	else
+	{
+		g_Player.pos.y += static_cast<float>(vertSpd);
+		vertSpd -= 1;
+		if (g_Player.pos.y < PLAYER_OFFSET_Y)
+		{
+			inAir = false;
+			vertSpd = 0;
+			g_Player.pos.y = PLAYER_OFFSET_Y;
+		}
+	}
+
 	// 弾発射処理
 	if (GetKeyboardTrigger(DIK_SPACE))
 	{
-		SetBullet(g_Player.pos, g_Player.rot);
+		//SetBullet(g_Player.pos, g_Player.rot);
 	}
 
 	g_Player.spd *= 0.5f;
@@ -290,7 +351,7 @@ void UpdatePlayer(void)
 	float len, angle;
 
 	// ２つのベクトルの外積を取って任意の回転軸を求める
-	g_Player.upVector = normal;
+	g_Player.upVector = {0.0f, 1.0f, 0.0f};
 	up = { 0.0f, 1.0f, 0.0f, 0.0f };
 	vx = XMVector3Cross(up, XMLoadFloat3(&g_Player.upVector));
 

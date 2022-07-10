@@ -289,6 +289,6 @@ void SetCameraAT(XMFLOAT3 pos)
 	// ƒJƒƒ‰‚Ì‹“_‚ğƒJƒƒ‰‚ÌY²‰ñ“]‚É‘Î‰‚³‚¹‚Ä‚¢‚é
 	g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.len;
 	g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.len;
-
+	g_Camera.pos.y = pos.y + 10.0f;
 }
 

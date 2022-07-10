@@ -201,10 +201,10 @@ void DrawGame0(void)
 	DrawMeshField();
 
 	// 影の描画処理
-	DrawShadow();
+	//DrawShadow();
 
 	// エネミーの描画処理
-	DrawEnemy();
+	//DrawEnemy();
 
 	// プレイヤーの描画処理
 	DrawPlayer();
@@ -213,13 +213,13 @@ void DrawGame0(void)
 	DrawBullet();
 
 	// 壁の描画処理
-	DrawMeshWall();
+	//DrawMeshWall();
 
 	// 木の描画処理
-	DrawTree();
+	//DrawTree();
 
 	// パーティクルの描画処理
-	DrawParticle();
+	//DrawParticle();
 
 
 	// 2Dの物を描画する処理
@@ -254,7 +254,7 @@ void DrawGame(void)
 
 	// プレイヤー視点
 	pos = GetPlayer()->pos;
-	pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
+	//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
 	SetCameraAT(pos);
 	SetCamera();
 

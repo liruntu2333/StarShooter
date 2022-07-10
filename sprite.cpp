@@ -1,7 +1,7 @@
 //=============================================================================
 //
 // スプライト処理 [sprite.cpp]
-// Author : GP11B132 99 外岡高明
+// Author : 
 //
 //=============================================================================
 #include "main.h"
@@ -26,6 +26,9 @@
 
 //=============================================================================
 // 頂点データ設定
+// 描画タイプ:中心の座標
+// ローテーション変更:なし
+// カラー変更:なし
 //=============================================================================
 void SetSprite(ID3D11Buffer *buf, float X, float Y, float Width, float Height, float U, float V, float UW, float VH)
 {
@@ -60,30 +63,16 @@ void SetSprite(ID3D11Buffer *buf, float X, float Y, float Width, float Height, f
 	vertex[3].Diffuse  = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	vertex[3].TexCoord = XMFLOAT2(U + UW, V + VH);
 
-	// 左上を原点として設定するプログラム
-	//vertex[0].Position = XMFLOAT3(X, Y, 0.0f);
-	//vertex[0].Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	//vertex[0].TexCoord = D3DXVECTOR2(U, V);
-
-	//vertex[1].Position = XMFLOAT3(X + Width, Y, 0.0f);
-	//vertex[1].Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	//vertex[1].TexCoord = D3DXVECTOR2(U + UW, V);
-
-	//vertex[2].Position = XMFLOAT3(X, Y + Height, 0.0f);
-	//vertex[2].Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	//vertex[2].TexCoord = D3DXVECTOR2(U, V + VH);
-
-	//vertex[3].Position = XMFLOAT3(X + Width, Y + Height, 0.0f);
-	//vertex[3].Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	//vertex[3].TexCoord = D3DXVECTOR2(U + UW, V + VH);
-
-
-
 	GetDeviceContext()->Unmap(buf, 0);
 
 }
 
-
+//=============================================================================
+// 頂点データ設定
+// 描画タイプ:左上の座標
+// ローテーション変更:なし
+// カラー変更:なし
+//=============================================================================
 void SetSpriteLeftTop(ID3D11Buffer *buf, float X, float Y, float Width, float Height, float U, float V, float UW, float VH)
 {
 	D3D11_MAPPED_SUBRESOURCE msr;
@@ -115,7 +104,12 @@ void SetSpriteLeftTop(ID3D11Buffer *buf, float X, float Y, float Width, float He
 }
 
 
-
+//=============================================================================
+// 頂点データ設定
+// 描画タイプ:中心の座標
+// ローテーション変更:なし
+// カラー変更:できる
+//=============================================================================
 void SetSpriteColor(ID3D11Buffer *buf, float X, float Y, float Width, float Height,
 		float U, float V, float UW, float VH,
 		XMFLOAT4 color)
@@ -156,6 +150,50 @@ void SetSpriteColor(ID3D11Buffer *buf, float X, float Y, float Width, float Heig
 }
 
 
+//=============================================================================
+// 頂点データ設定
+// 描画タイプ:左上の座標
+// ローテーション変更:なし
+// カラー変更:できる
+//=============================================================================
+void SetSpriteColor_LeftTop(ID3D11Buffer* buf, float X, float Y, float Width, float Height, float U, float V, float UW, float VH, XMFLOAT4 color)
+{
+	D3D11_MAPPED_SUBRESOURCE msr;
+	GetDeviceContext()->Map(buf, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+
+	VERTEX_3D* vertex = (VERTEX_3D*)msr.pData;
+
+	// 指定された座標を左上に設定するプログラム
+	// 頂点０番（左上の頂点）
+	vertex[0].Position = XMFLOAT3(X, Y, 0.0f);
+	vertex[0].Diffuse = color;
+	vertex[0].TexCoord = XMFLOAT2(U, V);
+
+	// 頂点１番（右上の頂点）
+	vertex[1].Position = XMFLOAT3(X + Width, Y, 0.0f);
+	vertex[1].Diffuse = color;
+	vertex[1].TexCoord = XMFLOAT2(U + UW, V);
+
+	// 頂点２番（左下の頂点）
+	vertex[2].Position = XMFLOAT3(X, Y + Height, 0.0f);
+	vertex[2].Diffuse = color;
+	vertex[2].TexCoord = XMFLOAT2(U, V + VH);
+
+	// 頂点３番（右下の頂点）
+	vertex[3].Position = XMFLOAT3(X + Width, Y + Height, 0.0f);
+	vertex[3].Diffuse = color;
+	vertex[3].TexCoord = XMFLOAT2(U + UW, V + VH);
+
+	GetDeviceContext()->Unmap(buf, 0);
+
+}
+
+//=============================================================================
+// 頂点データ設定
+// 描画タイプ:中心の座標
+// ローテーション変更:できる
+// カラー変更:できる
+//=============================================================================
 void SetSpriteColorRotation(ID3D11Buffer *buf, float X, float Y, float Width, float Height,
 	float U, float V, float UW, float VH,
 	XMFLOAT4 Color, float Rot)

@@ -24,6 +24,7 @@
 #include "particle.h"
 
 #include "title.h"
+#include "tutorial.h"
 #include "game.h"
 #include "result.h"
 #include "fade.h"
@@ -290,15 +291,27 @@ void Update(void)
 	switch (g_Mode)
 	{
 	case MODE_TITLE:		// タイトル画面の更新
+
 		UpdateTitle();
+
+		break;
+
+	case MODE_TUTORIAL:
+
+		UpdateTutorial();
+
 		break;
 
 	case MODE_GAME:			// ゲーム画面の更新
+
 		UpdateGame();
+
 		break;
 
 	case MODE_RESULT:		// リザルト画面の更新
+
 		UpdateResult();
+
 		break;
 	}
 
@@ -321,7 +334,9 @@ void Draw(void)
 	// モードによって処理を分ける
 	switch (g_Mode)
 	{
-	case MODE_TITLE:		// タイトル画面の描画
+	case MODE_TITLE:		
+		// タイトル画面の描画
+
 		SetViewPort(TYPE_FULL_SCREEN);
 
 		// 2Dの物を描画する処理
@@ -338,13 +353,41 @@ void Draw(void)
 
 		// Z比較あり
 		SetDepthEnable(TRUE);
+
 		break;
 
-	case MODE_GAME:			// ゲーム画面の描画
+	case MODE_TUTORIAL:
+		// チュートリアル画面の描画
+
+		SetViewPort(TYPE_FULL_SCREEN);
+
+		// 2Dの物を描画する処理
+		// Z比較なし
+		SetDepthEnable(FALSE);
+
+		// ライティングを無効
+		SetLightEnable(FALSE);
+
+		DrawTutorial();
+
+		// ライティングを有効に
+		SetLightEnable(TRUE);
+
+		// Z比較あり
+		SetDepthEnable(TRUE);
+
+		break;
+
+	case MODE_GAME:			
+		// ゲーム画面の描画
+
 		DrawGame();
+
 		break;
 
-	case MODE_RESULT:		// リザルト画面の描画
+	case MODE_RESULT:		
+		// リザルト画面の描画
+
 		SetViewPort(TYPE_FULL_SCREEN);
 
 		// 2Dの物を描画する処理
@@ -361,6 +404,7 @@ void Draw(void)
 
 		// Z比較あり
 		SetDepthEnable(TRUE);
+
 		break;
 	}
 
@@ -408,6 +452,9 @@ void SetMode(int mode)
 	// タイトル画面の終了処理
 	UninitTitle();
 
+	// チュートリアル画面の終了処理
+	UninitTutorial();
+
 	// ゲーム画面の終了処理
 	UninitGame();
 
@@ -422,6 +469,11 @@ void SetMode(int mode)
 	case MODE_TITLE:
 		// タイトル画面の初期化
 		InitTitle();
+		break;
+
+	case MODE_TUTORIAL:
+		// チュートリアル画面の初期化
+		InitTutorial();
 		break;
 
 	case MODE_GAME:

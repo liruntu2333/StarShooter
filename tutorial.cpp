@@ -1,6 +1,6 @@
 //=============================================================================
 //
-// タイトル画面処理 [title.cpp]
+// チュートリアル画面処理 [tutorial.cpp]
 // Author : 
 //
 //=============================================================================
@@ -10,14 +10,14 @@
 #include "fade.h"
 //#include "sound.h"
 #include "sprite.h"
-#include "title.h"
+#include "tutorial.h"
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
 #define TEXTURE_WIDTH				(SCREEN_WIDTH)	// 背景サイズ
 #define TEXTURE_HEIGHT				(SCREEN_HEIGHT)	// 
-#define TEXTURE_MAX					(TEXTURE_TITLE_MAX)				// テクスチャの数
+#define TEXTURE_MAX					(1)				// テクスチャの数
 
 #define TEXTURE_WIDTH_LOGO			(480)			// ロゴサイズ
 #define TEXTURE_HEIGHT_LOGO			(80)			// 
@@ -34,13 +34,11 @@ static ID3D11Buffer* g_VertexBuffer = NULL;					// 頂点情報
 static ID3D11ShaderResourceView* g_Texture[TEXTURE_MAX] = { NULL };		// テクスチャ情報
 
 static char* g_TexturName[TEXTURE_MAX] = {
-	"data/TEXTURE/TITLE/title_bg_test.jpg",
+	"data/TEXTURE/TUTORIAL/tutorial_bg_test.png",
 };
 
 
-static TITLE	g_Title;				// タイトル画面のbackground
-
-static TITLE	g_Title_Logo;			// タイトル画面のlogo
+static TUTORIAL	g_Tutorial;				// タイトル画面のbackground
 
 static BOOL		g_Load = FALSE;
 
@@ -48,7 +46,7 @@ static BOOL		g_Load = FALSE;
 //=============================================================================
 // 初期化処理
 //=============================================================================
-HRESULT InitTitle(void)
+HRESULT InitTutorial(void)
 {
 	ID3D11Device* pDevice = GetDevice();
 
@@ -77,11 +75,11 @@ HRESULT InitTitle(void)
 
 	// 変数の初期化
 	// タイトル画面のbackground
-	g_Title.use = TRUE;
-	g_Title.widtht = TEXTURE_WIDTH;
-	g_Title.height = TEXTURE_HEIGHT;
-	g_Title.pos = XMFLOAT3(g_Title.widtht * 0.5f, g_Title.height * 0.5f, 0.0f);
-	g_Title.texNo = TEXTURE_TITLE_BG;
+	g_Tutorial.use = TRUE;
+	g_Tutorial.widtht = TEXTURE_WIDTH;
+	g_Tutorial.height = TEXTURE_HEIGHT;
+	g_Tutorial.pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	g_Tutorial.texNo = TEXTURE_TUTORIAL_BG;
 
 	// タイトル画面のlogo
 
@@ -96,7 +94,7 @@ HRESULT InitTitle(void)
 //=============================================================================
 // 終了処理
 //=============================================================================
-void UninitTitle(void)
+void UninitTutorial(void)
 {
 	if (g_Load == FALSE) return;
 
@@ -121,12 +119,12 @@ void UninitTitle(void)
 //=============================================================================
 // 更新処理
 //=============================================================================
-void UpdateTitle(void)
+void UpdateTutorial(void)
 {
 
 	if (GetKeyboardTrigger(DIK_RETURN))
 	{// Enter押したら、ステージを切り替える
-		SetFade(FADE_OUT, MODE_TUTORIAL);
+		SetFade(FADE_OUT, MODE_GAME);
 	}
 
 
@@ -140,7 +138,7 @@ void UpdateTitle(void)
 //=============================================================================
 // 描画処理
 //=============================================================================
-void DrawTitle(void)
+void DrawTutorial(void)
 {
 	// 頂点バッファ設定
 	UINT stride = sizeof(VERTEX_3D);
@@ -162,13 +160,17 @@ void DrawTitle(void)
 	// タイトルの背景を描画
 	{
 		// テクスチャ設定
-		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Title.texNo]);
+		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_Tutorial.texNo]);
 
 		// １枚のポリゴンの頂点とテクスチャ座標を設定
-		SetSprite(g_VertexBuffer, g_Title.pos.x, g_Title.pos.y, g_Title.widtht, g_Title.height, 0.0f, 0.0f, 1.0f, 1.0f);
+		SetSpriteLeftTop(g_VertexBuffer, g_Tutorial.pos.x, g_Tutorial.pos.y, g_Tutorial.widtht, g_Tutorial.height, 0.0f, 0.0f, 1.0f, 1.0f);
 
 		// ポリゴン描画
 		GetDeviceContext()->Draw(4, 0);
 	}
 }
+
+
+
+
 

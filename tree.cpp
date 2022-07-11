@@ -86,7 +86,7 @@ HRESULT InitTree(void)
 	g_TexNo = 0;
 
 	// –Øƒ[ƒN‚Ì‰Šú‰»
-	for(int nCntTree = 0; nCntTree < MAX_TREE; nCntTree++)
+	for(int nCntTree = 0; nCntTree < 1; nCntTree++)
 	{
 		ZeroMemory(&g_aTree[nCntTree].material, sizeof(g_aTree[nCntTree].material));
 		g_aTree[nCntTree].material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);

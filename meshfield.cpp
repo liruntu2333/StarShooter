@@ -14,6 +14,7 @@
 // マクロ定義
 //*****************************************************************************
 #define TEXTURE_MAX		(1)				// テクスチャの数
+#define ROAD_HALF_WIDTH		50.0f
 
 //*****************************************************************************
 // グローバル変数
@@ -32,6 +33,7 @@ static int			g_nNumVertexField;						// 総頂点数
 static int			g_nNumVertexIndexField;					// 総インデックス数
 static int			g_nNumPolygonField;						// 総ポリゴン数
 static float		g_fBlockSizeXField, g_fBlockSizeZField;	// ブロックサイズ
+static float		g_FieldSizeX, g_FieldSizeZ;	// ブロックサイズ
 
 static char* g_TextureName[] = {
 	"data/TEXTURE/field004.jpg",
@@ -52,6 +54,7 @@ static float		g_wave_amplitude  = 20.0f;	// 波の振幅
 
 static BOOL			g_Load = FALSE;
 
+inline float GetFieldHeight(float x, float z);
 
 //=============================================================================
 // 初期化処理
@@ -93,7 +96,8 @@ HRESULT InitMeshField(XMFLOAT3 pos, XMFLOAT3 rot,
 	// ブロックサイズの設定
 	g_fBlockSizeXField = fBlockSizeX;
 	g_fBlockSizeZField = fBlockSizeZ;
-
+	g_FieldSizeX = g_fBlockSizeXField * g_nNumBlockXField;
+	g_FieldSizeZ = g_fBlockSizeZField * g_nNumBlockZField;
 
 	// 頂点情報をメモリに作っておく（波の為）
 	// 波の処理
@@ -109,20 +113,24 @@ HRESULT InitMeshField(XMFLOAT3 pos, XMFLOAT3 rot,
 	{
 		for (int x = 0; x < (g_nNumBlockXField + 1); x++)
 		{
-			g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.x = -(g_nNumBlockXField / 2.0f) * g_fBlockSizeXField + x * g_fBlockSizeXField;
-			g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.y = 0.0f;
-			g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.z = (g_nNumBlockZField / 2.0f) * g_fBlockSizeZField - z * g_fBlockSizeZField;
+			float& currX = g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.x;
+			float& currZ = g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.z;
+			float& currY = g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.y;
 
-			float dx = g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.x - g_Center.x;
-			float dz = g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.z - g_Center.z;
+			currX = -(g_nNumBlockXField / 2.0f) * g_fBlockSizeXField + x * g_fBlockSizeXField;
+			currZ = (g_nNumBlockZField / 2.0f) * g_fBlockSizeZField - z * g_fBlockSizeZField;
+			currY = GetFieldHeight(currX, currZ);
 
-			// 波紋の中心点からの距離を得る
-			float len = (float)sqrt(dx * dx + dz * dz);
+			//float dx = g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.x - g_Center.x;
+			//float dz = g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.z - g_Center.z;
 
-			// 波の高さを、sin関数で得る
-			// 波の高さ　= sin( -経過時間 * 周波数 + 距離 * 距離補正 ) * 振幅
-			g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.y = sinf(-g_Time * g_wave_frequency + len * g_wave_correction) * g_wave_amplitude;
-			g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.y = 0.0f;
+			//// 波紋の中心点からの距離を得る
+			//float len = (float)sqrt(dx * dx + dz * dz);
+
+			//// 波の高さを、sin関数で得る
+			//// 波の高さ　= sin( -経過時間 * 周波数 + 距離 * 距離補正 ) * 振幅
+			//g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.y = sinf(-g_Time * g_wave_frequency + len * g_wave_correction) * g_wave_amplitude;
+			//g_Vertex[z * (g_nNumBlockXField + 1) + x].Position.y = 0.0f;
 
 			// 法線の設定
 			g_Vertex[z * (g_nNumBlockXField + 1) + x].Normal = XMFLOAT3(0.0f, 1.0, 0.0f);
@@ -318,29 +326,33 @@ void DrawMeshField(void)
 	// テクスチャ設定
 	GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_TexNo]);
 
+	for (int x = 0; x < 3; ++x)
+	{
+		for (int z = 0; z < 3; ++z)
+		{
+			XMMATRIX mtxRot, mtxTranslate, mtxWorld;
 
-	XMMATRIX mtxRot, mtxTranslate, mtxWorld;
+			// ワールドマトリックスの初期化
+			mtxWorld = XMMatrixTranslation(
+				static_cast<float>(x - 1) * g_FieldSizeX,
+				0.0f,
+				static_cast<float>(z - 1) * g_FieldSizeZ);
 
-	// ワールドマトリックスの初期化
-	mtxWorld = XMMatrixIdentity();
+			// 回転を反映
+			mtxRot = XMMatrixRotationRollPitchYaw(g_rotField.x, g_rotField.y, g_rotField.z);
+			mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-	// 回転を反映
-	mtxRot = XMMatrixRotationRollPitchYaw(g_rotField.x, g_rotField.y, g_rotField.z);
-	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+			// 移動を反映
+			mtxTranslate = XMMatrixTranslation(g_posField.x, g_posField.y, g_posField.z);
+			mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
-	// 移動を反映
-	mtxTranslate = XMMatrixTranslation(g_posField.x, g_posField.y, g_posField.z);
-	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+			// ワールドマトリックスの設定
+			SetWorldMatrix(&mtxWorld);
 
-	// ワールドマトリックスの設定
-	SetWorldMatrix(&mtxWorld);
-
-
-	// ポリゴンの描画
-	GetDeviceContext()->DrawIndexed(g_nNumVertexIndexField, 0, 0);
+			GetDeviceContext()->DrawIndexed(g_nNumVertexIndexField, 0, 0);
+		}
+	}
 }
-
-
 
 BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3 *HitPosition, XMFLOAT3 *Normal)
 {
@@ -403,4 +415,32 @@ BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3 *HitPosition, XMFLOAT3 *Normal)
 	// 何処にも当たっていなかった時
 	*HitPosition = org;
 	return FALSE;
+}
+
+inline float GetFieldHeight(float x, float z)
+{
+	if ((x > -ROAD_HALF_WIDTH &&
+		x < +ROAD_HALF_WIDTH) ||
+		(z > -ROAD_HALF_WIDTH &&
+			z < +ROAD_HALF_WIDTH))
+	{
+		return -5.0f;
+	}
+	return -200.f;
+}
+
+bool CheckFieldValid(float x, float z)
+{
+	return GetFieldHeight(x, z) > -10.0f;
+}
+
+XMFLOAT3 GetFieldEntrance()
+{
+	return { 0.0f, 0.0f, -g_FieldSizeZ / 2.0f};
+}
+
+bool IsEndOfRoad(float x, float z)
+{
+	return z > +g_FieldSizeZ / 2.0f || z < -g_FieldSizeZ / 2.0f ||
+		x > +g_FieldSizeX / 2.0f || x < -g_FieldSizeX / 2.0f;
 }

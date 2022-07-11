@@ -17,3 +17,7 @@ void DrawMeshField(void);
 
 BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3 *HitPosition, XMFLOAT3 *Normal);
 
+bool CheckFieldValid(float x, float z);
+
+XMFLOAT3 GetFieldEntrance();
+bool IsEndOfRoad(float x, float z);

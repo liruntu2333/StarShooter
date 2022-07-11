@@ -159,9 +159,9 @@ void UpdateWeapon(void)
 
 	for (int i = 0; i < MAX_WEAPON; i++)
 	{
-		g_Weapon[i].pos.x += (player->pos.x - g_Weapon[i].pos.x) * 0.05f;
-		g_Weapon[i].pos.y += (player->pos.y - g_Weapon[i].pos.y) * 0.05f;
-		g_Weapon[i].pos.z += (player->pos.z - g_Weapon[i].pos.z) * 0.05f;
+		g_Weapon[i].pos.x += (player->pos.x + 20.0f - g_Weapon[i].pos.x) * 0.05f;
+		g_Weapon[i].pos.y += (player->pos.y + 10.0f - g_Weapon[i].pos.y) * 0.05f;
+		g_Weapon[i].pos.z += (player->pos.z - 10.0f - g_Weapon[i].pos.z) * 0.05f;
 	}
 	
 

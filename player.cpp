@@ -21,7 +21,7 @@
 #define	MODEL_PLAYER		"data/MODEL/cone.obj"			// “Ç‚İ‚Şƒ‚ƒfƒ‹–¼
 #define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// “Ç‚İ‚Şƒ‚ƒfƒ‹–¼
 
-#define	VALUE_MOVE			(5.0f)							// ˆÚ“®—Ê
+#define	VALUE_MOVE			(0.0f)							// ˆÚ“®—Ê
 #define	VALUE_JUMP			(10)							// ˆÚ“®—Ê
 #define	VALUE_SIDE_MOVE			(2.0f)							// ˆÚ“®—Ê
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// ‰ñ“]—Ê

@@ -26,8 +26,8 @@ struct CAMERA
 	XMFLOAT3			up;				// カメラの上方向ベクトル
 	XMFLOAT3			rot;			// カメラの回転
 	
-	float				len;			// カメラの視点と注視点の距離
-
+	float				lenPlayer;			// カメラの視点と注視点の距離(プレーヤーの場合)
+	float				lenMenu;			// カメラの視点と注視点の距離(メニューの場合)
 };
 
 
@@ -54,4 +54,5 @@ CAMERA *GetCamera(void);
 void SetViewPort(int type);
 int GetViewPortType(void);
 
-void SetCameraAt(XMFLOAT3 pos, float t = 1.0f);
+void SetCameraAtPlayer(XMFLOAT3 pos, float t = 1.0f);
+void SetCameraAtMenu(XMFLOAT3 pos, float t);

@@ -16,6 +16,7 @@
 #include "player.h"
 #include "enemy.h"
 #include "weapon.h"
+#include "menu.h"
 #include "meshfield.h"
 #include "meshwall.h"
 #include "shadow.h"
@@ -37,6 +38,11 @@
 //*****************************************************************************
 void CheckHit(void);
 
+enum FocusMode
+{
+	FOCUS_PLAYER,
+	FOCUS_MENU,
+};
 
 
 //*****************************************************************************
@@ -46,6 +52,7 @@ static int	g_ViewPortType_Game = TYPE_FULL_SCREEN;
 
 static BOOL	g_bPause = TRUE;	// ポーズON/OFF
 
+static int g_focusMode = FocusMode::FOCUS_PLAYER;
 
 //=============================================================================
 // 初期化処理
@@ -68,6 +75,9 @@ HRESULT InitGame(void)
 
 	// エネミーの初期化
 	InitEnemy();
+
+	// メニューの初期化
+	InitMenu();
 
 	// 壁の初期化
 	InitMeshWall(XMFLOAT3(0.0f, 0.0f, MAP_TOP), XMFLOAT3(0.0f, 0.0f, 0.0f),
@@ -130,6 +140,9 @@ void UninitGame(void)
 	// 地面の終了処理
 	UninitMeshField();
 
+	// メニューの終了処理
+	UninitMenu();
+
 	// エネミーの終了処理
 	UninitEnemy();
 
@@ -167,6 +180,11 @@ void UpdateGame(void)
 	if(g_bPause == FALSE)
 		return;
 
+	if (GetKeyboardTrigger(DIK_H))
+	{
+		g_focusMode = (g_focusMode + 1) % 2;
+	}
+
 	// 地面処理の更新
 	UpdateMeshField();
 
@@ -178,6 +196,9 @@ void UpdateGame(void)
 
 	// エネミーの更新処理
 	UpdateEnemy();
+
+	// メニューの更新処理
+	UpdateMenu();
 
 	// 壁処理の更新
 	UpdateMeshWall();
@@ -222,6 +243,9 @@ void DrawGame0(void)
 	// 武器の描画処理
 	DrawWeapon();
 
+	// メニューの描画処理
+	DrawMenu();
+
 	// 弾の描画処理
 	DrawBullet();
 
@@ -265,12 +289,27 @@ void DrawGame(void)
 
 #endif
 
-	float cameraMvT = IsPlayerEndOfRoad() ? 1.0f : 1.0f;
-	// プレイヤー視点
-	pos = GetPlayer()->pos;
-	//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
-	SetCameraAt(pos, cameraMvT);
-	SetCamera();
+	float cameraMvT;
+
+	switch (g_focusMode)
+	{
+	case FocusMode::FOCUS_PLAYER:
+		cameraMvT = IsPlayerEndOfRoad() ? 1.0f : 1.0f;
+		// プレイヤー視点
+		pos = GetPlayer()->pos;
+		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
+		SetCameraAtPlayer(pos, cameraMvT);
+		SetCamera();
+		break;
+		
+	case FocusMode::FOCUS_MENU:
+
+		pos = GetMenu()->pos;
+		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
+		SetCameraAtMenu(pos, 0.05f);
+		SetCamera();
+		break;
+	}
 
 	switch(g_ViewPortType_Game)
 	{
@@ -287,7 +326,7 @@ void DrawGame(void)
 		// エネミー視点
 		pos = GetEnemy()->pos;
 		pos.y = 0.0f;
-		SetCameraAt(pos);
+		SetCameraAtPlayer(pos);
 		SetCamera();
 		SetViewPort(TYPE_RIGHT_HALF_SCREEN);
 		DrawGame0();
@@ -301,7 +340,7 @@ void DrawGame(void)
 		// エネミー視点
 		pos = GetEnemy()->pos;
 		pos.y = 0.0f;
-		SetCameraAt(pos);
+		SetCameraAtPlayer(pos);
 		SetCamera();
 		SetViewPort(TYPE_DOWN_HALF_SCREEN);
 		DrawGame0();

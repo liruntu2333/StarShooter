@@ -13,13 +13,13 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define	POS_X_CAM			(0.0f)			// カメラの初期位置(X座標)
-#define	POS_Y_CAM			(50.0f)			// カメラの初期位置(Y座標)
-#define	POS_Z_CAM			(-140.0f)		// カメラの初期位置(Z座標)
+#define	POS_X_CAM_PLAYER			(0.0f)			// カメラの初期位置(X座標)	// プレーヤーの場合
+#define	POS_Y_CAM_PLAYER			(50.0f)			// カメラの初期位置(Y座標)
+#define	POS_Z_CAM_PLAYER			(-140.0f)		// カメラの初期位置(Z座標)
 
-//#define	POS_X_CAM		(0.0f)			// カメラの初期位置(X座標)
-//#define	POS_Y_CAM		(200.0f)		// カメラの初期位置(Y座標)
-//#define	POS_Z_CAM		(-400.0f)		// カメラの初期位置(Z座標)
+#define POS_X_CAM_MENU				(0.0f)			// カメラの位置(X座標)		// メニューの場合
+#define POS_Y_CAM_MENU				(30.0f)			// カメラの位置(Y座標)
+#define POS_Z_CAM_MENU				(-50.0f)		// カメラの位置(Z座標)
 
 
 #define	VIEW_ANGLE		(XMConvertToRadians(45.0f))						// ビュー平面の視野角
@@ -42,16 +42,23 @@ static int				g_ViewPortType = TYPE_FULL_SCREEN;
 //=============================================================================
 void InitCamera(void)
 {
-	g_Camera.pos = { POS_X_CAM, POS_Y_CAM, POS_Z_CAM };
+	g_Camera.pos = { POS_X_CAM_PLAYER, POS_Y_CAM_PLAYER, POS_Z_CAM_PLAYER };
 	g_Camera.at  = { 0.0f, 0.0f, 0.0f };
 	g_Camera.up  = { 0.0f, 1.0f, 0.0f };
 	g_Camera.rot = { 0.0f, 0.0f, 0.0f };
 
 	// 視点と注視点の距離を計算
-	float vx, vz;
-	vx = g_Camera.pos.x - g_Camera.at.x;
-	vz = g_Camera.pos.z - g_Camera.at.z;
-	g_Camera.len = sqrtf(vx * vx + vz * vz);
+	// プレーヤーの場合
+	float vx_player, vz_player;
+	vx_player = POS_X_CAM_PLAYER - g_Camera.at.x;
+	vz_player = POS_Z_CAM_PLAYER - g_Camera.at.z;
+	g_Camera.lenPlayer = sqrtf(vx_player * vx_player + vz_player * vz_player);
+	// メニューの場合
+	float vx_menu, vz_menu;
+	vx_menu = POS_X_CAM_MENU - g_Camera.at.x;
+	vz_menu = POS_Z_CAM_MENU - g_Camera.at.z;
+	g_Camera.lenMenu = sqrtf(vx_menu * vx_menu + vz_menu * vz_menu);
+
 	
 	// ビューポートタイプの初期化
 	g_ViewPortType = TYPE_FULL_SCREEN;
@@ -83,8 +90,8 @@ void UpdateCamera(void)
 			g_Camera.rot.y -= XM_PI * 2.0f;
 		}
 
-		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.len;
-		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.len;
+		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
+		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
 	}
 
 	if (GetKeyboardPress(DIK_C))
@@ -95,8 +102,8 @@ void UpdateCamera(void)
 			g_Camera.rot.y += XM_PI * 2.0f;
 		}
 
-		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.len;
-		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.len;
+		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
+		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
 	}
 
 	if (GetKeyboardPress(DIK_Y))
@@ -117,8 +124,8 @@ void UpdateCamera(void)
 			g_Camera.rot.y += XM_PI * 2.0f;
 		}
 
-		g_Camera.at.x = g_Camera.pos.x + sinf(g_Camera.rot.y) * g_Camera.len;
-		g_Camera.at.z = g_Camera.pos.z + cosf(g_Camera.rot.y) * g_Camera.len;
+		g_Camera.at.x = g_Camera.pos.x + sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
+		g_Camera.at.z = g_Camera.pos.z + cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
 	}
 
 	if (GetKeyboardPress(DIK_E))
@@ -129,8 +136,8 @@ void UpdateCamera(void)
 			g_Camera.rot.y -= XM_PI * 2.0f;
 		}
 
-		g_Camera.at.x = g_Camera.pos.x + sinf(g_Camera.rot.y) * g_Camera.len;
-		g_Camera.at.z = g_Camera.pos.z + cosf(g_Camera.rot.y) * g_Camera.len;
+		g_Camera.at.x = g_Camera.pos.x + sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
+		g_Camera.at.z = g_Camera.pos.z + cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
 	}
 
 	if (GetKeyboardPress(DIK_T))
@@ -145,16 +152,16 @@ void UpdateCamera(void)
 
 	if (GetKeyboardPress(DIK_U))
 	{// 近づく
-		g_Camera.len -= VALUE_MOVE_CAMERA;
-		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.len;
-		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.len;
+		g_Camera.lenPlayer -= VALUE_MOVE_CAMERA;
+		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
+		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
 	}
 
 	if (GetKeyboardPress(DIK_M))
 	{// 離れる
-		g_Camera.len += VALUE_MOVE_CAMERA;
-		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.len;
-		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.len;
+		g_Camera.lenPlayer += VALUE_MOVE_CAMERA;
+		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
+		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
 	}
 
 	// カメラを初期に戻す
@@ -282,18 +289,34 @@ int GetViewPortType(void)
 
 
 // カメラの視点と注視点をセット
-void SetCameraAt(XMFLOAT3 pos, float t)
+void SetCameraAtPlayer(XMFLOAT3 pos, float t)
 {
 	// カメラの注視点をプレイヤーの座標にしてみる
 	g_Camera.at = pos;
 
 	// カメラの視点をカメラのY軸回転に対応させている
 	XMFLOAT3 target {};
-	target.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.len;
-	target.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.len;
+	target.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
+	target.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
 	target.y = pos.y + 10.0f;
 
 	XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), XMLoadFloat3(&target), t);
 	XMStoreFloat3(&g_Camera.pos, result);
 }
 
+
+// カメラの視点と注視点をセット
+void SetCameraAtMenu(XMFLOAT3 pos, float t)
+{
+	// カメラの注視点をプレイヤーの座標にしてみる
+	g_Camera.at = pos;
+
+	// カメラの視点をカメラのY軸回転に対応させている
+	XMFLOAT3 target{};
+	target.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenMenu;
+	target.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenMenu;
+	target.y = pos.y + 10.0f;
+
+	XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), XMLoadFloat3(&target), t);
+	XMStoreFloat3(&g_Camera.pos, result);
+}

@@ -166,6 +166,19 @@ void UpdateMenu(void)
 	}
 
 
+	// ƒƒjƒ…[‚Ì•\¦§Œä
+	if (GetKeyboardTrigger(DIK_H))
+	{
+		if (g_Menu[0].isDisplay == FALSE)
+		{
+			g_Menu[0].isDisplay = TRUE;
+		}
+		else
+		{
+			g_Menu[0].isDisplay = FALSE;
+		}
+	}
+
 	// ’e”­Ëˆ—
 	if (GetKeyboardTrigger(DIK_SPACE))
 	{

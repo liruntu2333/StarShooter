@@ -47,7 +47,6 @@ struct PLAYER
 	XMFLOAT4			quaternion;	// クォータニオン
 	XMFLOAT3			upVector;	// 自分が立っている所
 
-
 };
 
 //*****************************************************************************
@@ -59,4 +58,4 @@ void UpdatePlayer(void);
 void DrawPlayer(void);
 
 PLAYER *GetPlayer(void);
-
+bool IsPlayerEndOfRoad();

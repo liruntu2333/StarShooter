@@ -8,6 +8,7 @@
 #include "input.h"
 #include "camera.h"
 #include "debugproc.h"
+#include "MathHelper.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -281,14 +282,18 @@ int GetViewPortType(void)
 
 
 // カメラの視点と注視点をセット
-void SetCameraAT(XMFLOAT3 pos)
+void SetCameraAt(XMFLOAT3 pos, float t)
 {
 	// カメラの注視点をプレイヤーの座標にしてみる
 	g_Camera.at = pos;
 
 	// カメラの視点をカメラのY軸回転に対応させている
-	g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.len;
-	g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.len;
-	g_Camera.pos.y = pos.y + 10.0f;
+	XMFLOAT3 target {};
+	target.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.len;
+	target.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.len;
+	target.y = pos.y + 10.0f;
+
+	XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), XMLoadFloat3(&target), t);
+	XMStoreFloat3(&g_Camera.pos, result);
 }
 

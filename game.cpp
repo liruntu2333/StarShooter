@@ -265,10 +265,11 @@ void DrawGame(void)
 
 #endif
 
+	float cameraMvT = IsPlayerEndOfRoad() ? 1.0f : 1.0f;
 	// プレイヤー視点
 	pos = GetPlayer()->pos;
 	//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
-	SetCameraAT(pos);
+	SetCameraAt(pos, cameraMvT);
 	SetCamera();
 
 	switch(g_ViewPortType_Game)
@@ -286,7 +287,7 @@ void DrawGame(void)
 		// エネミー視点
 		pos = GetEnemy()->pos;
 		pos.y = 0.0f;
-		SetCameraAT(pos);
+		SetCameraAt(pos);
 		SetCamera();
 		SetViewPort(TYPE_RIGHT_HALF_SCREEN);
 		DrawGame0();
@@ -300,7 +301,7 @@ void DrawGame(void)
 		// エネミー視点
 		pos = GetEnemy()->pos;
 		pos.y = 0.0f;
-		SetCameraAT(pos);
+		SetCameraAt(pos);
 		SetCamera();
 		SetViewPort(TYPE_DOWN_HALF_SCREEN);
 		DrawGame0();

@@ -337,8 +337,6 @@ void Draw(void)
 	case MODE_TITLE:		
 		// タイトル画面の描画
 
-		SetViewPort(TYPE_FULL_SCREEN);
-
 		// 2Dの物を描画する処理
 		// Z比較なし
 		SetDepthEnable(FALSE);
@@ -358,8 +356,6 @@ void Draw(void)
 
 	case MODE_TUTORIAL:
 		// チュートリアル画面の描画
-
-		SetViewPort(TYPE_FULL_SCREEN);
 
 		// 2Dの物を描画する処理
 		// Z比較なし
@@ -387,8 +383,6 @@ void Draw(void)
 
 	case MODE_RESULT:		
 		// リザルト画面の描画
-
-		SetViewPort(TYPE_FULL_SCREEN);
 
 		// 2Dの物を描画する処理
 		// Z比較なし

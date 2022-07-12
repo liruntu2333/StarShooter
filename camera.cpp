@@ -35,8 +35,6 @@
 //*****************************************************************************
 static CAMERA			g_Camera;		// カメラデータ
 
-static int				g_ViewPortType = TYPE_FULL_SCREEN;
-
 //=============================================================================
 // 初期化処理
 //=============================================================================
@@ -59,9 +57,6 @@ void InitCamera(void)
 	vz_menu = POS_Z_CAM_MENU - g_Camera.at.z;
 	g_Camera.lenMenu = sqrtf(vx_menu * vx_menu + vz_menu * vz_menu);
 
-	
-	// ビューポートタイプの初期化
-	g_ViewPortType = TYPE_FULL_SCREEN;
 }
 
 
@@ -215,77 +210,6 @@ CAMERA *GetCamera(void)
 {
 	return &g_Camera;
 }
-
-//=============================================================================
-// ビューポートの設定
-//=============================================================================
-void SetViewPort(int type)
-{
-	ID3D11DeviceContext *g_ImmediateContext = GetDeviceContext();
-	D3D11_VIEWPORT vp;
-
-	g_ViewPortType = type;
-
-	// ビューポート設定
-	switch (g_ViewPortType)
-	{
-	case TYPE_FULL_SCREEN:
-		vp.Width = (FLOAT)SCREEN_WIDTH;
-		vp.Height = (FLOAT)SCREEN_HEIGHT;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		vp.TopLeftX = 0;
-		vp.TopLeftY = 0;
-		break;
-
-	case TYPE_LEFT_HALF_SCREEN:
-		vp.Width = (FLOAT)SCREEN_WIDTH / 2;
-		vp.Height = (FLOAT)SCREEN_HEIGHT;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		vp.TopLeftX = 0;
-		vp.TopLeftY = 0;
-		break;
-
-	case TYPE_RIGHT_HALF_SCREEN:
-		vp.Width = (FLOAT)SCREEN_WIDTH / 2;
-		vp.Height = (FLOAT)SCREEN_HEIGHT;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		vp.TopLeftX = (FLOAT)SCREEN_WIDTH / 2;
-		vp.TopLeftY = 0;
-		break;
-
-	case TYPE_UP_HALF_SCREEN:
-		vp.Width = (FLOAT)SCREEN_WIDTH;
-		vp.Height = (FLOAT)SCREEN_HEIGHT / 2;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		vp.TopLeftX = 0;
-		vp.TopLeftY = 0;
-		break;
-
-	case TYPE_DOWN_HALF_SCREEN:
-		vp.Width = (FLOAT)SCREEN_WIDTH;
-		vp.Height = (FLOAT)SCREEN_HEIGHT / 2;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		vp.TopLeftX = 0;
-		vp.TopLeftY = (FLOAT)SCREEN_HEIGHT / 2;
-		break;
-
-
-	}
-	g_ImmediateContext->RSSetViewports(1, &vp);
-
-}
-
-
-int GetViewPortType(void)
-{
-	return g_ViewPortType;
-}
-
 
 
 // カメラの視点と注視点をセット

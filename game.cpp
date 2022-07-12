@@ -48,7 +48,6 @@ enum FocusMode
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
-static int	g_ViewPortType_Game = TYPE_FULL_SCREEN;
 
 static BOOL	g_bPause = TRUE;	// ポーズON/OFF
 
@@ -59,8 +58,6 @@ static int g_focusMode = FocusMode::FOCUS_PLAYER;
 //=============================================================================
 HRESULT InitGame(void)
 {
-	g_ViewPortType_Game = TYPE_FULL_SCREEN;
-
 	// フィールドの初期化
 	InitMeshField(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 100, 100, 13.0f, 13.0f);
 
@@ -163,11 +160,6 @@ void UninitGame(void)
 void UpdateGame(void)
 {
 #ifdef _DEBUG
-	if (GetKeyboardTrigger(DIK_V))
-	{
-		g_ViewPortType_Game = (g_ViewPortType_Game + 1) % TYPE_NONE;
-		SetViewPort(g_ViewPortType_Game);
-	}
 
 	if (GetKeyboardTrigger(DIK_P))
 	{
@@ -225,8 +217,32 @@ void UpdateGame(void)
 //=============================================================================
 // 描画処理
 //=============================================================================
-void DrawGame0(void)
+void DrawGame(void)
 {
+	XMFLOAT3 pos;
+
+	float cameraMvT;
+
+	switch (g_focusMode)
+	{
+	case FocusMode::FOCUS_PLAYER:
+		cameraMvT = IsPlayerEndOfRoad() ? 1.0f : 1.0f;
+		// プレイヤー視点
+		pos = GetPlayer()->pos;
+		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
+		SetCameraAtPlayer(pos, cameraMvT);
+		SetCamera();
+		break;
+		
+	case FocusMode::FOCUS_MENU:
+
+		pos = GetMenu()->pos;
+		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
+		SetCameraAtMenu(pos, 0.05f);
+		SetCamera();
+		break;
+	}
+
 	// 3Dの物を描画する処理
 	// 地面の描画処理
 	DrawMeshField();
@@ -275,78 +291,6 @@ void DrawGame0(void)
 
 	// Z比較あり
 	SetDepthEnable(TRUE);
-}
-
-
-void DrawGame(void)
-{
-	XMFLOAT3 pos;
-
-
-#ifdef _DEBUG
-	// デバッグ表示
-	PrintDebugProc("ViewPortType:%d\n", g_ViewPortType_Game);
-
-#endif
-
-	float cameraMvT;
-
-	switch (g_focusMode)
-	{
-	case FocusMode::FOCUS_PLAYER:
-		cameraMvT = IsPlayerEndOfRoad() ? 1.0f : 1.0f;
-		// プレイヤー視点
-		pos = GetPlayer()->pos;
-		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
-		SetCameraAtPlayer(pos, cameraMvT);
-		SetCamera();
-		break;
-		
-	case FocusMode::FOCUS_MENU:
-
-		pos = GetMenu()->pos;
-		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
-		SetCameraAtMenu(pos, 0.05f);
-		SetCamera();
-		break;
-	}
-
-	switch(g_ViewPortType_Game)
-	{
-	case TYPE_FULL_SCREEN:
-		SetViewPort(TYPE_FULL_SCREEN);
-		DrawGame0();
-		break;
-
-	case TYPE_LEFT_HALF_SCREEN:
-	case TYPE_RIGHT_HALF_SCREEN:
-		SetViewPort(TYPE_LEFT_HALF_SCREEN);
-		DrawGame0();
-
-		// エネミー視点
-		pos = GetEnemy()->pos;
-		pos.y = 0.0f;
-		SetCameraAtPlayer(pos);
-		SetCamera();
-		SetViewPort(TYPE_RIGHT_HALF_SCREEN);
-		DrawGame0();
-		break;
-
-	case TYPE_UP_HALF_SCREEN:
-	case TYPE_DOWN_HALF_SCREEN:
-		SetViewPort(TYPE_UP_HALF_SCREEN);
-		DrawGame0();
-
-		// エネミー視点
-		pos = GetEnemy()->pos;
-		pos.y = 0.0f;
-		SetCameraAtPlayer(pos);
-		SetCamera();
-		SetViewPort(TYPE_DOWN_HALF_SCREEN);
-		DrawGame0();
-		break;
-
-	}
 
 }
 

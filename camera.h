@@ -51,8 +51,5 @@ void SetCamera(void);
 
 CAMERA *GetCamera(void);
 
-void SetViewPort(int type);
-int GetViewPortType(void);
-
 void SetCameraAtPlayer(XMFLOAT3 pos, float t = 1.0f);
 void SetCameraAtMenu(XMFLOAT3 pos, float t);

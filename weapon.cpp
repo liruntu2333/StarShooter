@@ -12,6 +12,7 @@
 #include "light.h"
 #include "bullet.h"
 #include "weapon.h"
+#include "MathHelper.h"
 
 
 //*****************************************************************************
@@ -157,11 +158,23 @@ void UpdateWeapon(void)
 	// 移動処理
 	PLAYER* player = GetPlayer();
 
+	bool endOfRoad = IsPlayerEndOfRoad();
+
 	for (int i = 0; i < MAX_WEAPON; i++)
 	{
-		g_Weapon[i].pos.x += (player->pos.x + 20.0f - g_Weapon[i].pos.x) * 0.05f;
-		g_Weapon[i].pos.y += (player->pos.y + 10.0f - g_Weapon[i].pos.y) * 0.05f;
-		g_Weapon[i].pos.z += (player->pos.z - 10.0f - g_Weapon[i].pos.z) * 0.05f;
+		//g_Weapon[i].pos.x += (player->pos.x + 20.0f - g_Weapon[i].pos.x) * 0.05f;
+		//g_Weapon[i].pos.y += (player->pos.y + 10.0f - g_Weapon[i].pos.y) * 0.05f;
+		//g_Weapon[i].pos.z += (player->pos.z - 10.0f - g_Weapon[i].pos.z) * 0.05f;
+		auto target = XMLoadFloat3(&player->pos);
+		target += {20.0f, 10.0f, -10.0f};
+		if (endOfRoad)
+		{
+			target += {0.0f, 0.0f, -45.0f};
+		}
+
+		float t = IsPlayerEndOfRoad() ? 1.0f : 0.1;
+		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&g_Weapon[i].pos), target, t);
+		XMStoreFloat3(&g_Weapon[i].pos, lerp);
 	}
 	
 
@@ -233,8 +246,7 @@ void UpdateWeapon(void)
 
 
 #ifdef _DEBUG	// デバッグ情報を表示する
-	//PrintDebugProc("Player:↑ → ↓ ←　Space\n");
-	//PrintDebugProc("Player:X:%f Y:%f Z:%f\n", g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
+	PrintDebugProc("WeaponOffset:X:%f Y:%f Z:%f\n", g_Weapon[0].pos.x - player->pos.x, g_Weapon[0].pos.y - player->pos.y, g_Weapon[0].pos.z - player->pos.z);
 #endif
 }
 

@@ -41,7 +41,6 @@ enum {
 
 };
 
-
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
@@ -55,4 +54,4 @@ CAMERA *GetCamera(void);
 void SetViewPort(int type);
 int GetViewPortType(void);
 
-void SetCameraAT(XMFLOAT3 pos);
+void SetCameraAt(XMFLOAT3 pos, float t = 1.0f);

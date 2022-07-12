@@ -21,7 +21,7 @@
 #define	MODEL_PLAYER		"data/MODEL/cone.obj"			// 読み込むモデル名
 #define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// 読み込むモデル名
 
-#define	VALUE_MOVE			(1.0f)							// 移動量
+#define	VALUE_MOVE			(5.0f)							// 移動量
 #define	VALUE_JUMP			(10)							// 移動量
 #define	VALUE_SIDE_MOVE			(2.0f)							// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// 回転量
@@ -45,6 +45,8 @@ static PLAYER		g_Player;						// プレイヤー
 static PLAYER		g_Parts[PLAYER_PARTS_MAX];		// プレイヤーのパーツ用
 
 static BOOL			g_Load = FALSE;
+
+static bool			g_EndOfRoad = FALSE;
 
 
 // プレイヤーの階層アニメーションデータ
@@ -157,6 +159,11 @@ void UninitPlayer(void)
 //=============================================================================
 void UpdatePlayer(void)
 {
+	if (g_EndOfRoad)
+	{
+		g_EndOfRoad = FALSE;
+	}
+
 	CAMERA *cam = GetCamera();
 
 	// 移動させちゃう
@@ -227,19 +234,20 @@ void UpdatePlayer(void)
 
 		if (IsEndOfRoad(g_Player.pos.x, g_Player.pos.z))
 		{
+			g_EndOfRoad = TRUE;
 			auto const prev = g_Player.pos;
 			g_Player.pos = GetFieldEntrance();
+			// TODO: make player set on the right offset of road
 			g_Player.pos.x = prev.x;
-			if (!inAir)
-			{
-				g_Player.pos.y = PLAYER_OFFSET_Y;
-			}
-			else
+			//if (!inAir)
+			//{
+			//	g_Player.pos.y = PLAYER_OFFSET_Y;
+			//}
+			//else
 			{
 				g_Player.pos.y = prev.y;
 			}
 			g_Player.rot = { 0.0f, XM_PI, 0.0f };
-			//InitCamera();
 		}
 	}
 
@@ -468,5 +476,10 @@ void DrawPlayer(void)
 PLAYER *GetPlayer(void)
 {
 	return &g_Player;
+}
+
+bool IsPlayerEndOfRoad()
+{
+	return g_EndOfRoad;
 }
 

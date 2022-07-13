@@ -53,6 +53,8 @@ static BOOL	g_bPause = TRUE;	// É|Å[ÉYON/OFF
 
 static int g_focusMode = FocusMode::FOCUS_PLAYER;
 
+static int g_gameMode = GAMEMODE_START;
+
 //=============================================================================
 // èâä˙âªèàóù
 //=============================================================================

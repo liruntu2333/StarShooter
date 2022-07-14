@@ -213,8 +213,9 @@ CAMERA *GetCamera(void)
 
 
 // カメラの視点と注視点をセット
-void SetCameraAtPlayer(XMFLOAT3 pos, float t)
+void SetCameraAtPlayer(XMFLOAT3 pos, float dir, float t)
 {
+	g_Camera.rot.y = MathHelper::Lerp(g_Camera.rot.y, dir, t);
 	// カメラの注視点をプレイヤーの座標にしてみる
 	g_Camera.at = pos;
 
@@ -230,8 +231,9 @@ void SetCameraAtPlayer(XMFLOAT3 pos, float t)
 
 
 // カメラの視点と注視点をセット
-void SetCameraAtMenu(XMFLOAT3 pos, float t)
+void SetCameraAtMenu(XMFLOAT3 pos, float dir, float t)
 {
+	g_Camera.rot.y = MathHelper::Lerp(g_Camera.rot.y, dir, t);
 	// カメラの注視点をプレイヤーの座標にしてみる
 	g_Camera.at = pos;
 

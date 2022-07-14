@@ -228,7 +228,7 @@ void DrawGame(void)
 	switch (g_focusMode)
 	{
 	case FocusMode::FOCUS_PLAYER:
-		cameraMvT = IsPlayerEndOfRoad() ? 1.0f : 1.0f;
+		cameraMvT = IsPlayerEndOfBoarder() ? 1.0f : 1.0f;
 		// プレイヤー視点
 		pos = GetPlayer()->pos;
 		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている

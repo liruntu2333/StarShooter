@@ -419,10 +419,8 @@ BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3 *HitPosition, XMFLOAT3 *Normal)
 
 inline float GetFieldHeight(float x, float z)
 {
-	if ((x > -ROAD_HALF_WIDTH &&
-		x < +ROAD_HALF_WIDTH) ||
-		(z > -ROAD_HALF_WIDTH &&
-			z < +ROAD_HALF_WIDTH))
+	if ((x > -ROAD_HALF_WIDTH && x < +ROAD_HALF_WIDTH) ||
+		(z > -ROAD_HALF_WIDTH && z < +ROAD_HALF_WIDTH))
 	{
 		return -5.0f;
 	}
@@ -434,13 +432,27 @@ bool CheckFieldValid(float x, float z)
 	return GetFieldHeight(x, z) > -10.0f;
 }
 
-XMFLOAT3 GetFieldEntrance()
+XMFLOAT3 __vectorcall GetWarpPosition(XMFLOAT3 pos, int endOfBoarderFlag)
 {
-	return { 0.0f, 0.0f, -g_FieldSizeZ / 2.0f};
+	if (endOfBoarderFlag & EndOfZPlus)       pos.z -= g_FieldSizeZ;
+	else if (endOfBoarderFlag & EndOfZMinus) pos.z += g_FieldSizeZ;
+	if (endOfBoarderFlag & EndOfXPlus)       pos.x -= g_FieldSizeX;
+	else if (endOfBoarderFlag & EndOfXMinus) pos.x += g_FieldSizeX;
+	return pos;
 }
 
-bool IsEndOfRoad(float x, float z)
+int IsOutOfBoarder(float x, float z)
 {
-	return z > +g_FieldSizeZ / 2.0f || z < -g_FieldSizeZ / 2.0f ||
-		x > +g_FieldSizeX / 2.0f || x < -g_FieldSizeX / 2.0f;
+	int flag = EndOfNone;
+	if (z > + g_FieldSizeZ / 2.0f)      flag |= EndOfZPlus;
+	else if (z < - g_FieldSizeZ / 2.0f) flag |= EndOfZMinus;
+	if (x > + g_FieldSizeX / 2.0f)      flag |= EndOfXPlus;
+	else if (x < - g_FieldSizeX / 2.0f) flag |= EndOfXMinus;
+	return flag;
+}
+
+int IsAtConjunction(float x, float z)
+{
+	return (x > -ROAD_HALF_WIDTH && x < +ROAD_HALF_WIDTH) &&
+		(z > -ROAD_HALF_WIDTH && z < +ROAD_HALF_WIDTH);
 }

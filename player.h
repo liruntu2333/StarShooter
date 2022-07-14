@@ -58,4 +58,14 @@ void UpdatePlayer(void);
 void DrawPlayer(void);
 
 PLAYER *GetPlayer(void);
-bool IsPlayerEndOfRoad();
+
+/**
+ * \brief Every object moving correspondingly to player should check this flag to decide
+ * whether warp their position in field or not.
+ *
+ * \return An int type flag, last four bits used for representing a player's position's state
+ * to field's boarder.
+ * e.g. 0b0000 represents isn't out of any boarder.
+ *      0b0001 represents out of Z plus boarder.
+ */
+int IsPlayerEndOfBoarder();

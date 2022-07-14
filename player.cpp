@@ -18,7 +18,7 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define	MODEL_PLAYER		"data/MODEL/cone.obj"			// 読み込むモデル名
+#define	MODEL_PLAYER		"data/MODEL/player.obj"			// 読み込むモデル名
 #define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// 読み込むモデル名
 
 #define	VALUE_MOVE			(3.0f)							// 移動量
@@ -85,11 +85,11 @@ HRESULT InitPlayer(void)
 
 	g_Player.pos = {0.0f, 0.0f, -600.0f};
 	g_Player.pos.y = PLAYER_OFFSET_Y;
-	g_Player.rot = { 0.0f, 0.0f, 0.0f };
+	g_Player.rot = { 0.0f, XM_PI, 0.0f };
 	g_Player.scl = { 1.0f, 1.0f, 1.0f };
 
 	g_Player.spd = VALUE_MOVE;			// 移動スピードクリア
-	g_Player.dir = 0;
+	g_Player.dir = XM_PI;
 	g_Player.size = PLAYER_SIZE;	// 当たり判定の大きさ
 
 	g_Player.use = TRUE;
@@ -182,36 +182,11 @@ void UpdatePlayer(void)
 	if (g_AtConjunction && !g_MadeDecision)
 	{
 		// Decision of road's branch.
-		int i = rand() % 4;
+		int i = 1; //rand() % 4;
 		g_Player.dir += XM_PIDIV2 * i;
 		if (g_Player.dir > XM_2PI) g_Player.dir -= XM_2PI;
 		g_MadeDecision = true;
 	}
-
-	CAMERA *cam = GetCamera();
-
-	// 移動させちゃう
-	//if (GetKeyboardPress(DIK_LEFT))
-	//{	// 左へ移動
-	//	g_Player.spd = VALUE_MOVE;
-	//	g_Player.dir = XM_PI / 2;
-	//}
-	//if (GetKeyboardPress(DIK_RIGHT))
-	//{	// 右へ移動
-	//	g_Player.spd = VALUE_MOVE;
-	//	g_Player.dir = -XM_PI / 2;
-	//}
-	//if (GetKeyboardPress(DIK_UP))
-	//{	// 上へ移動
-	//	g_Player.spd = VALUE_MOVE;
-	//	g_Player.dir = XM_PI;
-	//}
-	//if (GetKeyboardPress(DIK_DOWN))
-	//{	// 下へ移動
-	//	g_Player.spd = VALUE_MOVE;
-	//	g_Player.dir = 0.0f;
-	//}
-
 
 #ifdef _DEBUG
 	if (GetKeyboardPress(DIK_R))
@@ -222,9 +197,6 @@ void UpdatePlayer(void)
 	}
 #endif
 
-	static int vertSpd = 0;
-	static bool inAir = false;
-	
 	// x pass
 	{
 		XMFLOAT3 target = g_Player.pos;
@@ -232,13 +204,12 @@ void UpdatePlayer(void)
 		if (GetKeyboardPress(DIK_LEFT))
 		{
 			target.x -= VALUE_SIDE_MOVE * cosf(g_Player.dir);
-			target.z -= VALUE_SIDE_MOVE * sinf(g_Player.dir);
-
+			target.z -= VALUE_SIDE_MOVE * -sinf(g_Player.dir);
 		}
 		if (GetKeyboardPress(DIK_RIGHT))
 		{
 			target.x += VALUE_SIDE_MOVE * cosf(g_Player.dir);
-			target.z += VALUE_SIDE_MOVE * sinf(g_Player.dir);
+			target.z += VALUE_SIDE_MOVE * -sinf(g_Player.dir);
 		}
 
 		if (CheckFieldValid(target.x, target.z))
@@ -263,16 +234,11 @@ void UpdatePlayer(void)
 		}
 	}
 
-	// レイキャストして足元の高さを求める
-	//XMFLOAT3 normal = { 0.0f, 1.0f, 0.0f };				// ぶつかったポリゴンの法線ベクトル（向き）
-	//XMFLOAT3 hitPosition;								// 交点
-	//hitPosition.y = g_Player.pos.y - PLAYER_OFFSET_Y;	// 外れた時用に初期化しておく
-	//bool ans = RayHitField(g_Player.pos, &hitPosition, &normal);
-	//g_Player.pos.y = hitPosition.y + PLAYER_OFFSET_Y;
-	////g_Player.pos.y = PLAYER_OFFSET_Y;
-
 	// y pass
 	{
+		static bool inAir = false;
+		static int vertSpd = 0;
+
 		if (!inAir)
 		{
 			if (GetKeyboardTrigger(DIK_SPACE))
@@ -293,6 +259,14 @@ void UpdatePlayer(void)
 			}
 		}
 	}
+
+	// レイキャストして足元の高さを求める
+	//XMFLOAT3 normal = { 0.0f, 1.0f, 0.0f };				// ぶつかったポリゴンの法線ベクトル（向き）
+	//XMFLOAT3 hitPosition;								// 交点
+	//hitPosition.y = g_Player.pos.y - PLAYER_OFFSET_Y;	// 外れた時用に初期化しておく
+	//bool ans = RayHitField(g_Player.pos, &hitPosition, &normal);
+	//g_Player.pos.y = hitPosition.y + PLAYER_OFFSET_Y;
+	////g_Player.pos.y = PLAYER_OFFSET_Y;
 
 	// 影もプレイヤーの位置に合わせる
 	XMFLOAT3 pos = g_Player.pos;

@@ -453,6 +453,6 @@ int IsOutOfBoarder(float x, float z)
 
 int IsAtConjunction(float x, float z)
 {
-	return (x > -ROAD_HALF_WIDTH && x < +ROAD_HALF_WIDTH) &&
-		(z > -ROAD_HALF_WIDTH && z < +ROAD_HALF_WIDTH);
+	return (x > -ROAD_HALF_WIDTH / 2.0f && x < +ROAD_HALF_WIDTH / 2.0f) &&
+		(z > -ROAD_HALF_WIDTH / 2.0f && z < +ROAD_HALF_WIDTH / 2.0f);
 }

@@ -51,5 +51,5 @@ void SetCamera(void);
 
 CAMERA *GetCamera(void);
 
-void SetCameraAtPlayer(XMFLOAT3 pos, float t = 1.0f);
-void SetCameraAtMenu(XMFLOAT3 pos, float t);
+void SetCameraAtPlayer(XMFLOAT3 pos, float dir, float t = 1.0f);
+void SetCameraAtMenu(XMFLOAT3 pos, float dir, float t = 1.0f);

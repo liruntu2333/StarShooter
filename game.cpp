@@ -223,24 +223,24 @@ void DrawGame(void)
 {
 	XMFLOAT3 pos;
 
-	float cameraMvT;
+	float tCamera;
 
 	switch (g_focusMode)
 	{
 	case FocusMode::FOCUS_PLAYER:
-		cameraMvT = IsPlayerEndOfBoarder() ? 1.0f : 1.0f;
+		tCamera = IsPlayerEndOfBoarder() ? 1.0f : 0.5f;
 		// プレイヤー視点
 		pos = GetPlayer()->pos;
 		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
-		SetCameraAtPlayer(pos, cameraMvT);
+		SetCameraAtPlayer(pos, GetPlayer()->dir, tCamera);
 		SetCamera();
 		break;
 		
 	case FocusMode::FOCUS_MENU:
-
+		tCamera = IsPlayerEndOfBoarder() ? 1.0f : 0.05f;
 		pos = GetMenu()->pos;
 		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
-		SetCameraAtMenu(pos, 0.05f);
+		SetCameraAtMenu(pos, XM_PIDIV2, tCamera);
 		SetCamera();
 		break;
 	}
@@ -253,7 +253,7 @@ void DrawGame(void)
 	//DrawShadow();
 
 	// エネミーの描画処理
-	//DrawEnemy();
+	DrawEnemy();
 
 	// プレイヤーの描画処理
 	DrawPlayer();
@@ -268,10 +268,10 @@ void DrawGame(void)
 	DrawBullet();
 
 	// 壁の描画処理
-	//DrawMeshWall();
+	DrawMeshWall();
 
 	// 木の描画処理
-	//DrawTree();
+	DrawTree();
 
 	// パーティクルの描画処理
 	//DrawParticle();

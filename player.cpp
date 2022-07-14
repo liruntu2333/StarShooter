@@ -21,7 +21,7 @@
 #define	MODEL_PLAYER		"data/MODEL/cone.obj"			// 読み込むモデル名
 #define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// 読み込むモデル名
 
-#define	VALUE_MOVE			(0.0f)							// 移動量
+#define	VALUE_MOVE			(3.0f)							// 移動量
 #define	VALUE_JUMP			(10)							// 移動量
 #define	VALUE_SIDE_MOVE			(2.0f)							// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// 回転量
@@ -46,7 +46,15 @@ static PLAYER		g_Parts[PLAYER_PARTS_MAX];		// プレイヤーのパーツ用
 
 static BOOL			g_Load = FALSE;
 
-static bool			g_EndOfRoad = FALSE;
+/**
+ * \brief An int type flag, last four bits used for representing a player's position's state
+ * to field's boarder.
+ * e.g. 0b0000 represents isn't out of any boarder.
+ *      0b0001 represents out of Z plus boarder.
+ */
+static int			g_OutOfBoarder = EndOfNone;
+static bool			g_AtConjunction = false;
+static bool			g_MadeDecision = false;
 
 
 // プレイヤーの階層アニメーションデータ
@@ -75,12 +83,13 @@ HRESULT InitPlayer(void)
 	LoadModel(MODEL_PLAYER, &g_Player.model);
 	g_Player.load = TRUE;
 
-	g_Player.pos = GetFieldEntrance();
+	g_Player.pos = {0.0f, 0.0f, -600.0f};
 	g_Player.pos.y = PLAYER_OFFSET_Y;
-	g_Player.rot = { 0.0f, XM_PI, 0.0f };
+	g_Player.rot = { 0.0f, 0.0f, 0.0f };
 	g_Player.scl = { 1.0f, 1.0f, 1.0f };
 
-	g_Player.spd = 0.0f;			// 移動スピードクリア
+	g_Player.spd = VALUE_MOVE;			// 移動スピードクリア
+	g_Player.dir = 0;
 	g_Player.size = PLAYER_SIZE;	// 当たり判定の大きさ
 
 	g_Player.use = TRUE;
@@ -159,9 +168,24 @@ void UninitPlayer(void)
 //=============================================================================
 void UpdatePlayer(void)
 {
-	if (g_EndOfRoad)
+	if (g_OutOfBoarder)
 	{
-		g_EndOfRoad = FALSE;
+		g_OutOfBoarder = FALSE;
+	}
+
+	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z);
+
+	if (g_MadeDecision && !g_AtConjunction)
+	{
+		g_MadeDecision = false;
+	}
+	if (g_AtConjunction && !g_MadeDecision)
+	{
+		// Decision of road's branch.
+		int i = rand() % 4;
+		g_Player.dir += XM_PIDIV2 * i;
+		if (g_Player.dir > XM_2PI) g_Player.dir -= XM_2PI;
+		g_MadeDecision = true;
 	}
 
 	CAMERA *cam = GetCamera();
@@ -188,12 +212,6 @@ void UpdatePlayer(void)
 	//	g_Player.dir = 0.0f;
 	//}
 
-	if (true)
-	{
-		g_Player.spd = VALUE_MOVE;
-		g_Player.dir = XM_PI;
-	}
-
 
 #ifdef _DEBUG
 	if (GetKeyboardPress(DIK_R))
@@ -206,48 +224,42 @@ void UpdatePlayer(void)
 
 	static int vertSpd = 0;
 	static bool inAir = false;
-	//	// Key入力があったら移動処理する
-	if (g_Player.spd > 0.0f)
+	
+	// x pass
 	{
-		g_Player.rot.y = g_Player.dir + cam->rot.y;
+		XMFLOAT3 target = g_Player.pos;
 
-		// 入力のあった方向へプレイヤーを向かせて移動させる
-		//g_Player.pos.x -= sinf(g_Player.rot.y) * g_Player.spd;
-		//g_Player.pos.z -= cosf(g_Player.rot.y) * g_Player.spd;
-		float z = g_Player.pos.z + g_Player.spd;
-
-		XMFLOAT3 sideMvTar = g_Player.pos;
 		if (GetKeyboardPress(DIK_LEFT))
-		{	// 左へ移動
-			sideMvTar.x -= VALUE_SIDE_MOVE;
+		{
+			target.x -= VALUE_SIDE_MOVE * cosf(g_Player.dir);
+			target.z -= VALUE_SIDE_MOVE * sinf(g_Player.dir);
+
 		}
 		if (GetKeyboardPress(DIK_RIGHT))
-		{	// 右へ移動
-			sideMvTar.x += VALUE_SIDE_MOVE;
+		{
+			target.x += VALUE_SIDE_MOVE * cosf(g_Player.dir);
+			target.z += VALUE_SIDE_MOVE * sinf(g_Player.dir);
 		}
 
-		if (CheckFieldValid(sideMvTar.x, sideMvTar.z))
+		if (CheckFieldValid(target.x, target.z))
 		{
-			g_Player.pos.x = sideMvTar.x;
+			g_Player.pos.x = target.x;
+			g_Player.pos.z = target.z;
 		}
-		g_Player.pos.z = z;
+	}
 
-		if (IsEndOfRoad(g_Player.pos.x, g_Player.pos.z))
+	// z pass
+	{
+		g_Player.rot.y = g_Player.dir;
+
+		g_Player.pos.z += g_Player.spd * cosf(g_Player.dir);
+		g_Player.pos.x += g_Player.spd * sinf(g_Player.dir);
+
+		g_OutOfBoarder = IsOutOfBoarder(g_Player.pos.x, g_Player.pos.z);
+		if (g_OutOfBoarder)
 		{
-			g_EndOfRoad = TRUE;
-			auto const prev = g_Player.pos;
-			g_Player.pos = GetFieldEntrance();
+			g_Player.pos = GetWarpPosition(g_Player.pos, g_OutOfBoarder);
 			// TODO: make player set on the right offset of road
-			g_Player.pos.x = prev.x;
-			//if (!inAir)
-			//{
-			//	g_Player.pos.y = PLAYER_OFFSET_Y;
-			//}
-			//else
-			{
-				g_Player.pos.y = prev.y;
-			}
-			g_Player.rot = { 0.0f, XM_PI, 0.0f };
 		}
 	}
 
@@ -257,32 +269,35 @@ void UpdatePlayer(void)
 	//hitPosition.y = g_Player.pos.y - PLAYER_OFFSET_Y;	// 外れた時用に初期化しておく
 	//bool ans = RayHitField(g_Player.pos, &hitPosition, &normal);
 	//g_Player.pos.y = hitPosition.y + PLAYER_OFFSET_Y;
-	//g_Player.pos.y = PLAYER_OFFSET_Y;
+	////g_Player.pos.y = PLAYER_OFFSET_Y;
+
+	// y pass
+	{
+		if (!inAir)
+		{
+			if (GetKeyboardTrigger(DIK_SPACE))
+			{
+				inAir = true;
+				vertSpd = VALUE_JUMP;
+			}
+		}
+		else
+		{
+			g_Player.pos.y += static_cast<float>(vertSpd);
+			vertSpd -= 1;
+			if (g_Player.pos.y < PLAYER_OFFSET_Y)
+			{
+				inAir = false;
+				vertSpd = 0;
+				g_Player.pos.y = PLAYER_OFFSET_Y;
+			}
+		}
+	}
 
 	// 影もプレイヤーの位置に合わせる
 	XMFLOAT3 pos = g_Player.pos;
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	SetPositionShadow(g_Player.shadowIdx, pos);
-
-	if (!inAir)
-	{
-		if (GetKeyboardTrigger(DIK_SPACE))
-		{
-			inAir = true;
-			vertSpd = VALUE_JUMP;
-		}
-	}
-	else
-	{
-		g_Player.pos.y += static_cast<float>(vertSpd);
-		vertSpd -= 1;
-		if (g_Player.pos.y < PLAYER_OFFSET_Y)
-		{
-			inAir = false;
-			vertSpd = 0;
-			g_Player.pos.y = PLAYER_OFFSET_Y;
-		}
-	}
 
 	// 弾発射処理
 	if (GetKeyboardTrigger(DIK_SPACE))
@@ -290,7 +305,7 @@ void UpdatePlayer(void)
 		//SetBullet(g_Player.pos, g_Player.rot);
 	}
 
-	g_Player.spd *= 0.5f;
+	//g_Player.spd *= 0.5f;
 
 
 	// 階層アニメーション
@@ -478,8 +493,8 @@ PLAYER *GetPlayer(void)
 	return &g_Player;
 }
 
-bool IsPlayerEndOfRoad()
+int IsPlayerEndOfBoarder()
 {
-	return g_EndOfRoad;
+	return g_OutOfBoarder;
 }
 

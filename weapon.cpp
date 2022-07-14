@@ -13,6 +13,7 @@
 #include "bullet.h"
 #include "weapon.h"
 #include "MathHelper.h"
+#include "meshfield.h"
 
 
 //*****************************************************************************
@@ -158,22 +159,16 @@ void UpdateWeapon(void)
 	// à⁄ìÆèàóù
 	PLAYER* player = GetPlayer();
 
-	bool endOfRoad = IsPlayerEndOfRoad();
+	int boarderFlag = IsPlayerEndOfBoarder();
 
 	for (int i = 0; i < MAX_WEAPON; i++)
 	{
-		//g_Weapon[i].pos.x += (player->pos.x + 20.0f - g_Weapon[i].pos.x) * 0.05f;
-		//g_Weapon[i].pos.y += (player->pos.y + 10.0f - g_Weapon[i].pos.y) * 0.05f;
-		//g_Weapon[i].pos.z += (player->pos.z - 10.0f - g_Weapon[i].pos.z) * 0.05f;
-		auto target = XMLoadFloat3(&player->pos);
-		target += {20.0f, 10.0f, -10.0f};
-		if (endOfRoad)
+		if (boarderFlag)
 		{
-			target += {0.0f, 0.0f, -45.0f};
+			g_Weapon[i].pos = GetWarpPosition(g_Weapon[i].pos, boarderFlag);
 		}
-
-		float t = IsPlayerEndOfRoad() ? 1.0f : 0.1;
-		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&g_Weapon[i].pos), target, t);
+		auto target = XMLoadFloat3(&player->pos) + XMVECTOR{20.0f, 10.0f, -10.0f};
+		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&g_Weapon[i].pos), target, 0.1f);
 		XMStoreFloat3(&g_Weapon[i].pos, lerp);
 	}
 	

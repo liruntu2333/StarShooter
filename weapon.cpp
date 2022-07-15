@@ -223,7 +223,7 @@ void UpdateWeapon(void)
 
 
 	{	// ポイントライトのテスト
-		LIGHT* light = GetLightData(1);
+		LIGHT* light = GetLightData(2);
 		XMFLOAT3 pos = g_Weapon[0].pos;
 		pos.y += 20.0f;
 
@@ -232,7 +232,7 @@ void UpdateWeapon(void)
 		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 		light->Type = LIGHT_TYPE_POINT;
 		light->Enable = TRUE;
-		SetLightData(1, light);
+		SetLightData(2, light);
 	}
 
 

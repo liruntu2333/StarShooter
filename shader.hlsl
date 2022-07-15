@@ -1,4 +1,4 @@
-
+#define TOON_SHADING
 
 //*****************************************************************************
 // 定数バッファ
@@ -157,23 +157,30 @@ void PixelShaderPolygon( in  float4 inPosition		: SV_POSITION,
 		for (int i = 0; i < 5; i++)
 		{
 			float3 lightDir;
-			float light;
+			float light = 0.2f; // Ambient
 
 			if (Light.Flags[i].y == 1)
 			{
 				if (Light.Flags[i].x == 1)
 				{
-					lightDir = normalize(Light.Direction[i].xyz);
-					light = dot(lightDir, inNormal.xyz);
+					lightDir = normalize(-Light.Direction[i].xyz);
+                    light = max(dot(lightDir, inNormal.xyz), 0.0f);
+					
+#ifdef TOON_SHADING
+                    light = light <= 0.0f ? 0.2f : light <= 0.3f ? 0.5f : light <= 0.5f ? 0.7f : light <= 0.7f ? 0.9f : 1.0f;
+#endif
 
-					light = 0.5 - 0.5 * light;
+					//light = 0.5 - 0.5 * light;
 					tempColor = color * Material.Diffuse * light * Light.Diffuse[i];
 				}
 				else if (Light.Flags[i].x == 2)
 				{
 					lightDir = normalize(Light.Position[i].xyz - inWorldPos.xyz);
-					light = dot(lightDir, inNormal.xyz);
+                    light = max(dot(lightDir, inNormal.xyz), 0.0f);
 
+#ifdef TOON_SHADING
+                    light = light <= 0.0f ? 0.2f : light <= 0.3f ? 0.5f : light <= 0.5f ? 0.7f : light <= 0.7f ? 0.9f : 1.0f;
+#endif
 					tempColor = color * Material.Diffuse * light * Light.Diffuse[i];
 
 					float distance = length(inWorldPos - Light.Position[i]);

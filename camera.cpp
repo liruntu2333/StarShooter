@@ -15,11 +15,11 @@
 //*****************************************************************************
 #define	POS_X_CAM_PLAYER			(0.0f)			// カメラの初期位置(X座標)	// プレーヤーの場合
 #define	POS_Y_CAM_PLAYER			(50.0f)			// カメラの初期位置(Y座標)
-#define	POS_Z_CAM_PLAYER			(-140.0f)		// カメラの初期位置(Z座標)
+#define	POS_Z_CAM_PLAYER			(-100.0f)		// カメラの初期位置(Z座標)
 
 #define POS_X_CAM_MENU				(0.0f)			// カメラの位置(X座標)		// メニューの場合
 #define POS_Y_CAM_MENU				(30.0f)			// カメラの位置(Y座標)
-#define POS_Z_CAM_MENU				(-50.0f)		// カメラの位置(Z座標)
+#define POS_Z_CAM_MENU				(-100.0f)		// カメラの位置(Z座標)
 
 
 #define	VIEW_ANGLE		(XMConvertToRadians(45.0f))						// ビュー平面の視野角

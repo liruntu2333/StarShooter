@@ -19,11 +19,11 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define	MODEL_WEAPON_1				"data/MODEL/magicWand1.obj"		// 読み込むモデル名 魔法の杖１
-#define	MODEL_WEAPON_1_PARTS		"data/MODEL/torus.obj"			// 読み込むモデル名 魔法の杖１のパーツ
+#define	MODEL_WEAPON_1				"data/MODEL/magicWand_complete.obj"		// 読み込むモデル名 魔法の杖１
+#define	MODEL_WEAPON_1_PARTS		"data/MODEL/torus.obj"					// 読み込むモデル名 魔法の杖１のパーツ
 
-#define	VALUE_MOVE					(10.0f)							// 移動量
-#define	VALUE_ROTATE				(XM_PI * 0.02f)					// 回転量
+#define	VALUE_MOVE					(10.0f)									// 移動量
+#define	VALUE_ROTATE				(XM_PI * 0.02f)							// 回転量
 
 
 #define WEAPON_1_PARTS_MAX			(2)										// 魔法の杖1のパーツの数

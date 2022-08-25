@@ -432,7 +432,7 @@ bool CheckFieldValid(float x, float z)
 	return GetFieldHeight(x, z) > -10.0f;
 }
 
-XMFLOAT3 __vectorcall GetWarpPosition(XMFLOAT3 pos, int endOfBoarderFlag)
+XMFLOAT3 __vectorcall GetWrapPosition(XMFLOAT3 pos, int endOfBoarderFlag)
 {
 	if (endOfBoarderFlag & EndOfZPlus)       pos.z -= g_FieldSizeZ;
 	else if (endOfBoarderFlag & EndOfZMinus) pos.z += g_FieldSizeZ;

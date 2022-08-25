@@ -165,7 +165,7 @@ void UpdateWeapon(void)
 	{
 		if (boarderFlag)
 		{
-			g_Weapon[i].pos = GetWarpPosition(g_Weapon[i].pos, boarderFlag);
+			g_Weapon[i].pos = GetWrapPosition(g_Weapon[i].pos, boarderFlag);
 		}
 		auto target = XMLoadFloat3(&player->pos) + XMVECTOR{20.0f, 10.0f, -10.0f};
 		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&g_Weapon[i].pos), target, 0.1f);

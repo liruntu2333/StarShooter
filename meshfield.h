@@ -27,7 +27,7 @@ BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3 *HitPosition, XMFLOAT3 *Normal);
 
 bool CheckFieldValid(float x, float z);
 
-XMFLOAT3 XM_CALLCONV GetWarpPosition(XMFLOAT3 pos, int endOfBoarderFlag);
+XMFLOAT3 XM_CALLCONV GetWrapPosition(XMFLOAT3 pos, int endOfBoarderFlag);
 
 int IsOutOfBoarder(float x, float z);
 int IsAtConjunction(float x, float z);

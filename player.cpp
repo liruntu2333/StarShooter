@@ -179,13 +179,34 @@ void UpdatePlayer(void)
 	{
 		g_MadeDecision = false;
 	}
+
 	if (g_AtConjunction && !g_MadeDecision)
 	{
+		g_Player.spd = VALUE_MOVE * 0.1f;
+
 		// Decision of road's branch.
-		int i = 1; //rand() % 4;
-		g_Player.dir += XM_PIDIV2 * i;
+		int i = 0; //rand() % 4;
+
 		if (g_Player.dir > XM_2PI) g_Player.dir -= XM_2PI;
-		g_MadeDecision = true;
+		if (GetKeyboardPress(DIK_A))
+		{
+			i = -1;
+			g_MadeDecision = true;
+		}
+		else if (GetKeyboardPress(DIK_D))
+		{
+			i = 1;
+			g_MadeDecision = true;
+		}
+		else if (GetKeyboardPress(DIK_W))
+		{
+			i = 0;
+			g_MadeDecision = true;
+		}
+		g_Player.dir += XM_PIDIV2 * i;
+
+		if(g_MadeDecision) 
+			g_Player.spd = VALUE_MOVE;
 	}
 
 #ifdef _DEBUG
@@ -193,7 +214,7 @@ void UpdatePlayer(void)
 	{
 		g_Player.pos.z = g_Player.pos.x = 0.0f;
 		g_Player.rot.y = g_Player.dir = 0.0f;
-		g_Player.spd = 0.0f;
+		g_Player.spd = VALUE_MOVE;
 	}
 #endif
 
@@ -221,7 +242,7 @@ void UpdatePlayer(void)
 
 	// z pass
 	{
-		g_Player.rot.y = g_Player.dir;
+		g_Player.rot.y = g_Player.dir + XM_PI;
 
 		g_Player.pos.z += g_Player.spd * cosf(g_Player.dir);
 		g_Player.pos.x += g_Player.spd * sinf(g_Player.dir);
@@ -229,7 +250,7 @@ void UpdatePlayer(void)
 		g_OutOfBoarder = IsOutOfBoarder(g_Player.pos.x, g_Player.pos.z);
 		if (g_OutOfBoarder)
 		{
-			g_Player.pos = GetWarpPosition(g_Player.pos, g_OutOfBoarder);
+			g_Player.pos = GetWrapPosition(g_Player.pos, g_OutOfBoarder);
 			// TODO: make player set on the right offset of road
 		}
 	}

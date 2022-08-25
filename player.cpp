@@ -21,7 +21,7 @@
 #define	MODEL_PLAYER		"data/MODEL/player.obj"			// 読み込むモデル名
 #define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// 読み込むモデル名
 
-#define	VALUE_MOVE			(0.0f)							// 移動量
+#define	VALUE_MOVE			(5.0f)							// 移動量
 #define	VALUE_JUMP			(10)							// 移動量
 #define	VALUE_SIDE_MOVE			(2.0f)							// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// 回転量
@@ -168,12 +168,14 @@ void UninitPlayer(void)
 //=============================================================================
 void UpdatePlayer(void)
 {
+	float& dir = g_Player.dir;
+
 	if (g_OutOfBoarder)
 	{
 		g_OutOfBoarder = FALSE;
 	}
 
-	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z);
+	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z, dir);
 
 	if (g_MadeDecision && !g_AtConjunction)
 	{
@@ -187,7 +189,6 @@ void UpdatePlayer(void)
 		// Decision of road's branch.
 		int i = 0; //rand() % 4;
 
-		if (g_Player.dir > XM_2PI) g_Player.dir -= XM_2PI;
 		if (GetKeyboardPress(DIK_A))
 		{
 			i = -1;
@@ -205,16 +206,28 @@ void UpdatePlayer(void)
 		}
 		g_Player.dir += XM_PIDIV2 * i;
 
+		if (g_Player.dir > XM_2PI - 0.01f)	g_Player.dir -= XM_2PI;
+		if (g_Player.dir < 0.0f)	g_Player.dir += XM_2PI;
+
 		if(g_MadeDecision) 
 			g_Player.spd = VALUE_MOVE;
+	}
+
+	if (!g_AtConjunction)
+	{
+		g_Player.spd = VALUE_MOVE;
 	}
 
 #ifdef _DEBUG
 	if (GetKeyboardPress(DIK_R))
 	{
 		g_Player.pos.z = g_Player.pos.x = 0.0f;
-		g_Player.rot.y = g_Player.dir = 0.0f;
+		g_Player.rot.y = dir = 0.0f;
 		g_Player.spd = VALUE_MOVE;
+	}
+	if (GetKeyboardPress(DIK_P))
+	{
+		g_Player.spd = g_Player.spd < 0.01f ? VALUE_MOVE : 0.0f;
 	}
 #endif
 
@@ -222,15 +235,15 @@ void UpdatePlayer(void)
 	{
 		XMFLOAT3 target = g_Player.pos;
 
-		if (GetKeyboardPress(DIK_LEFT))
+		if (GetKeyboardPress(DIK_A))
 		{
-			target.x -= VALUE_SIDE_MOVE * cosf(g_Player.dir);
-			target.z -= VALUE_SIDE_MOVE * -sinf(g_Player.dir);
+			target.x -= VALUE_SIDE_MOVE * cosf(dir);
+			target.z -= VALUE_SIDE_MOVE * -sinf(dir);
 		}
-		if (GetKeyboardPress(DIK_RIGHT))
+		if (GetKeyboardPress(DIK_D))
 		{
-			target.x += VALUE_SIDE_MOVE * cosf(g_Player.dir);
-			target.z += VALUE_SIDE_MOVE * -sinf(g_Player.dir);
+			target.x += VALUE_SIDE_MOVE * cosf(dir);
+			target.z += VALUE_SIDE_MOVE * -sinf(dir);
 		}
 
 		if (CheckFieldValid(target.x, target.z))
@@ -242,10 +255,10 @@ void UpdatePlayer(void)
 
 	// z pass
 	{
-		g_Player.rot.y = g_Player.dir + XM_PI;
+		g_Player.rot.y = dir + XM_PI;
 
-		g_Player.pos.z += g_Player.spd * cosf(g_Player.dir);
-		g_Player.pos.x += g_Player.spd * sinf(g_Player.dir);
+		g_Player.pos.z += g_Player.spd * cosf(dir);
+		g_Player.pos.x += g_Player.spd * sinf(dir);
 
 		g_OutOfBoarder = IsOutOfBoarder(g_Player.pos.x, g_Player.pos.z);
 		if (g_OutOfBoarder)
@@ -391,6 +404,7 @@ void UpdatePlayer(void)
 #ifdef _DEBUG	// デバッグ情報を表示する
 	PrintDebugProc("Player:↑ → ↓ ←　Space\n");
 	PrintDebugProc("Player:X:%f Y:%f Z:%f\n", g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
+	PrintDebugProc("Player: dir:%f\n", dir);
 #endif
 }
 

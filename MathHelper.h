@@ -46,3 +46,5 @@ public:
 	//	return XMLoadFloat4(&vec);
 	//}
 };
+
+DirectX::XMFLOAT3 operator- (const DirectX::XMFLOAT3& lft, const DirectX::XMFLOAT3& rht) noexcept;

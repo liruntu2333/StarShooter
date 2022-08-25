@@ -21,7 +21,7 @@
 #define	MODEL_PLAYER		"data/MODEL/player.obj"			// 読み込むモデル名
 #define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// 読み込むモデル名
 
-#define	VALUE_MOVE			(3.0f)							// 移動量
+#define	VALUE_MOVE			(0.0f)							// 移動量
 #define	VALUE_JUMP			(10)							// 移動量
 #define	VALUE_SIDE_MOVE			(2.0f)							// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// 回転量
@@ -128,19 +128,19 @@ HRESULT InitPlayer(void)
 		g_Parts[i].load = 0;
 	}
 
-	g_Parts[0].use = TRUE;
-	g_Parts[0].parent   = &g_Player;		// 親をセット
-	g_Parts[0].tbl_adr  = move_tbl_right;	// 再生するアニメデータの先頭アドレスをセット
-	g_Parts[0].tbl_size = sizeof(move_tbl_right) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
-	g_Parts[0].load = 1;
-	LoadModel(MODEL_PLAYER_PARTS, &g_Parts[0].model);
+	//g_Parts[0].use = TRUE;
+	//g_Parts[0].parent   = &g_Player;		// 親をセット
+	//g_Parts[0].tbl_adr  = move_tbl_right;	// 再生するアニメデータの先頭アドレスをセット
+	//g_Parts[0].tbl_size = sizeof(move_tbl_right) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+	//g_Parts[0].load = 1;
+	//LoadModel(MODEL_PLAYER_PARTS, &g_Parts[0].model);
 
-	g_Parts[1].use = TRUE;
-	g_Parts[1].parent   = &g_Player;		// 親をセット
-	g_Parts[1].tbl_adr  = move_tbl_left;	// 再生するアニメデータの先頭アドレスをセット
-	g_Parts[1].tbl_size = sizeof(move_tbl_left) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
-	g_Parts[1].load = 1;
-	LoadModel(MODEL_PLAYER_PARTS, &g_Parts[1].model);
+	//g_Parts[1].use = TRUE;
+	//g_Parts[1].parent   = &g_Player;		// 親をセット
+	//g_Parts[1].tbl_adr  = move_tbl_left;	// 再生するアニメデータの先頭アドレスをセット
+	//g_Parts[1].tbl_size = sizeof(move_tbl_left) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+	//g_Parts[1].load = 1;
+	//LoadModel(MODEL_PLAYER_PARTS, &g_Parts[1].model);
 
 	g_Load = TRUE;
 	return S_OK;
@@ -191,8 +191,6 @@ void UpdatePlayer(void)
 #ifdef _DEBUG
 	if (GetKeyboardPress(DIK_R))
 	{
-		g_Player.pos.z = g_Player.pos.x = 0.0f;
-		g_Player.rot.y = g_Player.dir = 0.0f;
 		g_Player.spd = 0.0f;
 	}
 #endif

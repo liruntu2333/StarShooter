@@ -1,6 +1,6 @@
 # This file uses centimeters as units for non-parametric coordinates.
 
-mtllib magicWand_stick4_move.mtl
+mtllib magicWand_move.mtl
 g default
 v 0.015049 0.286988 -0.047553
 v -0.040852 0.286988 -0.029389

@@ -61,7 +61,7 @@ PLAYER *GetPlayer(void);
 
 /**
  * \brief Every object moving correspondingly to player should check this flag to decide
- * whether warp their position in field or not.
+ * whether wrap their position in field or not.
  *
  * \return An int type flag, last four bits used for representing a player's position's state
  * to field's boarder.

@@ -11,6 +11,9 @@
 #include "model.h"
 #include "enemy.h"
 #include "shadow.h"
+#include "player.h"
+#include "MathHelper.h"
+#include "meshfield.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -27,7 +30,12 @@
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-
+enum EnemyBehaviorType : int
+{
+	Obstacle = 0,
+	Runner = 1,
+	Flyable = 2,
+};
 
 //*****************************************************************************
 // グローバル変数
@@ -70,18 +78,19 @@ HRESULT InitEnemy(void)
 		pos.y -= (ENEMY_OFFSET_Y - 0.1f);
 		g_Enemy[i].shadowIdx = CreateShadow(pos, ENEMY_SHADOW_SIZE, ENEMY_SHADOW_SIZE);
 
-		g_Enemy[i].move_time = 0.0f;	// 線形補間用のタイマーをクリア
-		g_Enemy[i].tbl_adr = NULL;		// 再生するアニメデータの先頭アドレスをセット
-		g_Enemy[i].tbl_size = 0;		// 再生するアニメデータのレコード数をセット
+		g_Enemy[i].move_time = 0.0f;	
+		g_Enemy[i].tbl_adr = NULL;		
+		g_Enemy[i].tbl_size = 0;		
 
-		g_Enemy[i].use = TRUE;			// TRUE:生きてる
-
+		g_Enemy[i].type = Runner;
+		g_Enemy[i].use = TRUE;			
+		
 	}
 
 
 	// 0番だけ線形補間で動かしてみる
 	g_Enemy[0].move_time = 0.0f;		// 線形補間用のタイマーをクリア
-	g_Enemy[0].tbl_adr = move_tbl;		// 再生するアニメデータの先頭アドレスをセット
+	//g_Enemy[0].tbl_adr = move_tbl;		// 再生するアニメデータの先頭アドレスをセット
 	g_Enemy[0].tbl_size = sizeof(move_tbl) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
 
 	g_Load = TRUE;
@@ -112,51 +121,38 @@ void UninitEnemy(void)
 //=============================================================================
 void UpdateEnemy(void)
 {
-	// エネミーを動かく場合は、影も合わせて動かす事を忘れないようにね！
-	for (int i = 0; i < MAX_ENEMY; i++)
+	const XMFLOAT3 playerPos = GetPlayer()->pos;
+
+	for (auto& enemy : g_Enemy)
 	{
-		if (g_Enemy[i].use == TRUE)			// このエネミーが使われている？
-		{									// Yes
-			if (g_Enemy[i].tbl_adr != NULL)	// 線形補間を実行する？
-			{								// 線形補間の処理
-				// 移動処理
-				int		index = (int)g_Enemy[i].move_time;
-				float	time = g_Enemy[i].move_time - index;
-				int		size = g_Enemy[i].tbl_size;
-
-				float dt = 1.0f / g_Enemy[i].tbl_adr[index].frame;	// 1フレームで進める時間
-				g_Enemy[i].move_time += dt;							// アニメーションの合計時間に足す
-
-				if (index > (size - 2))	// ゴールをオーバーしていたら、最初へ戻す
-				{
-					g_Enemy[i].move_time = 0.0f;
-					index = 0;
-				}
-
-				// 座標を求める	X = StartX + (EndX - StartX) * 今の時間
-				XMVECTOR p1 = XMLoadFloat3(&g_Enemy[i].tbl_adr[index + 1].pos);	// 次の場所
-				XMVECTOR p0 = XMLoadFloat3(&g_Enemy[i].tbl_adr[index + 0].pos);	// 現在の場所
-				XMVECTOR vec = p1 - p0;
-				XMStoreFloat3(&g_Enemy[i].pos, p0 + vec * time);
-
-				// 回転を求める	R = StartX + (EndX - StartX) * 今の時間
-				XMVECTOR r1 = XMLoadFloat3(&g_Enemy[i].tbl_adr[index + 1].rot);	// 次の角度
-				XMVECTOR r0 = XMLoadFloat3(&g_Enemy[i].tbl_adr[index + 0].rot);	// 現在の角度
-				XMVECTOR rot = r1 - r0;
-				XMStoreFloat3(&g_Enemy[i].rot, r0 + rot * time);
-
-				// scaleを求める S = StartX + (EndX - StartX) * 今の時間
-				XMVECTOR s1 = XMLoadFloat3(&g_Enemy[i].tbl_adr[index + 1].scl);	// 次のScale
-				XMVECTOR s0 = XMLoadFloat3(&g_Enemy[i].tbl_adr[index + 0].scl);	// 現在のScale
-				XMVECTOR scl = s1 - s0;
-				XMStoreFloat3(&g_Enemy[i].scl, s0 + scl * time);
-
+		if (enemy.use == TRUE)
+		{
+			if (enemy.type == Obstacle)
+			{
+				continue;
 			}
 
-			// 影もプレイヤーの位置に合わせる
-			XMFLOAT3 pos = g_Enemy[i].pos;
+			if (enemy.type == Runner)
+			{
+				
+			}
+
+
+			{
+				XMFLOAT3 enemyDir = playerPos - enemy.pos;
+				XMVECTOR dirVec = XMLoadFloat3(&enemyDir);
+				dirVec = XMVector3Normalize(dirVec);
+				const auto& x = dirVec.m128_f32[0];
+				const auto& y = dirVec.m128_f32[1];
+				const auto& z = dirVec.m128_f32[2];
+				enemy.rot = { 0.0f, atan2f(x, z),0.0f };
+				//enemy.rot = { 0.0f, atan2f(z, x),0.0f };
+				enemy.rot.y += XM_PI;
+			}
+
+			XMFLOAT3 pos = enemy.pos;
 			pos.y -= (ENEMY_OFFSET_Y - 0.1f);
-			SetPositionShadow(g_Enemy[i].shadowIdx, pos);
+			SetPositionShadow(enemy.shadowIdx, pos);
 		}
 	}
 

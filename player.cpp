@@ -1,6 +1,6 @@
 //=============================================================================
 //
-// ƒ‚ƒfƒ‹ˆ— [player.cpp]
+// ãƒ¢ãƒ‡ãƒ«å‡¦ç† [player.cpp]
 // Author : 
 //
 //=============================================================================
@@ -16,33 +16,33 @@
 #include "meshfield.h"
 
 //*****************************************************************************
-// ƒ}ƒNƒ’è‹`
+// ãƒã‚¯ãƒ­å®šç¾©
 //*****************************************************************************
-#define	MODEL_PLAYER		"data/MODEL/player.obj"			// “Ç‚İ‚Şƒ‚ƒfƒ‹–¼
-#define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// “Ç‚İ‚Şƒ‚ƒfƒ‹–¼
+#define	MODEL_PLAYER		"data/MODEL/player.obj"			// èª­ã¿è¾¼ã‚€ãƒ¢ãƒ‡ãƒ«å
+#define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// èª­ã¿è¾¼ã‚€ãƒ¢ãƒ‡ãƒ«å
 
-#define	VALUE_MOVE			(0.0f)							// ˆÚ“®—Ê
-#define	VALUE_JUMP			(10)							// ˆÚ“®—Ê
-#define	VALUE_SIDE_MOVE			(2.0f)							// ˆÚ“®—Ê
-#define	VALUE_ROTATE		(XM_PI * 0.02f)					// ‰ñ“]—Ê
+#define	VALUE_MOVE			(5.0f)							// ç§»å‹•é‡
+#define	VALUE_JUMP			(10)							// ç§»å‹•é‡
+#define	VALUE_SIDE_MOVE			(2.0f)							// ç§»å‹•é‡
+#define	VALUE_ROTATE		(XM_PI * 0.02f)					// å›è»¢é‡
 
-#define PLAYER_SHADOW_SIZE	(1.0f)							// ‰e‚Ì‘å‚«‚³
-#define PLAYER_OFFSET_Y		(7.0f)							// ƒvƒŒƒCƒ„[‚Ì‘«Œ³‚ğ‚ ‚í‚¹‚é
+#define PLAYER_SHADOW_SIZE	(1.0f)							// å½±ã®å¤§ãã•
+#define PLAYER_OFFSET_Y		(7.0f)							// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®è¶³å…ƒã‚’ã‚ã‚ã›ã‚‹
 
-#define PLAYER_PARTS_MAX	(2)								// ƒvƒŒƒCƒ„[‚Ìƒp[ƒc‚Ì”
-
-
-//*****************************************************************************
-// ƒvƒƒgƒ^ƒCƒvéŒ¾
-//*****************************************************************************
+#define PLAYER_PARTS_MAX	(2)								// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ‘ãƒ¼ãƒ„ã®æ•°
 
 
 //*****************************************************************************
-// ƒOƒ[ƒoƒ‹•Ï”
+// ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
 //*****************************************************************************
-static PLAYER		g_Player;						// ƒvƒŒƒCƒ„[
 
-static PLAYER		g_Parts[PLAYER_PARTS_MAX];		// ƒvƒŒƒCƒ„[‚Ìƒp[ƒc—p
+
+//*****************************************************************************
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
+//*****************************************************************************
+static PLAYER		g_Player;						// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼
+
+static PLAYER		g_Parts[PLAYER_PARTS_MAX];		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ãƒ‘ãƒ¼ãƒ„ç”¨
 
 static BOOL			g_Load = FALSE;
 
@@ -57,8 +57,8 @@ static bool			g_AtConjunction = false;
 static bool			g_MadeDecision = false;
 
 
-// ƒvƒŒƒCƒ„[‚ÌŠK‘wƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^
-// ƒvƒŒƒCƒ„[‚Ì“ª‚ğ¶‰E‚É“®‚©‚µ‚Ä‚¢‚éƒAƒjƒƒf[ƒ^
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®éšå±¤ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®é ­ã‚’å·¦å³ã«å‹•ã‹ã—ã¦ã„ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ‡ãƒ¼ã‚¿
 static INTERPOLATION_DATA move_tbl_right[] = {	// pos, rot, scl, frame
 	{ XMFLOAT3(20.0f, 15.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 	{ XMFLOAT3(20.0f, 15.0f, 0.0f), XMFLOAT3(XM_PI / 2, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 180 },
@@ -76,7 +76,7 @@ static INTERPOLATION_DATA move_tbl_left[] = {	// pos, rot, scl, frame
 
 
 //=============================================================================
-// ‰Šú‰»ˆ—
+// åˆæœŸåŒ–å‡¦ç†
 //=============================================================================
 HRESULT InitPlayer(void)
 {
@@ -88,57 +88,57 @@ HRESULT InitPlayer(void)
 	g_Player.rot = { 0.0f, XM_PI, 0.0f };
 	g_Player.scl = { 1.0f, 1.0f, 1.0f };
 
-	g_Player.spd = VALUE_MOVE;			// ˆÚ“®ƒXƒs[ƒhƒNƒŠƒA
+	g_Player.spd = VALUE_MOVE;			// ç§»å‹•ã‚¹ãƒ”ãƒ¼ãƒ‰ã‚¯ãƒªã‚¢
 	g_Player.dir = XM_PI;
-	g_Player.size = PLAYER_SIZE;	// “–‚½‚è”»’è‚Ì‘å‚«‚³
+	g_Player.size = PLAYER_SIZE;	// å½“ãŸã‚Šåˆ¤å®šã®å¤§ãã•
 
 	g_Player.use = TRUE;
 
-	// ‚±‚±‚ÅƒvƒŒƒCƒ„[—p‚Ì‰e‚ğì¬‚µ‚Ä‚¢‚é
+	// ã“ã“ã§ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”¨ã®å½±ã‚’ä½œæˆã—ã¦ã„ã‚‹
 	XMFLOAT3 pos = g_Player.pos;
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	g_Player.shadowIdx = CreateShadow(pos, PLAYER_SHADOW_SIZE, PLAYER_SHADOW_SIZE);
-	//          ª
-	//        ‚±‚Ìƒƒ“ƒo[•Ï”‚ª¶¬‚µ‚½‰e‚ÌIndex”Ô†
+	//          â†‘
+	//        ã“ã®ãƒ¡ãƒ³ãƒãƒ¼å¤‰æ•°ãŒç”Ÿæˆã—ãŸå½±ã®Indexç•ªå·
 
-	// ŠK‘wƒAƒjƒ[ƒVƒ‡ƒ“—p‚Ì‰Šú‰»ˆ—
-	g_Player.parent = NULL;			// –{‘Ìiej‚È‚Ì‚ÅNULL‚ğ“ü‚ê‚é
+	// éšå±¤ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨ã®åˆæœŸåŒ–å‡¦ç†
+	g_Player.parent = NULL;			// æœ¬ä½“ï¼ˆè¦ªï¼‰ãªã®ã§NULLã‚’å…¥ã‚Œã‚‹
 
-	// ƒp[ƒc‚Ì‰Šú‰»
+	// ãƒ‘ãƒ¼ãƒ„ã®åˆæœŸåŒ–
 	for (int i = 0; i < PLAYER_PARTS_MAX; i++)
 	{
 		g_Parts[i].use = FALSE;
 
-		// ˆÊ’uE‰ñ“]EƒXƒP[ƒ‹‚Ì‰Šúİ’è
+		// ä½ç½®ãƒ»å›è»¢ãƒ»ã‚¹ã‚±ãƒ¼ãƒ«ã®åˆæœŸè¨­å®š
 		g_Parts[i].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Parts[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Parts[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
-		// eqŠÖŒW
-		g_Parts[i].parent = &g_Player;		// © ‚±‚±‚Ée‚ÌƒAƒhƒŒƒX‚ğ“ü‚ê‚é
-	//	g_Parts[˜r].parent= &g_Player;		// ˜r‚¾‚Á‚½‚çe‚Í–{‘ÌiƒvƒŒƒCƒ„[j
-	//	g_Parts[è].parent= &g_Paerts[˜r];	// w‚ª˜r‚Ìq‹Ÿ‚¾‚Á‚½ê‡‚Ì—á
+		// è¦ªå­é–¢ä¿‚
+		g_Parts[i].parent = &g_Player;		// â† ã“ã“ã«è¦ªã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å…¥ã‚Œã‚‹
+	//	g_Parts[è…•].parent= &g_Player;		// è…•ã ã£ãŸã‚‰è¦ªã¯æœ¬ä½“ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ï¼‰
+	//	g_Parts[æ‰‹].parent= &g_Paerts[è…•];	// æŒ‡ãŒè…•ã®å­ä¾›ã ã£ãŸå ´åˆã®ä¾‹
 
-		// ŠK‘wƒAƒjƒ[ƒVƒ‡ƒ“—p‚Ìƒƒ“ƒo[•Ï”‚Ì‰Šú‰»
-		g_Parts[i].tbl_adr = NULL;		// Ä¶‚·‚éƒAƒjƒƒf[ƒ^‚Ìæ“ªƒAƒhƒŒƒX‚ğƒZƒbƒg
-		g_Parts[i].move_time = 0.0f;	// ÀsŠÔ‚ğƒNƒŠƒA
-		g_Parts[i].tbl_size = 0;		// Ä¶‚·‚éƒAƒjƒƒf[ƒ^‚ÌƒŒƒR[ƒh”‚ğƒZƒbƒg
+		// éšå±¤ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨ã®ãƒ¡ãƒ³ãƒãƒ¼å¤‰æ•°ã®åˆæœŸåŒ–
+		g_Parts[i].tbl_adr = NULL;		// å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ‡ãƒ¼ã‚¿ã®å…ˆé ­ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’ã‚»ãƒƒãƒˆ
+		g_Parts[i].move_time = 0.0f;	// å®Ÿè¡Œæ™‚é–“ã‚’ã‚¯ãƒªã‚¢
+		g_Parts[i].tbl_size = 0;		// å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ‡ãƒ¼ã‚¿ã®ãƒ¬ã‚³ãƒ¼ãƒ‰æ•°ã‚’ã‚»ãƒƒãƒˆ
 
-		// ƒp[ƒc‚Ì“Ç‚İ‚İ‚Í‚Ü‚¾‚µ‚Ä‚¢‚È‚¢
+		// ãƒ‘ãƒ¼ãƒ„ã®èª­ã¿è¾¼ã¿ã¯ã¾ã ã—ã¦ã„ãªã„
 		g_Parts[i].load = 0;
 	}
 
 	//g_Parts[0].use = TRUE;
-	//g_Parts[0].parent   = &g_Player;		// e‚ğƒZƒbƒg
-	//g_Parts[0].tbl_adr  = move_tbl_right;	// Ä¶‚·‚éƒAƒjƒƒf[ƒ^‚Ìæ“ªƒAƒhƒŒƒX‚ğƒZƒbƒg
-	//g_Parts[0].tbl_size = sizeof(move_tbl_right) / sizeof(INTERPOLATION_DATA);		// Ä¶‚·‚éƒAƒjƒƒf[ƒ^‚ÌƒŒƒR[ƒh”‚ğƒZƒbƒg
+	//g_Parts[0].parent   = &g_Player;		// è¦ªã‚’ã‚»ãƒƒãƒˆ
+	//g_Parts[0].tbl_adr  = move_tbl_right;	// å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ‡ãƒ¼ã‚¿ã®å…ˆé ­ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’ã‚»ãƒƒãƒˆ
+	//g_Parts[0].tbl_size = sizeof(move_tbl_right) / sizeof(INTERPOLATION_DATA);		// å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ‡ãƒ¼ã‚¿ã®ãƒ¬ã‚³ãƒ¼ãƒ‰æ•°ã‚’ã‚»ãƒƒãƒˆ
 	//g_Parts[0].load = 1;
 	//LoadModel(MODEL_PLAYER_PARTS, &g_Parts[0].model);
 
 	//g_Parts[1].use = TRUE;
-	//g_Parts[1].parent   = &g_Player;		// e‚ğƒZƒbƒg
-	//g_Parts[1].tbl_adr  = move_tbl_left;	// Ä¶‚·‚éƒAƒjƒƒf[ƒ^‚Ìæ“ªƒAƒhƒŒƒX‚ğƒZƒbƒg
-	//g_Parts[1].tbl_size = sizeof(move_tbl_left) / sizeof(INTERPOLATION_DATA);		// Ä¶‚·‚éƒAƒjƒƒf[ƒ^‚ÌƒŒƒR[ƒh”‚ğƒZƒbƒg
+	//g_Parts[1].parent   = &g_Player;		// è¦ªã‚’ã‚»ãƒƒãƒˆ
+	//g_Parts[1].tbl_adr  = move_tbl_left;	// å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ‡ãƒ¼ã‚¿ã®å…ˆé ­ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’ã‚»ãƒƒãƒˆ
+	//g_Parts[1].tbl_size = sizeof(move_tbl_left) / sizeof(INTERPOLATION_DATA);		// å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ‡ãƒ¼ã‚¿ã®ãƒ¬ã‚³ãƒ¼ãƒ‰æ•°ã‚’ã‚»ãƒƒãƒˆ
 	//g_Parts[1].load = 1;
 	//LoadModel(MODEL_PLAYER_PARTS, &g_Parts[1].model);
 
@@ -147,13 +147,13 @@ HRESULT InitPlayer(void)
 }
 
 //=============================================================================
-// I—¹ˆ—
+// çµ‚äº†å‡¦ç†
 //=============================================================================
 void UninitPlayer(void)
 {
 	if (g_Load == FALSE) return;
 
-	// ƒ‚ƒfƒ‹‚Ì‰ğ•úˆ—
+	// ãƒ¢ãƒ‡ãƒ«ã®è§£æ”¾å‡¦ç†
 	if (g_Player.load)
 	{
 		UnloadModel(&g_Player.model);
@@ -164,34 +164,70 @@ void UninitPlayer(void)
 }
 
 //=============================================================================
-// XVˆ—
+// æ›´æ–°å‡¦ç†
 //=============================================================================
 void UpdatePlayer(void)
 {
+	float& dir = g_Player.dir;
+
 	if (g_OutOfBoarder)
 	{
 		g_OutOfBoarder = FALSE;
 	}
 
-	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z);
+	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z, dir);
 
 	if (g_MadeDecision && !g_AtConjunction)
 	{
 		g_MadeDecision = false;
 	}
+
 	if (g_AtConjunction && !g_MadeDecision)
 	{
+		g_Player.spd = VALUE_MOVE * 0.1f;
+
 		// Decision of road's branch.
-		int i = 1; //rand() % 4;
+		int i = 0; //rand() % 4;
+
+		if (GetKeyboardPress(DIK_A))
+		{
+			i = -1;
+			g_MadeDecision = true;
+		}
+		else if (GetKeyboardPress(DIK_D))
+		{
+			i = 1;
+			g_MadeDecision = true;
+		}
+		else if (GetKeyboardPress(DIK_W))
+		{
+			i = 0;
+			g_MadeDecision = true;
+		}
 		g_Player.dir += XM_PIDIV2 * i;
-		if (g_Player.dir > XM_2PI) g_Player.dir -= XM_2PI;
-		g_MadeDecision = true;
+
+		if (g_Player.dir > XM_2PI - 0.01f)	g_Player.dir -= XM_2PI;
+		if (g_Player.dir < 0.0f)	g_Player.dir += XM_2PI;
+
+		if(g_MadeDecision) 
+			g_Player.spd = VALUE_MOVE;
+	}
+
+	if (!g_AtConjunction)
+	{
+		g_Player.spd = VALUE_MOVE;
 	}
 
 #ifdef _DEBUG
 	if (GetKeyboardPress(DIK_R))
 	{
-		g_Player.spd = 0.0f;
+		g_Player.pos.z = g_Player.pos.x = 0.0f;
+		g_Player.rot.y = dir = 0.0f;
+		g_Player.spd = VALUE_MOVE;
+	}
+	if (GetKeyboardPress(DIK_P))
+	{
+		g_Player.spd = g_Player.spd < 0.01f ? VALUE_MOVE : 0.0f;
 	}
 #endif
 
@@ -199,15 +235,15 @@ void UpdatePlayer(void)
 	{
 		XMFLOAT3 target = g_Player.pos;
 
-		if (GetKeyboardPress(DIK_LEFT))
+		if (GetKeyboardPress(DIK_A))
 		{
-			target.x -= VALUE_SIDE_MOVE * cosf(g_Player.dir);
-			target.z -= VALUE_SIDE_MOVE * -sinf(g_Player.dir);
+			target.x -= VALUE_SIDE_MOVE * cosf(dir);
+			target.z -= VALUE_SIDE_MOVE * -sinf(dir);
 		}
-		if (GetKeyboardPress(DIK_RIGHT))
+		if (GetKeyboardPress(DIK_D))
 		{
-			target.x += VALUE_SIDE_MOVE * cosf(g_Player.dir);
-			target.z += VALUE_SIDE_MOVE * -sinf(g_Player.dir);
+			target.x += VALUE_SIDE_MOVE * cosf(dir);
+			target.z += VALUE_SIDE_MOVE * -sinf(dir);
 		}
 
 		if (CheckFieldValid(target.x, target.z))
@@ -219,15 +255,15 @@ void UpdatePlayer(void)
 
 	// z pass
 	{
-		g_Player.rot.y = g_Player.dir;
+		g_Player.rot.y = dir + XM_PI;
 
-		g_Player.pos.z += g_Player.spd * cosf(g_Player.dir);
-		g_Player.pos.x += g_Player.spd * sinf(g_Player.dir);
+		g_Player.pos.z += g_Player.spd * cosf(dir);
+		g_Player.pos.x += g_Player.spd * sinf(dir);
 
 		g_OutOfBoarder = IsOutOfBoarder(g_Player.pos.x, g_Player.pos.z);
 		if (g_OutOfBoarder)
 		{
-			g_Player.pos = GetWarpPosition(g_Player.pos, g_OutOfBoarder);
+			g_Player.pos = GetWrapPosition(g_Player.pos, g_OutOfBoarder);
 			// TODO: make player set on the right offset of road
 		}
 	}
@@ -258,20 +294,20 @@ void UpdatePlayer(void)
 		}
 	}
 
-	// ƒŒƒCƒLƒƒƒXƒg‚µ‚Ä‘«Œ³‚Ì‚‚³‚ğ‹‚ß‚é
-	//XMFLOAT3 normal = { 0.0f, 1.0f, 0.0f };				// ‚Ô‚Â‚©‚Á‚½ƒ|ƒŠƒSƒ“‚Ì–@üƒxƒNƒgƒ‹iŒü‚«j
-	//XMFLOAT3 hitPosition;								// Œğ“_
-	//hitPosition.y = g_Player.pos.y - PLAYER_OFFSET_Y;	// ŠO‚ê‚½—p‚É‰Šú‰»‚µ‚Ä‚¨‚­
+	// ãƒ¬ã‚¤ã‚­ãƒ£ã‚¹ãƒˆã—ã¦è¶³å…ƒã®é«˜ã•ã‚’æ±‚ã‚ã‚‹
+	//XMFLOAT3 normal = { 0.0f, 1.0f, 0.0f };				// ã¶ã¤ã‹ã£ãŸãƒãƒªã‚´ãƒ³ã®æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«ï¼ˆå‘ãï¼‰
+	//XMFLOAT3 hitPosition;								// äº¤ç‚¹
+	//hitPosition.y = g_Player.pos.y - PLAYER_OFFSET_Y;	// å¤–ã‚ŒãŸæ™‚ç”¨ã«åˆæœŸåŒ–ã—ã¦ãŠã
 	//bool ans = RayHitField(g_Player.pos, &hitPosition, &normal);
 	//g_Player.pos.y = hitPosition.y + PLAYER_OFFSET_Y;
 	////g_Player.pos.y = PLAYER_OFFSET_Y;
 
-	// ‰e‚àƒvƒŒƒCƒ„[‚ÌˆÊ’u‚É‡‚í‚¹‚é
+	// å½±ã‚‚ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã«åˆã‚ã›ã‚‹
 	XMFLOAT3 pos = g_Player.pos;
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	SetPositionShadow(g_Player.shadowIdx, pos);
 
-	// ’e”­Ëˆ—
+	// å¼¾ç™ºå°„å‡¦ç†
 	if (GetKeyboardTrigger(DIK_SPACE))
 	{
 		//SetBullet(g_Player.pos, g_Player.rot);
@@ -280,41 +316,41 @@ void UpdatePlayer(void)
 	//g_Player.spd *= 0.5f;
 
 
-	// ŠK‘wƒAƒjƒ[ƒVƒ‡ƒ“
+	// éšå±¤ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
 	for (int i = 0; i < PLAYER_PARTS_MAX; i++)
 	{
-		// g‚í‚ê‚Ä‚¢‚é‚È‚çˆ—‚·‚é
+		// ä½¿ã‚ã‚Œã¦ã„ã‚‹ãªã‚‰å‡¦ç†ã™ã‚‹
 		if ((g_Parts[i].use == TRUE)&&(g_Parts[i].tbl_adr != NULL))
 		{
-			// ˆÚ“®ˆ—
+			// ç§»å‹•å‡¦ç†
 			int		index = (int)g_Parts[i].move_time;
 			float	time = g_Parts[i].move_time - index;
 			int		size = g_Parts[i].tbl_size;
 
-			float dt = 1.0f / g_Parts[i].tbl_adr[index].frame;	// 1ƒtƒŒ[ƒ€‚Åi‚ß‚éŠÔ
-			g_Parts[i].move_time += dt;					// ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‡ŒvŠÔ‚É‘«‚·
+			float dt = 1.0f / g_Parts[i].tbl_adr[index].frame;	// 1ãƒ•ãƒ¬ãƒ¼ãƒ ã§é€²ã‚ã‚‹æ™‚é–“
+			g_Parts[i].move_time += dt;					// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®åˆè¨ˆæ™‚é–“ã«è¶³ã™
 
-			if (index > (size - 2))	// ƒS[ƒ‹‚ğƒI[ƒo[‚µ‚Ä‚¢‚½‚çAÅ‰‚Ö–ß‚·
+			if (index > (size - 2))	// ã‚´ãƒ¼ãƒ«ã‚’ã‚ªãƒ¼ãƒãƒ¼ã—ã¦ã„ãŸã‚‰ã€æœ€åˆã¸æˆ»ã™
 			{
 				g_Parts[i].move_time = 0.0f;
 				index = 0;
 			}
 
-			// À•W‚ğ‹‚ß‚é	X = StartX + (EndX - StartX) * ¡‚ÌŠÔ
-			XMVECTOR p1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].pos);	// Ÿ‚ÌêŠ
-			XMVECTOR p0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].pos);	// Œ»İ‚ÌêŠ
+			// åº§æ¨™ã‚’æ±‚ã‚ã‚‹	X = StartX + (EndX - StartX) * ä»Šã®æ™‚é–“
+			XMVECTOR p1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].pos);	// æ¬¡ã®å ´æ‰€
+			XMVECTOR p0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].pos);	// ç¾åœ¨ã®å ´æ‰€
 			XMVECTOR vec = p1 - p0;
 			XMStoreFloat3(&g_Parts[i].pos, p0 + vec * time);
 
-			// ‰ñ“]‚ğ‹‚ß‚é	R = StartX + (EndX - StartX) * ¡‚ÌŠÔ
-			XMVECTOR r1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].rot);	// Ÿ‚ÌŠp“x
-			XMVECTOR r0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].rot);	// Œ»İ‚ÌŠp“x
+			// å›è»¢ã‚’æ±‚ã‚ã‚‹	R = StartX + (EndX - StartX) * ä»Šã®æ™‚é–“
+			XMVECTOR r1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].rot);	// æ¬¡ã®è§’åº¦
+			XMVECTOR r0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].rot);	// ç¾åœ¨ã®è§’åº¦
 			XMVECTOR rot = r1 - r0;
 			XMStoreFloat3(&g_Parts[i].rot, r0 + rot * time);
 
-			// scale‚ğ‹‚ß‚é S = StartX + (EndX - StartX) * ¡‚ÌŠÔ
-			XMVECTOR s1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].scl);	// Ÿ‚ÌScale
-			XMVECTOR s0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].scl);	// Œ»İ‚ÌScale
+			// scaleã‚’æ±‚ã‚ã‚‹ S = StartX + (EndX - StartX) * ä»Šã®æ™‚é–“
+			XMVECTOR s1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].scl);	// æ¬¡ã®Scale
+			XMVECTOR s0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].scl);	// ç¾åœ¨ã®Scale
 			XMVECTOR scl = s1 - s0;
 			XMStoreFloat3(&g_Parts[i].scl, s0 + scl * time);
 
@@ -323,7 +359,7 @@ void UpdatePlayer(void)
 
 
 
-	{	// ƒ|ƒCƒ“ƒgƒ‰ƒCƒg‚ÌƒeƒXƒg
+	{	// ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆã®ãƒ†ã‚¹ãƒˆ
 		LIGHT *light = GetLightData(1);
 		XMFLOAT3 pos = g_Player.pos;
 		pos.y += 20.0f;
@@ -338,127 +374,128 @@ void UpdatePlayer(void)
 
 
 	//////////////////////////////////////////////////////////////////////
-	// p¨§Œä
+	// å§¿å‹¢åˆ¶å¾¡
 	//////////////////////////////////////////////////////////////////////
 
 	XMVECTOR vx, nvx, up;
 	XMVECTOR quat;
 	float len, angle;
 
-	// ‚Q‚Â‚ÌƒxƒNƒgƒ‹‚ÌŠOÏ‚ğæ‚Á‚Ä”CˆÓ‚Ì‰ñ“]²‚ğ‹‚ß‚é
+	// ï¼’ã¤ã®ãƒ™ã‚¯ãƒˆãƒ«ã®å¤–ç©ã‚’å–ã£ã¦ä»»æ„ã®å›è»¢è»¸ã‚’æ±‚ã‚ã‚‹
 	g_Player.upVector = {0.0f, 1.0f, 0.0f};
 	up = { 0.0f, 1.0f, 0.0f, 0.0f };
 	vx = XMVector3Cross(up, XMLoadFloat3(&g_Player.upVector));
 
-	// ‹‚ß‚½‰ñ“]²‚©‚çƒNƒH[ƒ^ƒjƒIƒ“‚ğì‚èo‚·
+	// æ±‚ã‚ãŸå›è»¢è»¸ã‹ã‚‰ã‚¯ã‚©ãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ã‚’ä½œã‚Šå‡ºã™
 	nvx = XMVector3Length(vx);
 	XMStoreFloat(&len, nvx);
 	nvx = XMVector3Normalize(vx);
 	angle = asinf(len);
 	quat = XMQuaternionRotationNormal(nvx, angle);
 
-	// ‘O‰ñ‚ÌƒNƒH[ƒ^ƒjƒIƒ“‚©‚ç¡‰ñ‚ÌƒNƒH[ƒ^ƒjƒIƒ“‚Ü‚Å‚Ì‰ñ“]‚ğŠŠ‚ç‚©‚É‚·‚é
+	// å‰å›ã®ã‚¯ã‚©ãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ã‹ã‚‰ä»Šå›ã®ã‚¯ã‚©ãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ã¾ã§ã®å›è»¢ã‚’æ»‘ã‚‰ã‹ã«ã™ã‚‹
 	quat = XMQuaternionSlerp(XMLoadFloat4(&g_Player.quaternion), quat, 0.05f);
 
-	// ¡‰ñ‚ÌƒNƒH[ƒ^ƒjƒIƒ“‚ÌŒ‹‰Ê‚ğ•Û‘¶‚·‚é
+	// ä»Šå›ã®ã‚¯ã‚©ãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ã®çµæœã‚’ä¿å­˜ã™ã‚‹
 	XMStoreFloat4(&g_Player.quaternion, quat);
 
 
 
-#ifdef _DEBUG	// ƒfƒoƒbƒOî•ñ‚ğ•\¦‚·‚é
-	PrintDebugProc("Player:ª ¨ « ©@Space\n");
+#ifdef _DEBUG	// ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã‚’è¡¨ç¤ºã™ã‚‹
+	PrintDebugProc("Player:â†‘ â†’ â†“ â†ã€€Space\n");
 	PrintDebugProc("Player:X:%f Y:%f Z:%f\n", g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
+	PrintDebugProc("Player: dir:%f\n", dir);
 #endif
 }
 
 //=============================================================================
-// •`‰æˆ—
+// æç”»å‡¦ç†
 //=============================================================================
 void DrawPlayer(void)
 {
-	// ƒJƒŠƒ“ƒO–³Œø
+	// ã‚«ãƒªãƒ³ã‚°ç„¡åŠ¹
 	SetCullingMode(CULL_MODE_NONE);
 
 	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
 
-	// ƒ[ƒ‹ƒhƒ}ƒgƒŠƒbƒNƒX‚Ì‰Šú‰»
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰ãƒãƒˆãƒªãƒƒã‚¯ã‚¹ã®åˆæœŸåŒ–
 	mtxWorld = XMMatrixIdentity();
 
-	// ƒXƒP[ƒ‹‚ğ”½‰f
+	// ã‚¹ã‚±ãƒ¼ãƒ«ã‚’åæ˜ 
 	mtxScl = XMMatrixScaling(g_Player.scl.x, g_Player.scl.y, g_Player.scl.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-	// ‰ñ“]‚ğ”½‰f
+	// å›è»¢ã‚’åæ˜ 
 	mtxRot = XMMatrixRotationRollPitchYaw(g_Player.rot.x, g_Player.rot.y + XM_PI, g_Player.rot.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-	//// ƒNƒH[ƒ^ƒjƒIƒ“‚ğ”½‰f
+	//// ã‚¯ã‚©ãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³ã‚’åæ˜ 
 	//XMMATRIX quatMatrix = XMMatrixRotationQuaternion(XMLoadFloat4(&g_Player.quaternion));
 	//mtxWorld = XMMatrixMultiply(mtxWorld, quatMatrix);
 	
-	// ˆÚ“®‚ğ”½‰f
+	// ç§»å‹•ã‚’åæ˜ 
 	mtxTranslate = XMMatrixTranslation(g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
-	// ƒ[ƒ‹ƒhƒ}ƒgƒŠƒbƒNƒX‚Ìİ’è
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰ãƒãƒˆãƒªãƒƒã‚¯ã‚¹ã®è¨­å®š
 	SetWorldMatrix(&mtxWorld);
 
 	XMStoreFloat4x4(&g_Player.mtxWorld, mtxWorld);
 
 
-	// ƒ‚ƒfƒ‹•`‰æ
+	// ãƒ¢ãƒ‡ãƒ«æç”»
 	DrawModel(&g_Player.model);
 
 
 
-	// ƒp[ƒc‚ÌŠK‘wƒAƒjƒ[ƒVƒ‡ƒ“
+	// ãƒ‘ãƒ¼ãƒ„ã®éšå±¤ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
 	for (int i = 0; i < PLAYER_PARTS_MAX; i++)
 	{
-		// ƒ[ƒ‹ƒhƒ}ƒgƒŠƒbƒNƒX‚Ì‰Šú‰»
+		// ãƒ¯ãƒ¼ãƒ«ãƒ‰ãƒãƒˆãƒªãƒƒã‚¯ã‚¹ã®åˆæœŸåŒ–
 		mtxWorld = XMMatrixIdentity();
 
-		// ƒXƒP[ƒ‹‚ğ”½‰f
+		// ã‚¹ã‚±ãƒ¼ãƒ«ã‚’åæ˜ 
 		mtxScl = XMMatrixScaling(g_Parts[i].scl.x, g_Parts[i].scl.y, g_Parts[i].scl.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-		// ‰ñ“]‚ğ”½‰f
+		// å›è»¢ã‚’åæ˜ 
 		mtxRot = XMMatrixRotationRollPitchYaw(g_Parts[i].rot.x, g_Parts[i].rot.y, g_Parts[i].rot.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-		// ˆÚ“®‚ğ”½‰f
+		// ç§»å‹•ã‚’åæ˜ 
 		mtxTranslate = XMMatrixTranslation(g_Parts[i].pos.x, g_Parts[i].pos.y, g_Parts[i].pos.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
-		if (g_Parts[i].parent != NULL)	// q‹Ÿ‚¾‚Á‚½‚çe‚ÆŒ‹‡‚·‚é
+		if (g_Parts[i].parent != NULL)	// å­ä¾›ã ã£ãŸã‚‰è¦ªã¨çµåˆã™ã‚‹
 		{
 			mtxWorld = XMMatrixMultiply(mtxWorld, XMLoadFloat4x4(&g_Parts[i].parent->mtxWorld));
-			// ª
-			// g_Player.mtxWorld‚ğw‚µ‚Ä‚¢‚é
+			// â†‘
+			// g_Player.mtxWorldã‚’æŒ‡ã—ã¦ã„ã‚‹
 		}
 
 		XMStoreFloat4x4(&g_Parts[i].mtxWorld, mtxWorld);
 
-		// g‚í‚ê‚Ä‚¢‚é‚È‚çˆ—‚·‚éB‚±‚±‚Ü‚Åˆ—‚µ‚Ä‚¢‚é——R‚Í‘¼‚Ìƒp[ƒc‚ª‚±‚Ìƒp[ƒc‚ğQÆ‚µ‚Ä‚¢‚é‰Â”\«‚ª‚ ‚é‚©‚çB
+		// ä½¿ã‚ã‚Œã¦ã„ã‚‹ãªã‚‰å‡¦ç†ã™ã‚‹ã€‚ã“ã“ã¾ã§å‡¦ç†ã—ã¦ã„ã‚‹ç†ç”±ã¯ä»–ã®ãƒ‘ãƒ¼ãƒ„ãŒã“ã®ãƒ‘ãƒ¼ãƒ„ã‚’å‚ç…§ã—ã¦ã„ã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹ã‹ã‚‰ã€‚
 		if (g_Parts[i].use == FALSE) continue;
 
-		// ƒ[ƒ‹ƒhƒ}ƒgƒŠƒbƒNƒX‚Ìİ’è
+		// ãƒ¯ãƒ¼ãƒ«ãƒ‰ãƒãƒˆãƒªãƒƒã‚¯ã‚¹ã®è¨­å®š
 		SetWorldMatrix(&mtxWorld);
 
 
-		// ƒ‚ƒfƒ‹•`‰æ
+		// ãƒ¢ãƒ‡ãƒ«æç”»
 		DrawModel(&g_Parts[i].model);
 
 	}
 
 
 
-	// ƒJƒŠƒ“ƒOİ’è‚ğ–ß‚·
+	// ã‚«ãƒªãƒ³ã‚°è¨­å®šã‚’æˆ»ã™
 	SetCullingMode(CULL_MODE_BACK);
 }
 
 
 //=============================================================================
-// ƒvƒŒƒCƒ„[î•ñ‚ğæ“¾
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æƒ…å ±ã‚’å–å¾—
 //=============================================================================
 PLAYER *GetPlayer(void)
 {

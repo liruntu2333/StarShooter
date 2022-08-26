@@ -15,6 +15,7 @@
 //*****************************************************************************
 #define TEXTURE_MAX		(1)				// テクスチャの数
 #define ROAD_HALF_WIDTH		50.0f
+#define WIDTH_BIAS 10.0f
 
 //*****************************************************************************
 // グローバル変数
@@ -429,10 +430,11 @@ inline float GetFieldHeight(float x, float z)
 
 bool CheckFieldValid(float x, float z)
 {
-	return GetFieldHeight(x, z) > -10.0f;
+	return GetFieldHeight(x - WIDTH_BIAS, z) > -10.0f && GetFieldHeight(x + WIDTH_BIAS, z) > -10.0f
+	&& GetFieldHeight(x, z - WIDTH_BIAS) > -10.0f && GetFieldHeight(x, z + WIDTH_BIAS) > -10.0f;
 }
 
-XMFLOAT3 __vectorcall GetWarpPosition(XMFLOAT3 pos, int endOfBoarderFlag)
+XMFLOAT3 __vectorcall GetWrapPosition(XMFLOAT3 pos, int endOfBoarderFlag)
 {
 	if (endOfBoarderFlag & EndOfZPlus)       pos.z -= g_FieldSizeZ;
 	else if (endOfBoarderFlag & EndOfZMinus) pos.z += g_FieldSizeZ;
@@ -451,8 +453,19 @@ int IsOutOfBoarder(float x, float z)
 	return flag;
 }
 
-int IsAtConjunction(float x, float z)
+int IsAtConjunction(float x, float z, float dir)
 {
-	return (x > -ROAD_HALF_WIDTH / 2.0f && x < +ROAD_HALF_WIDTH / 2.0f) &&
-		(z > -ROAD_HALF_WIDTH / 2.0f && z < +ROAD_HALF_WIDTH / 2.0f);
+	// facing east or west
+	if (dir > XM_PIDIV2 - 0.01f && dir < XM_PIDIV2 + 0.01f ||
+		dir > XM_PIDIV2 + XM_PI - 0.01f && dir < XM_PIDIV2 + XM_PI + 0.01f) 
+	{
+		return x > -ROAD_HALF_WIDTH + WIDTH_BIAS && x < +ROAD_HALF_WIDTH - WIDTH_BIAS;
+	}
+	// facing north or south
+	if (dir > 0.0f - 0.01f && dir < 0.0f + 0.01f ||
+		dir > XM_PI - 0.01f && dir < XM_PI + 0.01f)
+	{
+		return z > -ROAD_HALF_WIDTH + WIDTH_BIAS && z < +ROAD_HALF_WIDTH - WIDTH_BIAS;
+	}
+	return false;
 }

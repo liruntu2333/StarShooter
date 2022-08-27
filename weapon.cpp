@@ -235,15 +235,16 @@ void UpdateWeapon(void)
 
 	int boarderFlag = IsPlayerEndOfBoarder();
 
-	for (int i = 0; i < MAX_WEAPON; i++)
+	for (auto& weapon : g_Weapon)
 	{
 		if (boarderFlag)
 		{
-			g_Weapon[i].pos = GetWrapPosition(g_Weapon[i].pos, boarderFlag);
+			weapon.pos = GetWrapPosition(weapon.pos, boarderFlag);
 		}
 		auto target = XMLoadFloat3(&player->pos) + XMVECTOR{20.0f, 0.0f, -10.0f};
-		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&g_Weapon[i].pos), target, 0.1f);
-		XMStoreFloat3(&g_Weapon[i].pos, lerp);
+		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&weapon.pos), target, 0.1f);
+		weapon.rot = player->rot;
+		XMStoreFloat3(&weapon.pos, lerp);
 	}
 	
 

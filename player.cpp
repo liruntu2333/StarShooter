@@ -122,8 +122,8 @@ HRESULT InitPlayer(void)
 	g_Player.use = TRUE;
 
 	// 属性の初期化
-	g_Player.HP = 5;
-	g_Player.MP = 5;
+	g_Player.HP = PLAYER_HP_MAX;
+	g_Player.MP = PLAYER_MP_MAX;
 
 	// ここでプレイヤー用の影を作成している
 	XMFLOAT3 pos = g_Player.pos;

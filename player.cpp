@@ -18,18 +18,30 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define	MODEL_PLAYER		"data/MODEL/player.obj"			// 読み込むモデル名
-#define	MODEL_PLAYER_PARTS	"data/MODEL/torus.obj"			// 読み込むモデル名
+//#define	MODEL_PLAYER					"data/MODEL/player_body.obj"			// 読み込むモデル名 プレイヤーの本体
 
-#define	VALUE_MOVE			(5.0f)							// 移動量
+#define	MODEL_PLAYER_PARTS_BODY			"data/MODEL/player_body.obj"				// 読み込むモデル名	プレイヤーのパーツ
+#define	MODEL_PLAYER_PARTS_LEG_LEFT_1	"data/MODEL/player_leg_left_1.obj"			
+#define	MODEL_PLAYER_PARTS_LEG_LEFT_2	"data/MODEL/player_leg_left_2.obj"
+#define	MODEL_PLAYER_PARTS_LEG_LEFT_3	"data/MODEL/player_leg_left_3.obj"
+#define	MODEL_PLAYER_PARTS_FOOT_LEFT	"data/MODEL/player_foot_left.obj"
+#define	MODEL_PLAYER_PARTS_PANTS_LEFT	"data/MODEL/player_pants_left.obj"
+
+#define	MODEL_PLAYER_PARTS_LEG_RIGHT_1	"data/MODEL/player_leg_right_1.obj"
+#define	MODEL_PLAYER_PARTS_LEG_RIGHT_2	"data/MODEL/player_leg_right_2.obj"
+#define	MODEL_PLAYER_PARTS_LEG_RIGHT_3	"data/MODEL/player_leg_right_3.obj"
+#define	MODEL_PLAYER_PARTS_FOOT_RIGHT	"data/MODEL/player_foot_right.obj"
+#define	MODEL_PLAYER_PARTS_PANTS_RIGHT	"data/MODEL/player_pants_right.obj"
+
+#define	VALUE_MOVE			(0.0f)							// 移動量
 #define	VALUE_JUMP			(10)							// 移動量
-#define	VALUE_SIDE_MOVE			(2.0f)							// 移動量
+#define	VALUE_SIDE_MOVE		(2.0f)							// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// 回転量
 
 #define PLAYER_SHADOW_SIZE	(1.0f)							// 影の大きさ
-#define PLAYER_OFFSET_Y		(7.0f)							// プレイヤーの足元をあわせる
+#define PLAYER_OFFSET_Y		(-4.0f)							// プレイヤーの足元をあわせる
 
-#define PLAYER_PARTS_MAX	(2)								// プレイヤーのパーツの数
+#define PLAYER_PARTS_MAX	(11)							// プレイヤーのパーツの数
 
 
 //*****************************************************************************
@@ -42,7 +54,7 @@
 //*****************************************************************************
 static PLAYER		g_Player;						// プレイヤー
 
-static PLAYER		g_Parts[PLAYER_PARTS_MAX];		// プレイヤーのパーツ用
+static PLAYER		g_Player_Parts[PLAYER_PARTS_MAX];		// プレイヤーのパーツ用
 
 static BOOL			g_Load = FALSE;
 
@@ -58,19 +70,34 @@ static bool			g_MadeDecision = false;
 
 
 // プレイヤーの階層アニメーションデータ
-// プレイヤーの頭を左右に動かしているアニメデータ
-static INTERPOLATION_DATA move_tbl_right[] = {	// pos, rot, scl, frame
-	{ XMFLOAT3(20.0f, 15.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
-	{ XMFLOAT3(20.0f, 15.0f, 0.0f), XMFLOAT3(XM_PI / 2, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 180 },
-	{ XMFLOAT3(20.0f, 15.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
-
+static INTERPOLATION_DATA move_tbl_null[] = {	// pos, rot, scl, frame
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
-static INTERPOLATION_DATA move_tbl_left[] = {	// pos, rot, scl, frame
-	{ XMFLOAT3(-20.0f, 10.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f),         XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
-	{ XMFLOAT3(-20.0f, 10.0f, 0.0f), XMFLOAT3(XM_PI / 2, 0.0f, 0.0f),    XMFLOAT3(1.0f, 1.0f, 1.0f), 180 },
-	{ XMFLOAT3(-20.0f, 10.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f),         XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+static INTERPOLATION_DATA move_tbl_body[] = {	// pos, rot, scl, frame
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, 3.0f, 0.0f),	XMFLOAT3(0.3f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+};
 
+static INTERPOLATION_DATA move_tbl_foot_left[] = {	// pos, rot, scl, frame
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, -0.5f, -0.5f),	XMFLOAT3(0.5f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+};
+
+static INTERPOLATION_DATA move_tbl_foot_right[] = {	// pos, rot, scl, frame
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, -0.5f, -0.5f),	XMFLOAT3(0.5f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+};
+
+static INTERPOLATION_DATA move_tbl_pants_left[] = {	// pos, rot, scl, frame
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+};
+
+static INTERPOLATION_DATA move_tbl_pants_right[] = {	// pos, rot, scl, frame
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
 
@@ -80,7 +107,7 @@ static INTERPOLATION_DATA move_tbl_left[] = {	// pos, rot, scl, frame
 //=============================================================================
 HRESULT InitPlayer(void)
 {
-	LoadModel(MODEL_PLAYER, &g_Player.model);
+	//LoadModel(MODEL_PLAYER, &g_Player.model);
 	g_Player.load = TRUE;
 
 	g_Player.pos = {0.0f, 0.0f, -600.0f};
@@ -107,40 +134,109 @@ HRESULT InitPlayer(void)
 	// パーツの初期化
 	for (int i = 0; i < PLAYER_PARTS_MAX; i++)
 	{
-		g_Parts[i].use = FALSE;
+		g_Player_Parts[i].use = FALSE;
 
 		// 位置・回転・スケールの初期設定
-		g_Parts[i].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Parts[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Parts[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		g_Player_Parts[i].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		g_Player_Parts[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		g_Player_Parts[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
 		// 親子関係
-		g_Parts[i].parent = &g_Player;		// ← ここに親のアドレスを入れる
-	//	g_Parts[腕].parent= &g_Player;		// 腕だったら親は本体（プレイヤー）
-	//	g_Parts[手].parent= &g_Paerts[腕];	// 指が腕の子供だった場合の例
+		//g_Parts[i].parent = &g_Player;		// ← ここに親のアドレスを入れる
+		//g_Parts[腕].parent= &g_Player;		// 腕だったら親は本体（プレイヤー）
+		//g_Parts[手].parent= &g_Paerts[腕];	// 指が腕の子供だった場合の例
 
 		// 階層アニメーション用のメンバー変数の初期化
-		g_Parts[i].tbl_adr = NULL;		// 再生するアニメデータの先頭アドレスをセット
-		g_Parts[i].move_time = 0.0f;	// 実行時間をクリア
-		g_Parts[i].tbl_size = 0;		// 再生するアニメデータのレコード数をセット
+		g_Player_Parts[i].tbl_adr = NULL;		// 再生するアニメデータの先頭アドレスをセット
+		g_Player_Parts[i].move_time = 0.0f;		// 実行時間をクリア
+		g_Player_Parts[i].tbl_size = 0;			// 再生するアニメデータのレコード数をセット
 
 		// パーツの読み込みはまだしていない
-		g_Parts[i].load = 0;
+		g_Player_Parts[i].load = FALSE;
 	}
 
-	//g_Parts[0].use = TRUE;
-	//g_Parts[0].parent   = &g_Player;		// 親をセット
-	//g_Parts[0].tbl_adr  = move_tbl_right;	// 再生するアニメデータの先頭アドレスをセット
-	//g_Parts[0].tbl_size = sizeof(move_tbl_right) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
-	//g_Parts[0].load = 1;
-	//LoadModel(MODEL_PLAYER_PARTS, &g_Parts[0].model);
+	// MODEL_PLAYER_PARTS_BODY
+	g_Player_Parts[0].use = TRUE;
+	g_Player_Parts[0].parent = &g_Player;														// 親(player)をセット
+	g_Player_Parts[0].tbl_adr = move_tbl_body;													// 再生するアニメデータの先頭アドレスをセット
+	g_Player_Parts[0].tbl_size = sizeof(move_tbl_body) / sizeof(INTERPOLATION_DATA);			// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[0].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_BODY, &g_Player_Parts[0].model);
 
-	//g_Parts[1].use = TRUE;
-	//g_Parts[1].parent   = &g_Player;		// 親をセット
-	//g_Parts[1].tbl_adr  = move_tbl_left;	// 再生するアニメデータの先頭アドレスをセット
-	//g_Parts[1].tbl_size = sizeof(move_tbl_left) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
-	//g_Parts[1].load = 1;
-	//LoadModel(MODEL_PLAYER_PARTS, &g_Parts[1].model);
+	// MODEL_PLAYER_PARTS_LEG_LEFT
+	g_Player_Parts[1].use = TRUE;
+	g_Player_Parts[1].parent   = &g_Player_Parts[0];											// 親(body)をセット
+	//g_Player_Parts[1].tbl_adr  = move_tbl_leg_left;											// 再生するアニメデータの先頭アドレスをセット
+	//g_Player_Parts[1].tbl_size = sizeof(move_tbl_leg_left) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[1].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_LEG_LEFT_1, &g_Player_Parts[1].model);
+
+	g_Player_Parts[2].use = TRUE;
+	g_Player_Parts[2].parent   = &g_Player_Parts[1];											// 親(left leg 1)をセット 
+	//g_Player_Parts[2].tbl_adr  = move_tbl_null;												// 再生するアニメデータの先頭アドレスをセット
+	//g_Player_Parts[2].tbl_size = sizeof(move_tbl_null) / sizeof(INTERPOLATION_DATA);			// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[2].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_LEG_LEFT_2, &g_Player_Parts[2].model);
+
+	g_Player_Parts[3].use = TRUE;
+	g_Player_Parts[3].parent   = &g_Player_Parts[2];											// 親(left leg 2)をセット 
+	//g_Player_Parts[3].tbl_adr  = move_tbl_null;												// 再生するアニメデータの先頭アドレスをセット
+	//g_Player_Parts[3].tbl_size = sizeof(move_tbl_null) / sizeof(INTERPOLATION_DATA);			// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[3].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_LEG_LEFT_3, &g_Player_Parts[3].model);
+
+	g_Player_Parts[4].use = TRUE;
+	g_Player_Parts[4].parent   = &g_Player_Parts[3];											// 親(left leg 3)をセット 
+	g_Player_Parts[4].tbl_adr  = move_tbl_foot_left;											// 再生するアニメデータの先頭アドレスをセット
+	g_Player_Parts[4].tbl_size = sizeof(move_tbl_foot_left) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[4].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_FOOT_LEFT, &g_Player_Parts[4].model);
+
+	// MODEL_PLAYER_PARTS_LEG_RIGHT
+	g_Player_Parts[5].use = TRUE;
+	g_Player_Parts[5].parent   = &g_Player_Parts[0];											// 親(body)をセット
+	//g_Player_Parts[5].tbl_adr  = move_tbl_leg_right;											// 再生するアニメデータの先頭アドレスをセット
+	//g_Player_Parts[5].tbl_size = sizeof(move_tbl_leg_right) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[5].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_LEG_RIGHT_1, &g_Player_Parts[5].model);
+
+	g_Player_Parts[6].use = TRUE;
+	g_Player_Parts[6].parent   = &g_Player_Parts[5];											// 親(right leg 1)をセット 
+	//g_Player_Parts[6].tbl_adr  = move_tbl_null;												// 再生するアニメデータの先頭アドレスをセット
+	//g_Player_Parts[6].tbl_size = sizeof(move_tbl_null) / sizeof(INTERPOLATION_DATA);			// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[6].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_LEG_RIGHT_2, &g_Player_Parts[6].model);
+
+	g_Player_Parts[7].use = TRUE;
+	g_Player_Parts[7].parent   = &g_Player_Parts[6];											// 親(right leg 2)をセット 
+	//g_Player_Parts[7].tbl_adr  = move_tbl_null;												// 再生するアニメデータの先頭アドレスをセット
+	//g_Player_Parts[7].tbl_size = sizeof(move_tbl_null) / sizeof(INTERPOLATION_DATA);			// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[7].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_LEG_RIGHT_3, &g_Player_Parts[7].model);
+
+	g_Player_Parts[8].use = TRUE;
+	g_Player_Parts[8].parent   = &g_Player_Parts[7];											// 親(right leg 3)をセット 
+	g_Player_Parts[8].tbl_adr  = move_tbl_foot_right;											// 再生するアニメデータの先頭アドレスをセット
+	g_Player_Parts[8].tbl_size = sizeof(move_tbl_foot_right) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[8].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_FOOT_RIGHT, &g_Player_Parts[8].model);
+
+	// MODEL_PLAYER_PANTS
+	g_Player_Parts[9].use = TRUE;
+	g_Player_Parts[9].parent   = &g_Player_Parts[0];											// 親(body)をセット
+	//g_Player_Parts[9].tbl_adr  = move_tbl_pants_left;											// 再生するアニメデータの先頭アドレスをセット
+	//g_Player_Parts[9].tbl_size = sizeof(move_tbl_pants_left) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[9].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_PANTS_LEFT, &g_Player_Parts[9].model);
+
+	g_Player_Parts[10].use = TRUE;
+	g_Player_Parts[10].parent   = &g_Player_Parts[0];											// 親(body)をセット
+	//g_Player_Parts[10].tbl_adr  = move_tbl_pants_right;										// 再生するアニメデータの先頭アドレスをセット
+	//g_Player_Parts[10].tbl_size = sizeof(move_tbl_pants_right) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[10].load = TRUE;
+	LoadModel(MODEL_PLAYER_PARTS_PANTS_RIGHT, &g_Player_Parts[10].model);
+
+	
 
 	g_Load = TRUE;
 	return S_OK;
@@ -184,7 +280,7 @@ void UpdatePlayer(void)
 
 	if (g_AtConjunction && !g_MadeDecision)
 	{
-		g_Player.spd = VALUE_MOVE * 0.1f;
+		g_Player.spd = VALUE_MOVE * 0.01f;
 
 		// Decision of road's branch.
 		int i = 0; //rand() % 4;
@@ -320,39 +416,39 @@ void UpdatePlayer(void)
 	for (int i = 0; i < PLAYER_PARTS_MAX; i++)
 	{
 		// 使われているなら処理する
-		if ((g_Parts[i].use == TRUE)&&(g_Parts[i].tbl_adr != NULL))
+		if ((g_Player_Parts[i].use == TRUE)&&(g_Player_Parts[i].tbl_adr != NULL))
 		{
 			// 移動処理
-			int		index = (int)g_Parts[i].move_time;
-			float	time = g_Parts[i].move_time - index;
-			int		size = g_Parts[i].tbl_size;
+			int		index = (int)g_Player_Parts[i].move_time;
+			float	time = g_Player_Parts[i].move_time - index;
+			int		size = g_Player_Parts[i].tbl_size;
 
-			float dt = 1.0f / g_Parts[i].tbl_adr[index].frame;	// 1フレームで進める時間
-			g_Parts[i].move_time += dt;					// アニメーションの合計時間に足す
+			float dt = 1.0f / g_Player_Parts[i].tbl_adr[index].frame;	// 1フレームで進める時間
+			g_Player_Parts[i].move_time += dt;					// アニメーションの合計時間に足す
 
 			if (index > (size - 2))	// ゴールをオーバーしていたら、最初へ戻す
 			{
-				g_Parts[i].move_time = 0.0f;
+				g_Player_Parts[i].move_time = 0.0f;
 				index = 0;
 			}
 
 			// 座標を求める	X = StartX + (EndX - StartX) * 今の時間
-			XMVECTOR p1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].pos);	// 次の場所
-			XMVECTOR p0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].pos);	// 現在の場所
+			XMVECTOR p1 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 1].pos);	// 次の場所
+			XMVECTOR p0 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 0].pos);	// 現在の場所
 			XMVECTOR vec = p1 - p0;
-			XMStoreFloat3(&g_Parts[i].pos, p0 + vec * time);
+			XMStoreFloat3(&g_Player_Parts[i].pos, p0 + vec * time);
 
 			// 回転を求める	R = StartX + (EndX - StartX) * 今の時間
-			XMVECTOR r1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].rot);	// 次の角度
-			XMVECTOR r0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].rot);	// 現在の角度
+			XMVECTOR r1 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 1].rot);	// 次の角度
+			XMVECTOR r0 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 0].rot);	// 現在の角度
 			XMVECTOR rot = r1 - r0;
-			XMStoreFloat3(&g_Parts[i].rot, r0 + rot * time);
+			XMStoreFloat3(&g_Player_Parts[i].rot, r0 + rot * time);
 
 			// scaleを求める S = StartX + (EndX - StartX) * 今の時間
-			XMVECTOR s1 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 1].scl);	// 次のScale
-			XMVECTOR s0 = XMLoadFloat3(&g_Parts[i].tbl_adr[index + 0].scl);	// 現在のScale
+			XMVECTOR s1 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 1].scl);	// 次のScale
+			XMVECTOR s0 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 0].scl);	// 現在のScale
 			XMVECTOR scl = s1 - s0;
-			XMStoreFloat3(&g_Parts[i].scl, s0 + scl * time);
+			XMStoreFloat3(&g_Player_Parts[i].scl, s0 + scl * time);
 
 		}
 	}
@@ -455,35 +551,35 @@ void DrawPlayer(void)
 		mtxWorld = XMMatrixIdentity();
 
 		// スケールを反映
-		mtxScl = XMMatrixScaling(g_Parts[i].scl.x, g_Parts[i].scl.y, g_Parts[i].scl.z);
+		mtxScl = XMMatrixScaling(g_Player_Parts[i].scl.x, g_Player_Parts[i].scl.y, g_Player_Parts[i].scl.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
 		// 回転を反映
-		mtxRot = XMMatrixRotationRollPitchYaw(g_Parts[i].rot.x, g_Parts[i].rot.y, g_Parts[i].rot.z);
+		mtxRot = XMMatrixRotationRollPitchYaw(g_Player_Parts[i].rot.x, g_Player_Parts[i].rot.y, g_Player_Parts[i].rot.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
 		// 移動を反映
-		mtxTranslate = XMMatrixTranslation(g_Parts[i].pos.x, g_Parts[i].pos.y, g_Parts[i].pos.z);
+		mtxTranslate = XMMatrixTranslation(g_Player_Parts[i].pos.x, g_Player_Parts[i].pos.y, g_Player_Parts[i].pos.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
-		if (g_Parts[i].parent != NULL)	// 子供だったら親と結合する
+		if (g_Player_Parts[i].parent != NULL)	// 子供だったら親と結合する
 		{
-			mtxWorld = XMMatrixMultiply(mtxWorld, XMLoadFloat4x4(&g_Parts[i].parent->mtxWorld));
+			mtxWorld = XMMatrixMultiply(mtxWorld, XMLoadFloat4x4(&g_Player_Parts[i].parent->mtxWorld));
 			// ↑
 			// g_Player.mtxWorldを指している
 		}
 
-		XMStoreFloat4x4(&g_Parts[i].mtxWorld, mtxWorld);
+		XMStoreFloat4x4(&g_Player_Parts[i].mtxWorld, mtxWorld);
 
 		// 使われているなら処理する。ここまで処理している理由は他のパーツがこのパーツを参照している可能性があるから。
-		if (g_Parts[i].use == FALSE) continue;
+		if (g_Player_Parts[i].use == FALSE) continue;
 
 		// ワールドマトリックスの設定
 		SetWorldMatrix(&mtxWorld);
 
 
 		// モデル描画
-		DrawModel(&g_Parts[i].model);
+		DrawModel(&g_Player_Parts[i].model);
 
 	}
 

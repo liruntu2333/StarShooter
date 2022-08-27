@@ -33,7 +33,7 @@
 #define	MODEL_PLAYER_PARTS_FOOT_RIGHT	"data/MODEL/player_foot_right.obj"
 #define	MODEL_PLAYER_PARTS_PANTS_RIGHT	"data/MODEL/player_pants_right.obj"
 
-#define	VALUE_MOVE			(0.0f)							// 移動量
+#define	VALUE_MOVE			(3.0f)							// 移動量
 #define	VALUE_JUMP			(10)							// 移動量
 #define	VALUE_SIDE_MOVE		(2.0f)							// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// 回転量

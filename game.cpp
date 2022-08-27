@@ -17,6 +17,7 @@
 #include "enemy.h"
 #include "weapon.h"
 #include "menu.h"
+#include "gameUI.h"
 #include "meshfield.h"
 #include "meshwall.h"
 #include "shadow.h"
@@ -107,6 +108,9 @@ HRESULT InitGame(void)
 	// スコアの初期化
 	InitScore();
 
+	// UIの初期化
+	InitGameUI();
+
 	// パーティクルの初期化
 	InitParticle();
 
@@ -123,6 +127,9 @@ void UninitGame(void)
 {
 	// パーティクルの終了処理
 	UninitParticle();
+
+	// UIの終了処理
+	UninitGameUI();
 
 	// スコアの終了処理
 	UninitScore();
@@ -212,6 +219,9 @@ void UpdateGame(void)
 	// 当たり判定処理
 	CheckHit();
 
+	// UIの更新処理
+	UpdateGameUI();
+
 	// スコアの更新処理
 	UpdateScore();
 }
@@ -287,6 +297,8 @@ void DrawGame(void)
 	// スコアの描画処理
 	DrawScore();
 
+	// UIの描画処理
+	DrawGameUI();
 
 	// ライティングを有効に
 	SetLightEnable(TRUE);

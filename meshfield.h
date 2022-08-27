@@ -5,6 +5,7 @@
 //
 //=============================================================================
 #pragma once
+
 enum
 {
 	EndOfNone   = 0b0000,
@@ -25,9 +26,11 @@ void DrawMeshField(void);
 
 BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3 *HitPosition, XMFLOAT3 *Normal);
 
-bool CheckFieldValid(float x, float z);
+bool IsPositionValid(float x, float z);
 
 XMFLOAT3 XM_CALLCONV GetWrapPosition(XMFLOAT3 pos, int endOfBoarderFlag);
 
 int IsOutOfBoarder(float x, float z);
 int IsAtConjunction(float x, float z, float dir);
+
+XMFLOAT3 GetRandomValidPosition();

@@ -26,6 +26,7 @@ struct ENEMY
 	XMFLOAT3			pos;				// モデルの位置
 	XMFLOAT3			rot;				// モデルの向き(回転)
 	XMFLOAT3			scl;				// モデルの大きさ(スケール)
+	XMFLOAT3			velocity;
 
 	BOOL				use;
 	BOOL				load;
@@ -33,6 +34,7 @@ struct ENEMY
 	XMFLOAT4			diffuse[MODEL_MAX_MATERIAL];	// モデルの色
 
 	float				spd;				// 移動スピード
+
 	float				size;				// 当たり判定の大きさ
 	int					shadowIdx;			// 影のインデックス番号
 	

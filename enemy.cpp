@@ -20,7 +20,7 @@
 //*****************************************************************************
 #define	MODEL_ENEMY			"data/MODEL/enemy.obj"		// 読み込むモデル名
 
-#define	VALUE_MOVE			(5.0f)						// 移動量
+#define	VALUE_MOVE			(1.0f)						// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)				// 回転量
 
 #define ENEMY_SHADOW_SIZE	(0.4f)						// 影の大きさ
@@ -33,7 +33,7 @@
 enum EnemyBehaviorType : int
 {
 	Obstacle = 0,
-	Runner = 1,
+	GoalKeeper = 1,
 	Flyable = 2,
 };
 
@@ -68,7 +68,7 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Enemy[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
-		g_Enemy[i].spd = 0.0f;			// 移動スピードクリア
+		g_Enemy[i].spd = VALUE_MOVE;			// 移動スピードクリア
 		g_Enemy[i].size = ENEMY_SIZE;	// 当たり判定の大きさ
 
 		// モデルのディフューズを保存しておく。色変え対応の為。
@@ -82,7 +82,7 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].tbl_adr = NULL;		
 		g_Enemy[i].tbl_size = 0;		
 
-		g_Enemy[i].type = Runner;
+		g_Enemy[i].type = GoalKeeper;
 		g_Enemy[i].use = TRUE;			
 		
 	}
@@ -123,6 +123,28 @@ void UpdateEnemy(void)
 {
 	const XMFLOAT3 playerPos = GetPlayer()->pos;
 
+	bool boarderFlag = IsPlayerOutOfBoarder();
+
+	if (boarderFlag)
+	{
+		for (auto & enemy : g_Enemy)
+		{
+			enemy.use = true;
+			enemy.pos = GetRandomValidPosition();
+			enemy.pos.y += ENEMY_OFFSET_Y;
+
+			if (enemy.type == GoalKeeper)
+			{
+				enemy.pos = GetRandomValidPosition();
+				enemy.pos.y += ENEMY_OFFSET_Y;
+				float vx = VALUE_MOVE * (float)rand() / RAND_MAX;
+				float vz = sqrtf(VALUE_MOVE * VALUE_MOVE - vx * vx);
+				enemy.velocity = { vx,0.0f,vz };
+			}
+		}
+		return;
+	}
+
 	for (auto& enemy : g_Enemy)
 	{
 		if (enemy.use == TRUE)
@@ -132,22 +154,29 @@ void UpdateEnemy(void)
 				continue;
 			}
 
-			if (enemy.type == Runner)
+			if (enemy.type == GoalKeeper)
 			{
-				
-			}
+				const XMVECTOR target = XMLoadFloat3(&enemy.pos) + XMLoadFloat3(&enemy.velocity);
+				const float& tarX = target.m128_f32[0];
+				const float& tarZ = target.m128_f32[2];
 
+				if (IsPositionValid(tarX, tarZ))
+				{
+					XMStoreFloat3(&enemy.pos, target);
+				}
+				else
+				{
+					XMStoreFloat3(&enemy.velocity, -XMLoadFloat3(&enemy.velocity));
+				}
+			}
 
 			{
 				XMFLOAT3 enemyDir = playerPos - enemy.pos;
 				XMVECTOR dirVec = XMLoadFloat3(&enemyDir);
 				dirVec = XMVector3Normalize(dirVec);
 				const auto& x = dirVec.m128_f32[0];
-				const auto& y = dirVec.m128_f32[1];
 				const auto& z = dirVec.m128_f32[2];
-				enemy.rot = { 0.0f, atan2f(x, z),0.0f };
-				//enemy.rot = { 0.0f, atan2f(z, x),0.0f };
-				enemy.rot.y += XM_PI;
+				enemy.rot = { 0.0f, atan2f(x, z) + XM_PI,0.0f };
 			}
 
 			XMFLOAT3 pos = enemy.pos;
@@ -155,7 +184,6 @@ void UpdateEnemy(void)
 			SetPositionShadow(enemy.shadowIdx, pos);
 		}
 	}
-
 }
 
 //=============================================================================

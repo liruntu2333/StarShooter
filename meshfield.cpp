@@ -15,6 +15,7 @@
 //*****************************************************************************
 #define TEXTURE_MAX		(1)				// テクスチャの数
 #define ROAD_HALF_WIDTH		50.0f
+#define ROAD_WIDTH		(ROAD_HALF_WIDTH * 2.0f)
 #define WIDTH_BIAS 10.0f
 #define DECISION_AREA_HALF_WIDTH	20.0f		
 
@@ -429,7 +430,7 @@ inline float GetFieldHeight(float x, float z)
 	return -200.f;
 }
 
-bool CheckFieldValid(float x, float z)
+bool IsPositionValid(float x, float z)
 {
 	return GetFieldHeight(x - WIDTH_BIAS, z) > -10.0f && GetFieldHeight(x + WIDTH_BIAS, z) > -10.0f
 	&& GetFieldHeight(x, z - WIDTH_BIAS) > -10.0f && GetFieldHeight(x, z + WIDTH_BIAS) > -10.0f;
@@ -470,4 +471,37 @@ int IsAtConjunction(float x, float z, float dir)
 		return z > -DECISION_AREA_HALF_WIDTH && z < +DECISION_AREA_HALF_WIDTH;
 	}
 	return false;
+}
+
+XMFLOAT3 GetRandomValidPosition()
+{
+	static const float rectArea = g_FieldSizeX * ROAD_WIDTH * 4.0f;
+	static constexpr float midArea = ROAD_WIDTH * ROAD_WIDTH;
+	static const float area = rectArea + midArea;
+
+	float x = 0.0, z = 0.0;
+	int randRes = rand();
+	if (randRes % (int)area < midArea)
+	{
+		x = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
+		z = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
+	}
+	else
+	{
+		randRes -= (int)midArea;
+		if (randRes < rectArea * 2.0f)
+		{
+			x = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
+			z = rand() % (int)g_FieldSizeX;
+		}
+		else
+		{
+			x = rand() % (int)g_FieldSizeX;
+			z = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
+		}
+	}
+
+	float y = GetFieldHeight(x, z);
+	
+	return XMFLOAT3(x, y, z);
 }

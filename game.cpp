@@ -237,17 +237,18 @@ void DrawGame(void)
 
 	switch (g_focusMode)
 	{
-	case FocusMode::FOCUS_PLAYER:
-		tCamera = IsPlayerEndOfBoarder() ? 1.0f : 0.5f;
+	case FOCUS_PLAYER:
+		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
 		// プレイヤー視点
 		pos = GetPlayer()->pos;
+		pos.y += 25.f;	// set whatever the y offset you want
 		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
 		SetCameraAtPlayer(pos, GetPlayer()->dir, tCamera);
 		SetCamera();
 		break;
 		
-	case FocusMode::FOCUS_MENU:
-		tCamera = IsPlayerEndOfBoarder() ? 1.0f : 0.05f;
+	case FOCUS_MENU:
+		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.05f;
 		pos = GetMenu()->pos;
 		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
 		SetCameraAtMenu(pos, XM_PIDIV2, tCamera);

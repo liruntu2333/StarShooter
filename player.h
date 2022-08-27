@@ -76,4 +76,4 @@ PLAYER *GetPlayer(void);
  * e.g. 0b0000 represents isn't out of any boarder.
  *      0b0001 represents out of Z plus boarder.
  */
-int IsPlayerEndOfBoarder();
+int IsPlayerOutOfBoarder();

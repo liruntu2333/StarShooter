@@ -47,7 +47,8 @@
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-
+void ReleaseMoveTable();
+void BuildMoveTable();
 
 //*****************************************************************************
 // グローバル変数
@@ -64,13 +65,13 @@ static BOOL			g_Load = FALSE;
  * e.g. 0b0000 represents isn't out of any boarder.
  *      0b0001 represents out of Z plus boarder.
  */
-static int			g_OutOfBoarder = EndOfNone;
+static int			g_BoarderSignal = EndOfNone;
 static bool			g_AtConjunction = false;
 static bool			g_MadeDecision = false;
 
 
 // プレイヤーの階層アニメーションデータ
-static INTERPOLATION_DATA move_tbl_null[] = {	// pos, rot, scl, frame
+static INTERPOLATION_DATA move_tbl_idle[] = {	// pos, rot, scl, frame
 	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
@@ -270,9 +271,9 @@ void UpdatePlayer(void)
 {
 	float& dir = g_Player.dir;
 
-	if (g_OutOfBoarder)
+	if (g_BoarderSignal)
 	{
-		g_OutOfBoarder = FALSE;
+		g_BoarderSignal = FALSE;
 	}
 
 	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z, dir);
@@ -285,6 +286,7 @@ void UpdatePlayer(void)
 	if (g_AtConjunction && !g_MadeDecision)
 	{
 		g_Player.spd = VALUE_MOVE * 0.01f;
+		ReleaseMoveTable();
 
 		// Decision of road's branch.
 		int i = 0; //rand() % 4;
@@ -309,13 +311,17 @@ void UpdatePlayer(void)
 		if (g_Player.dir > XM_2PI - 0.01f)	g_Player.dir -= XM_2PI;
 		if (g_Player.dir < 0.0f)	g_Player.dir += XM_2PI;
 
-		if(g_MadeDecision) 
+		if (g_MadeDecision)
+		{
 			g_Player.spd = VALUE_MOVE;
+			BuildMoveTable();
+		}
 	}
 
 	if (!g_AtConjunction)
 	{
 		g_Player.spd = VALUE_MOVE;
+		BuildMoveTable();
 	}
 
 #ifdef _DEBUG
@@ -346,7 +352,7 @@ void UpdatePlayer(void)
 			target.z += VALUE_SIDE_MOVE * -sinf(dir);
 		}
 
-		if (CheckFieldValid(target.x, target.z))
+		if (IsPositionValid(target.x, target.z))
 		{
 			g_Player.pos.x = target.x;
 			g_Player.pos.z = target.z;
@@ -360,10 +366,10 @@ void UpdatePlayer(void)
 		g_Player.pos.z += g_Player.spd * cosf(dir);
 		g_Player.pos.x += g_Player.spd * sinf(dir);
 
-		g_OutOfBoarder = IsOutOfBoarder(g_Player.pos.x, g_Player.pos.z);
-		if (g_OutOfBoarder)
+		g_BoarderSignal = IsOutOfBoarder(g_Player.pos.x, g_Player.pos.z);
+		if (g_BoarderSignal)
 		{
-			g_Player.pos = GetWrapPosition(g_Player.pos, g_OutOfBoarder);
+			g_Player.pos = GetWrapPosition(g_Player.pos, g_BoarderSignal);
 			// TODO: make player set on the right offset of road
 		}
 	}
@@ -587,8 +593,6 @@ void DrawPlayer(void)
 
 	}
 
-
-
 	// カリング設定を戻す
 	SetCullingMode(CULL_MODE_BACK);
 }
@@ -602,8 +606,26 @@ PLAYER *GetPlayer(void)
 	return &g_Player;
 }
 
-int IsPlayerEndOfBoarder()
+int IsPlayerOutOfBoarder()
 {
-	return g_OutOfBoarder;
+	return g_BoarderSignal;
 }
 
+void ReleaseMoveTable()
+{
+	g_Player.tbl_adr = nullptr;
+	for (auto & part : g_Player_Parts)
+	{
+		part.tbl_adr = nullptr;
+	}
+}
+
+void BuildMoveTable()
+{
+
+	g_Player_Parts[0].tbl_adr = move_tbl_body;
+
+	g_Player_Parts[4].tbl_adr = move_tbl_foot_left;
+
+	g_Player_Parts[8].tbl_adr = move_tbl_foot_right;
+}

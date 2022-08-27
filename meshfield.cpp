@@ -16,6 +16,7 @@
 #define TEXTURE_MAX		(1)				// テクスチャの数
 #define ROAD_HALF_WIDTH		50.0f
 #define WIDTH_BIAS 10.0f
+#define DECISION_AREA_HALF_WIDTH	20.0f		
 
 //*****************************************************************************
 // グローバル変数
@@ -459,13 +460,14 @@ int IsAtConjunction(float x, float z, float dir)
 	if (dir > XM_PIDIV2 - 0.01f && dir < XM_PIDIV2 + 0.01f ||
 		dir > XM_PIDIV2 + XM_PI - 0.01f && dir < XM_PIDIV2 + XM_PI + 0.01f) 
 	{
-		return x > -ROAD_HALF_WIDTH + WIDTH_BIAS && x < +ROAD_HALF_WIDTH - WIDTH_BIAS;
+		return x > -DECISION_AREA_HALF_WIDTH && x < +DECISION_AREA_HALF_WIDTH;
 	}
 	// facing north or south
 	if (dir > 0.0f - 0.01f && dir < 0.0f + 0.01f ||
-		dir > XM_PI - 0.01f && dir < XM_PI + 0.01f)
+		dir > XM_PI - 0.01f && dir < XM_PI + 0.01f ||
+		dir > XM_2PI - 0.01f && dir < XM_2PI + 0.01f)
 	{
-		return z > -ROAD_HALF_WIDTH + WIDTH_BIAS && z < +ROAD_HALF_WIDTH - WIDTH_BIAS;
+		return z > -DECISION_AREA_HALF_WIDTH && z < +DECISION_AREA_HALF_WIDTH;
 	}
 	return false;
 }

@@ -21,6 +21,7 @@
 #define	MODEL_ENEMY			"data/MODEL/enemy.obj"		// “Ç‚Ýž‚Þƒ‚ƒfƒ‹–¼
 
 #define	VALUE_MOVE			(1.0f)						// ˆÚ“®—Ê
+#define	VALUE_AMP			(50.0f)						// ˆÚ“®—Ê
 #define	VALUE_ROTATE		(XM_PI * 0.02f)				// ‰ñ“]—Ê
 
 #define ENEMY_SHADOW_SIZE	(0.4f)						// ‰e‚Ì‘å‚«‚³
@@ -82,7 +83,7 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].tbl_adr = NULL;		
 		g_Enemy[i].tbl_size = 0;		
 
-		g_Enemy[i].type = GoalKeeper;
+		g_Enemy[i].type = Flyable;
 		g_Enemy[i].use = TRUE;			
 		
 	}
@@ -122,6 +123,7 @@ void UninitEnemy(void)
 void UpdateEnemy(void)
 {
 	const XMFLOAT3 playerPos = GetPlayer()->pos;
+	const float playerProgress = GetPlayerFieldProgress();
 
 	bool boarderFlag = IsPlayerOutOfBoarder();
 
@@ -129,9 +131,15 @@ void UpdateEnemy(void)
 	{
 		for (auto & enemy : g_Enemy)
 		{
+			enemy.type = static_cast<EnemyBehaviorType>(rand() % 3);
 			enemy.use = true;
 			enemy.pos = GetRandomValidPosition();
 			enemy.pos.y += ENEMY_OFFSET_Y;
+
+			if (enemy.type == Obstacle)
+			{
+
+			}
 
 			if (enemy.type == GoalKeeper)
 			{
@@ -140,6 +148,14 @@ void UpdateEnemy(void)
 				float vx = VALUE_MOVE * (float)rand() / RAND_MAX;
 				float vz = sqrtf(VALUE_MOVE * VALUE_MOVE - vx * vx);
 				enemy.velocity = { vx,0.0f,vz };
+			}
+
+			if (enemy.type == Flyable)
+			{
+				enemy.pos = GetRandomPosition();
+				float amp = VALUE_AMP * (float)rand() / RAND_MAX;
+				float phase = XM_2PI * (float)rand() / RAND_MAX;
+				enemy.velocity = { phase, amp, phase };
 			}
 		}
 		return;
@@ -168,6 +184,13 @@ void UpdateEnemy(void)
 				{
 					XMStoreFloat3(&enemy.velocity, -XMLoadFloat3(&enemy.velocity));
 				}
+			}
+
+			if (enemy.type == Flyable)
+			{
+				const float amp = enemy.velocity.y;
+				const float phase = enemy.velocity.x;
+				enemy.pos.y = 30.0f + amp * sinf(playerProgress * XM_PI * 15.0f + phase);
 			}
 
 			{

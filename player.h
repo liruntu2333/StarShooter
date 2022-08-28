@@ -77,3 +77,4 @@ PLAYER *GetPlayer(void);
  *      0b0001 represents out of Z plus boarder.
  */
 int IsPlayerOutOfBoarder();
+float GetPlayerFieldProgress();

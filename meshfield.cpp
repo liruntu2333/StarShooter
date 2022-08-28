@@ -37,6 +37,7 @@ static int			g_nNumVertexIndexField;					// 総インデックス数
 static int			g_nNumPolygonField;						// 総ポリゴン数
 static float		g_fBlockSizeXField, g_fBlockSizeZField;	// ブロックサイズ
 static float		g_FieldSizeX, g_FieldSizeZ;	// ブロックサイズ
+static float		g_FieldHalfWidth, g_FieldHalfDepth;
 
 static char* g_TextureName[] = {
 	"data/TEXTURE/field004.jpg",
@@ -58,6 +59,23 @@ static float		g_wave_amplitude  = 20.0f;	// 波の振幅
 static BOOL			g_Load = FALSE;
 
 inline float GetFieldHeight(float x, float z);
+inline bool IsFacingWest(const float dir)
+{
+	return dir > XM_PIDIV2 - 0.01f && dir < XM_PIDIV2 + 0.01f;
+}
+inline bool IsFacingEast(const float dir)
+{
+	return dir > XM_PIDIV2 + XM_PI - 0.01f && dir < XM_PIDIV2 + XM_PI + 0.01f;
+}
+inline bool IsFacingNorth(const float dir)
+{
+	return dir > XM_PI - 0.01f && dir < XM_PI + 0.01f;
+}
+inline bool IsFacingSouth(const float dir)
+{
+	return dir > 0.0f - 0.01f && dir < 0.0f + 0.01f ||
+		dir > XM_2PI - 0.01f && dir < XM_2PI + 0.01f;
+}
 
 //=============================================================================
 // 初期化処理
@@ -101,6 +119,8 @@ HRESULT InitMeshField(XMFLOAT3 pos, XMFLOAT3 rot,
 	g_fBlockSizeZField = fBlockSizeZ;
 	g_FieldSizeX = g_fBlockSizeXField * g_nNumBlockXField;
 	g_FieldSizeZ = g_fBlockSizeZField * g_nNumBlockZField;
+	g_FieldHalfWidth = g_FieldSizeX * 0.5f;
+	g_FieldHalfDepth = g_FieldSizeZ * 0.5f;
 
 	// 頂点情報をメモリに作っておく（波の為）
 	// 波の処理
@@ -455,29 +475,39 @@ int IsOutOfBoarder(float x, float z)
 	return flag;
 }
 
-int IsAtConjunction(float x, float z, float dir)
+float GetFieldProgress(float x, float z, float dir)
+{
+	if (IsFacingEast(dir))
+	{
+		return 1.0f - (x + g_FieldHalfWidth) / g_FieldSizeX;
+	}
+	if (IsFacingWest(dir))
+	{
+		return 1.0f - (x + g_FieldHalfWidth) / g_FieldSizeX;
+	}
+	if (IsFacingNorth(dir))
+	{
+		return 1.0f -  (z + g_FieldHalfDepth) / g_FieldSizeZ;
+	}
+	return 1.0f - (z + g_FieldHalfDepth) / g_FieldSizeZ;
+}
+
+int IsAtConjunction(const float x, const float z, const float dir)
 {
 	// facing east or west
-	if (dir > XM_PIDIV2 - 0.01f && dir < XM_PIDIV2 + 0.01f ||
-		dir > XM_PIDIV2 + XM_PI - 0.01f && dir < XM_PIDIV2 + XM_PI + 0.01f) 
+	if (IsFacingEast(dir) || IsFacingWest(dir)) 
 	{
 		return x > -DECISION_AREA_HALF_WIDTH && x < +DECISION_AREA_HALF_WIDTH;
 	}
 	// facing north or south
-	if (dir > 0.0f - 0.01f && dir < 0.0f + 0.01f ||
-		dir > XM_PI - 0.01f && dir < XM_PI + 0.01f ||
-		dir > XM_2PI - 0.01f && dir < XM_2PI + 0.01f)
-	{
-		return z > -DECISION_AREA_HALF_WIDTH && z < +DECISION_AREA_HALF_WIDTH;
-	}
-	return false;
+	return z > -DECISION_AREA_HALF_WIDTH && z < +DECISION_AREA_HALF_WIDTH;
 }
 
 XMFLOAT3 GetRandomValidPosition()
 {
-	static const float rectArea = g_FieldSizeX * ROAD_WIDTH * 4.0f;
-	static constexpr float midArea = ROAD_WIDTH * ROAD_WIDTH;
-	static const float area = rectArea + midArea;
+	const float rectArea = (g_FieldSizeX + g_FieldSizeZ) * ROAD_WIDTH * 2.0f;
+	constexpr float midArea = ROAD_WIDTH * ROAD_WIDTH;
+	const float area = rectArea + midArea;
 
 	float x = 0.0, z = 0.0;
 	int randRes = rand();
@@ -489,19 +519,28 @@ XMFLOAT3 GetRandomValidPosition()
 	else
 	{
 		randRes -= (int)midArea;
-		if (randRes < rectArea * 2.0f)
+		if ((float)randRes < rectArea * 2.0f)
 		{
 			x = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
-			z = rand() % (int)g_FieldSizeX;
+			z = rand() % (int)g_FieldSizeZ - g_FieldHalfDepth;
 		}
 		else
 		{
-			x = rand() % (int)g_FieldSizeX;
+			x = rand() % (int)g_FieldSizeX - g_FieldHalfWidth;
 			z = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
 		}
 	}
 
 	float y = GetFieldHeight(x, z);
 	
-	return XMFLOAT3(x, y, z);
+	return {x, y, z};
+}
+
+XMFLOAT3 GetRandomPosition()
+{
+	const auto x = static_cast<float>(rand() % (int)g_FieldSizeX - g_FieldHalfWidth);
+	const auto z = static_cast<float>(rand() % (int)g_FieldSizeZ - g_FieldHalfDepth);
+	const auto y = static_cast<float>(rand() % 20 + 40);
+
+	return { x, y, z };
 }

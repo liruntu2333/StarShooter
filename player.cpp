@@ -49,6 +49,7 @@
 //*****************************************************************************
 void ReleaseMoveTable();
 void BuildMoveTable();
+void GetDecision();
 
 //*****************************************************************************
 // グローバル変数
@@ -58,7 +59,6 @@ static PLAYER		g_Player;						// プレイヤー
 static PLAYER		g_Player_Parts[PLAYER_PARTS_MAX];		// プレイヤーのパーツ用
 
 static BOOL			g_Load = FALSE;
-
 /**
  * \brief An int type flag, last four bits used for representing a player's position's state
  * to field's boarder.
@@ -68,7 +68,7 @@ static BOOL			g_Load = FALSE;
 static int			g_BoarderSignal = EndOfNone;
 static bool			g_AtConjunction = false;
 static bool			g_MadeDecision = false;
-
+static float		g_FieldProgress = 0.0f;
 
 // プレイヤーの階層アニメーションデータ
 static INTERPOLATION_DATA move_tbl_idle[] = {	// pos, rot, scl, frame
@@ -271,71 +271,25 @@ void UpdatePlayer(void)
 {
 	float& dir = g_Player.dir;
 
-	if (g_BoarderSignal)
-	{
-		g_BoarderSignal = FALSE;
-	}
+	g_BoarderSignal = FALSE;
 
 	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z, dir);
+	g_FieldProgress = GetFieldProgress(g_Player.pos.x, g_Player.pos.z, dir);
 
-	if (g_MadeDecision && !g_AtConjunction)
+	if (!g_AtConjunction)
 	{
 		g_MadeDecision = false;
+		g_Player.spd = VALUE_MOVE;
+		BuildMoveTable();
 	}
-
-	if (g_AtConjunction && !g_MadeDecision)
+	else if (!g_MadeDecision)
 	{
 		g_Player.spd = VALUE_MOVE * 0.01f;
 		ReleaseMoveTable();
 
 		// Decision of road's branch.
-		int i = 0; //rand() % 4;
-
-		if (GetKeyboardPress(DIK_A))
-		{
-			i = -1;
-			g_MadeDecision = true;
-		}
-		else if (GetKeyboardPress(DIK_D))
-		{
-			i = 1;
-			g_MadeDecision = true;
-		}
-		else if (GetKeyboardPress(DIK_W))
-		{
-			i = 0;
-			g_MadeDecision = true;
-		}
-		g_Player.dir += XM_PIDIV2 * i;
-
-		if (g_Player.dir > XM_2PI - 0.01f)	g_Player.dir -= XM_2PI;
-		if (g_Player.dir < 0.0f)	g_Player.dir += XM_2PI;
-
-		if (g_MadeDecision)
-		{
-			g_Player.spd = VALUE_MOVE;
-			BuildMoveTable();
-		}
+		GetDecision();
 	}
-
-	if (!g_AtConjunction)
-	{
-		g_Player.spd = VALUE_MOVE;
-		BuildMoveTable();
-	}
-
-#ifdef _DEBUG
-	if (GetKeyboardPress(DIK_R))
-	{
-		g_Player.pos.z = g_Player.pos.x = 0.0f;
-		g_Player.rot.y = dir = 0.0f;
-		g_Player.spd = VALUE_MOVE;
-	}
-	if (GetKeyboardPress(DIK_P))
-	{
-		g_Player.spd = g_Player.spd < 0.01f ? VALUE_MOVE : 0.0f;
-	}
-#endif
 
 	// x pass
 	{
@@ -408,12 +362,10 @@ void UpdatePlayer(void)
 	//g_Player.pos.y = hitPosition.y + PLAYER_OFFSET_Y;
 	////g_Player.pos.y = PLAYER_OFFSET_Y;
 
-	// 影もプレイヤーの位置に合わせる
 	XMFLOAT3 pos = g_Player.pos;
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	SetPositionShadow(g_Player.shadowIdx, pos);
 
-	// 弾発射処理
 	if (GetKeyboardTrigger(DIK_SPACE))
 	{
 		//SetBullet(g_Player.pos, g_Player.rot);
@@ -422,13 +374,10 @@ void UpdatePlayer(void)
 	//g_Player.spd *= 0.5f;
 
 
-	// 階層アニメーション
 	for (int i = 0; i < PLAYER_PARTS_MAX; i++)
 	{
-		// 使われているなら処理する
 		if ((g_Player_Parts[i].use == TRUE)&&(g_Player_Parts[i].tbl_adr != NULL))
 		{
-			// 移動処理
 			int		index = (int)g_Player_Parts[i].move_time;
 			float	time = g_Player_Parts[i].move_time - index;
 			int		size = g_Player_Parts[i].tbl_size;
@@ -483,34 +432,34 @@ void UpdatePlayer(void)
 	// 姿勢制御
 	//////////////////////////////////////////////////////////////////////
 
-	XMVECTOR vx, nvx, up;
-	XMVECTOR quat;
-	float len, angle;
+	//XMVECTOR vx, nvx, up;
+	//XMVECTOR quat;
+	//float len, angle;
 
-	// ２つのベクトルの外積を取って任意の回転軸を求める
-	g_Player.upVector = {0.0f, 1.0f, 0.0f};
-	up = { 0.0f, 1.0f, 0.0f, 0.0f };
-	vx = XMVector3Cross(up, XMLoadFloat3(&g_Player.upVector));
+	//// ２つのベクトルの外積を取って任意の回転軸を求める
+	//g_Player.upVector = {0.0f, 1.0f, 0.0f};
+	//up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	//vx = XMVector3Cross(up, XMLoadFloat3(&g_Player.upVector));
 
-	// 求めた回転軸からクォータニオンを作り出す
-	nvx = XMVector3Length(vx);
-	XMStoreFloat(&len, nvx);
-	nvx = XMVector3Normalize(vx);
-	angle = asinf(len);
-	quat = XMQuaternionRotationNormal(nvx, angle);
+	//// 求めた回転軸からクォータニオンを作り出す
+	//nvx = XMVector3Length(vx);
+	//XMStoreFloat(&len, nvx);
+	//nvx = XMVector3Normalize(vx);
+	//angle = asinf(len);
+	//quat = XMQuaternionRotationNormal(nvx, angle);
 
-	// 前回のクォータニオンから今回のクォータニオンまでの回転を滑らかにする
-	quat = XMQuaternionSlerp(XMLoadFloat4(&g_Player.quaternion), quat, 0.05f);
+	//// 前回のクォータニオンから今回のクォータニオンまでの回転を滑らかにする
+	//quat = XMQuaternionSlerp(XMLoadFloat4(&g_Player.quaternion), quat, 0.05f);
 
-	// 今回のクォータニオンの結果を保存する
-	XMStoreFloat4(&g_Player.quaternion, quat);
+	//// 今回のクォータニオンの結果を保存する
+	//XMStoreFloat4(&g_Player.quaternion, quat);
 
 
 
 #ifdef _DEBUG	// デバッグ情報を表示する
 	PrintDebugProc("Player:↑ → ↓ ←　Space\n");
 	PrintDebugProc("Player:X:%f Y:%f Z:%f\n", g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
-	PrintDebugProc("Player: dir:%f\n", dir);
+	PrintDebugProc("Player: dir:%f progress : %f\n", dir, g_FieldProgress);
 #endif
 }
 
@@ -611,6 +560,11 @@ int IsPlayerOutOfBoarder()
 	return g_BoarderSignal;
 }
 
+float GetPlayerFieldProgress()
+{
+	return g_FieldProgress;
+}
+
 void ReleaseMoveTable()
 {
 	g_Player.tbl_adr = nullptr;
@@ -628,4 +582,35 @@ void BuildMoveTable()
 	g_Player_Parts[4].tbl_adr = move_tbl_foot_left;
 
 	g_Player_Parts[8].tbl_adr = move_tbl_foot_right;
+}
+
+void GetDecision()
+{
+	float nPiDiv2 = 0.0f; //rand() % 4;
+
+	if (GetKeyboardPress(DIK_A))
+	{
+		nPiDiv2 = -1.0f;
+		g_MadeDecision = true;
+	}
+	else if (GetKeyboardPress(DIK_D))
+	{
+		nPiDiv2 = 1.0f;
+		g_MadeDecision = true;
+	}
+	else if (GetKeyboardPress(DIK_W))
+	{
+		nPiDiv2 = 0.0f;
+		g_MadeDecision = true;
+	}
+	g_Player.dir += XM_PIDIV2 * nPiDiv2;
+
+	if (g_Player.dir > XM_2PI - 0.01f)	g_Player.dir -= XM_2PI;
+	if (g_Player.dir < 0.0f)	g_Player.dir += XM_2PI;
+
+	if (g_MadeDecision)
+	{
+		g_Player.spd = VALUE_MOVE;
+		BuildMoveTable();
+	}
 }

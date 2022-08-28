@@ -233,17 +233,18 @@ void UpdateWeapon(void)
 	// 移動処理
 	PLAYER* player = GetPlayer();
 
-	int boarderFlag = IsPlayerEndOfBoarder();
+	int boarderFlag = IsPlayerOutOfBoarder();
 
-	for (int i = 0; i < MAX_WEAPON; i++)
+	for (auto& weapon : g_Weapon)
 	{
 		if (boarderFlag)
 		{
-			g_Weapon[i].pos = GetWrapPosition(g_Weapon[i].pos, boarderFlag);
+			weapon.pos = GetWrapPosition(weapon.pos, boarderFlag);
 		}
 		auto target = XMLoadFloat3(&player->pos) + XMVECTOR{20.0f, 0.0f, -10.0f};
-		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&g_Weapon[i].pos), target, 0.1f);
-		XMStoreFloat3(&g_Weapon[i].pos, lerp);
+		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&weapon.pos), target, 0.1f);
+		weapon.rot = player->rot;
+		XMStoreFloat3(&weapon.pos, lerp);
 	}
 	
 
@@ -294,8 +295,6 @@ void UpdateWeapon(void)
 		}
 	}
 
-
-
 	{	// ポイントライトのテスト
 		LIGHT* light = GetLightData(2);
 		XMFLOAT3 pos = g_Weapon[0].pos;
@@ -308,11 +307,6 @@ void UpdateWeapon(void)
 		light->Enable = TRUE;
 		SetLightData(2, light);
 	}
-
-
-	
-
-
 
 #ifdef _DEBUG	// デバッグ情報を表示する
 	PrintDebugProc("WeaponOffset:X:%f Y:%f Z:%f\n", g_Weapon[0].pos.x - player->pos.x, g_Weapon[0].pos.y - player->pos.y, g_Weapon[0].pos.z - player->pos.z);

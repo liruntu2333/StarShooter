@@ -228,20 +228,6 @@ void UpdateMenu(void)
 
 
 
-	{	// ポイントライトのテスト
-		LIGHT* light = GetLightData(1);
-		XMFLOAT3 pos = g_Menu[0].pos;
-		pos.y += 20.0f;
-
-		light->Position = pos;
-		light->Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		light->Type = LIGHT_TYPE_POINT;
-		light->Enable = TRUE;
-		SetLightData(1, light);
-	}
-
-
 
 
 

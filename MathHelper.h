@@ -7,7 +7,9 @@
  **/
 #pragma once
 
+#include <array>
 #include <DirectXMath.h>
+#include <vector>
 
 class MathHelper
 {
@@ -45,6 +47,57 @@ public:
 	//{
 	//	return XMLoadFloat4(&vec);
 	//}
+};
+
+class BezierCurve
+{
+public:
+	BezierCurve() = default;
+	BezierCurve(const BezierCurve&) = default;
+	BezierCurve(BezierCurve&&) = default;
+	BezierCurve& operator=(const BezierCurve&) = default;
+	BezierCurve& operator=(BezierCurve&&) = default;
+	virtual ~BezierCurve() = default;
+
+	virtual DirectX::XMFLOAT3 GetPosition(float t) = 0;
+	virtual DirectX::XMFLOAT3 GetDerivative(float t) = 0;
+};
+
+//class BezierCurveLinear : BezierCurve
+//{
+//public:
+//	explicit BezierCurveLinear(const std::array<DirectX::XMFLOAT3, 2>& controlPoints);
+//	explicit BezierCurveLinear(std::array<DirectX::XMFLOAT3, 2>&& controlPoints);
+//	BezierCurveLinear(const BezierCurveLinear&) = default;
+//	BezierCurveLinear(BezierCurveLinear&&) = default;
+//	BezierCurveLinear& operator=(const BezierCurveLinear&) = default;
+//	BezierCurveLinear& operator=(BezierCurveLinear&&) = default;
+//	~BezierCurveLinear() override = default;
+//
+//	DirectX::XMFLOAT3 GetPosition(float t) override;
+//	DirectX::XMFLOAT3 GetDerivative(float t) override;
+//
+//private:
+//	std::array<DirectX::XMFLOAT3, 2> MControlPoints{};
+//};
+
+class BezierCurveQuadratic : BezierCurve
+{
+public:
+	explicit BezierCurveQuadratic(const std::array<DirectX::XMFLOAT3, 3>& controlPoints);
+	explicit BezierCurveQuadratic(std::array<DirectX::XMFLOAT3, 3>&& controlPoints);
+	BezierCurveQuadratic(const BezierCurveQuadratic&) = default;
+	BezierCurveQuadratic(BezierCurveQuadratic&&) = default;
+	BezierCurveQuadratic& operator=(const BezierCurveQuadratic&) = default;
+	BezierCurveQuadratic& operator=(BezierCurveQuadratic&&) = default;
+	~BezierCurveQuadratic() override = default;
+
+	DirectX::XMFLOAT3 GetPosition(float t) override;
+	DirectX::XMFLOAT3 GetDerivative(float t) override;
+	void SetControlPoint2(DirectX::XMFLOAT3 target);
+
+private:
+	std::array<DirectX::XMFLOAT3, 3> MControlPoints{};
 };
 
 DirectX::XMFLOAT3 operator- (const DirectX::XMFLOAT3& lft, const DirectX::XMFLOAT3& rht) noexcept;

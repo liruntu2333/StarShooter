@@ -13,11 +13,17 @@
 #define	MAX_BULLET		(256)	// 弾最大数
 
 #define	BULLET_WH		(5.0f)	// 当たり判定の大きさ
+#include <memory>
+
+#include "MathHelper.h"
 
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
-typedef struct
+class BezierCurve;
+struct ENEMY;
+
+struct BULLET
 {
 	XMFLOAT4X4	mtxWorld;		// ワールドマトリックス
 	XMFLOAT3	pos;			// 位置
@@ -30,8 +36,11 @@ typedef struct
 	int			shadowIdx;		// 影ID
 	BOOL		use;			// 使用しているかどうか
 
-
-} BULLET;
+	std::unique_ptr<BezierCurveQuadratic> curve = nullptr;
+	float		flyingTime;
+	float		hitTime;
+	ENEMY*		target;
+} ;
 
 
 //*****************************************************************************
@@ -43,6 +52,7 @@ void UpdateBullet(void);
 void DrawBullet(void);
 
 int SetBullet(XMFLOAT3 pos, XMFLOAT3 rot);
+int SetBullet(const std::array<XMFLOAT3, 3>& controlPoints, float tHit, ENEMY* target);
 
 BULLET *GetBullet(void);
 

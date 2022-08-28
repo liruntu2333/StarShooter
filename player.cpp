@@ -14,6 +14,7 @@
 #include "light.h"
 #include "bullet.h"
 #include "meshfield.h"
+#include "enemy.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -43,11 +44,16 @@
 
 #define PLAYER_PARTS_MAX	(11)							// プレイヤーのパーツの数
 
+static constexpr float CONTROL_POINT_XY_RANGE = 100.0f;
+static constexpr float CONTROL_POINT_Z_BIAS = 20.0f;
+static constexpr float HIT_TIME = 0.8f;
 
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-
+void ReleaseMoveTable();
+void BuildMoveTable();
+void GetDecision();
 
 //*****************************************************************************
 // グローバル変数
@@ -57,20 +63,19 @@ static PLAYER		g_Player;						// プレイヤー
 static PLAYER		g_Player_Parts[PLAYER_PARTS_MAX];		// プレイヤーのパーツ用
 
 static BOOL			g_Load = FALSE;
-
 /**
  * \brief An int type flag, last four bits used for representing a player's position's state
  * to field's boarder.
  * e.g. 0b0000 represents isn't out of any boarder.
  *      0b0001 represents out of Z plus boarder.
  */
-static int			g_OutOfBoarder = EndOfNone;
+static int			g_BoarderSignal = EndOfNone;
 static bool			g_AtConjunction = false;
 static bool			g_MadeDecision = false;
-
+static float		g_FieldProgress = 0.0f;
 
 // プレイヤーの階層アニメーションデータ
-static INTERPOLATION_DATA move_tbl_null[] = {	// pos, rot, scl, frame
+static INTERPOLATION_DATA move_tbl_idle[] = {	// pos, rot, scl, frame
 	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
@@ -270,68 +275,30 @@ void UpdatePlayer(void)
 {
 	float& dir = g_Player.dir;
 
-	if (g_OutOfBoarder)
-	{
-		g_OutOfBoarder = FALSE;
-	}
+	g_BoarderSignal = FALSE;
 
 	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z, dir);
-
-	if (g_MadeDecision && !g_AtConjunction)
-	{
-		g_MadeDecision = false;
-	}
-
-	if (g_AtConjunction && !g_MadeDecision)
-	{
-		g_Player.spd = VALUE_MOVE * 0.01f;
-
-		// Decision of road's branch.
-		int i = 0; //rand() % 4;
-
-		if (GetKeyboardPress(DIK_A))
-		{
-			i = -1;
-			g_MadeDecision = true;
-		}
-		else if (GetKeyboardPress(DIK_D))
-		{
-			i = 1;
-			g_MadeDecision = true;
-		}
-		else if (GetKeyboardPress(DIK_W))
-		{
-			i = 0;
-			g_MadeDecision = true;
-		}
-		g_Player.dir += XM_PIDIV2 * i;
-
-		if (g_Player.dir > XM_2PI - 0.01f)	g_Player.dir -= XM_2PI;
-		if (g_Player.dir < 0.0f)	g_Player.dir += XM_2PI;
-
-		if(g_MadeDecision) 
-			g_Player.spd = VALUE_MOVE;
-	}
+	g_FieldProgress = GetFieldProgress(g_Player.pos.x, g_Player.pos.z, dir);
 
 	if (!g_AtConjunction)
 	{
+		g_MadeDecision = false;
 		g_Player.spd = VALUE_MOVE;
+		BuildMoveTable();
 	}
+	else if (!g_MadeDecision)
+	{
+		g_Player.spd = VALUE_MOVE * 0.01f;
+		ReleaseMoveTable();
 
-#ifdef _DEBUG
-	if (GetKeyboardPress(DIK_R))
-	{
-		g_Player.pos.z = g_Player.pos.x = 0.0f;
-		g_Player.rot.y = dir = 0.0f;
-		g_Player.spd = VALUE_MOVE;
+		// Decision of road's branch.
+		GetDecision();
+
+		return;
 	}
-	if (GetKeyboardPress(DIK_P))
-	{
-		g_Player.spd = g_Player.spd < 0.01f ? VALUE_MOVE : 0.0f;
-	}
-#endif
 
 	// x pass
+	if (!g_AtConjunction || g_MadeDecision)
 	{
 		XMFLOAT3 target = g_Player.pos;
 
@@ -346,7 +313,7 @@ void UpdatePlayer(void)
 			target.z += VALUE_SIDE_MOVE * -sinf(dir);
 		}
 
-		if (CheckFieldValid(target.x, target.z))
+		if (IsPositionValid(target.x, target.z))
 		{
 			g_Player.pos.x = target.x;
 			g_Player.pos.z = target.z;
@@ -360,10 +327,10 @@ void UpdatePlayer(void)
 		g_Player.pos.z += g_Player.spd * cosf(dir);
 		g_Player.pos.x += g_Player.spd * sinf(dir);
 
-		g_OutOfBoarder = IsOutOfBoarder(g_Player.pos.x, g_Player.pos.z);
-		if (g_OutOfBoarder)
+		g_BoarderSignal = IsOutOfBoarder(g_Player.pos.x, g_Player.pos.z);
+		if (g_BoarderSignal)
 		{
-			g_Player.pos = GetWrapPosition(g_Player.pos, g_OutOfBoarder);
+			g_Player.pos = GetWrapPosition(g_Player.pos, g_BoarderSignal);
 			// TODO: make player set on the right offset of road
 		}
 	}
@@ -402,27 +369,60 @@ void UpdatePlayer(void)
 	//g_Player.pos.y = hitPosition.y + PLAYER_OFFSET_Y;
 	////g_Player.pos.y = PLAYER_OFFSET_Y;
 
-	// 影もプレイヤーの位置に合わせる
 	XMFLOAT3 pos = g_Player.pos;
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	SetPositionShadow(g_Player.shadowIdx, pos);
 
-	// 弾発射処理
-	if (GetKeyboardTrigger(DIK_SPACE))
+	if (GetKeyboardTrigger(DIK_J))
 	{
-		//SetBullet(g_Player.pos, g_Player.rot);
+		XMVECTOR front = { sinf(dir), 0.0f, cosf(dir) };
+		XMVECTOR up = { 0.0f, 1.0f, 0.0f };
+		XMVECTOR right = XMVector3Cross(front, up);
+		ENEMY* pEnemy = GetEnemy();
+		for (int i = 0; i < MAX_ENEMY; ++i)
+		{
+			ENEMY& enemy = *(pEnemy + i);
+			XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);
+			XMVECTOR enemyDir = XMVector3Normalize(enemyPos - XMLoadFloat3(&pos));
+			float enemyDis = (enemyDir / enemyPos).m128_f32[0];
+
+			static const float cos45 = cosf(XM_PIDIV4);
+
+			if (enemy.use && 
+				XMVector3Dot(enemyDir, front).m128_f32[0] > cos45)
+			{
+				// generate control point p1 on +y semi-circle, with a range of 20.0f
+				float theta = XM_PI * (float)rand() / (float)RAND_MAX;
+				XMFLOAT3 p1{};
+				XMVECTOR target = XMLoadFloat3(&g_Player.pos);
+
+				float zBias = CONTROL_POINT_Z_BIAS * enemyDis * 0.02f;
+				float xyRange = CONTROL_POINT_Z_BIAS * enemyDis * 0.02f;
+
+				target += front * CONTROL_POINT_Z_BIAS;
+				target += right * cosf(theta) * CONTROL_POINT_XY_RANGE;
+				target += up * sinf(theta) * CONTROL_POINT_XY_RANGE;
+				XMStoreFloat3(&p1, target);
+				std::array<XMFLOAT3, 3> points =
+				{
+					g_Player.pos,
+					p1,
+					enemy.pos
+				};
+				SetBullet(points, HIT_TIME, &enemy);
+				//SetBullet(g_Player.pos, g_Player.rot);
+				break;
+			}
+		}
 	}
 
 	//g_Player.spd *= 0.5f;
 
 
-	// 階層アニメーション
 	for (int i = 0; i < PLAYER_PARTS_MAX; i++)
 	{
-		// 使われているなら処理する
 		if ((g_Player_Parts[i].use == TRUE)&&(g_Player_Parts[i].tbl_adr != NULL))
 		{
-			// 移動処理
 			int		index = (int)g_Player_Parts[i].move_time;
 			float	time = g_Player_Parts[i].move_time - index;
 			int		size = g_Player_Parts[i].tbl_size;
@@ -477,34 +477,34 @@ void UpdatePlayer(void)
 	// 姿勢制御
 	//////////////////////////////////////////////////////////////////////
 
-	XMVECTOR vx, nvx, up;
-	XMVECTOR quat;
-	float len, angle;
+	//XMVECTOR vx, nvx, up;
+	//XMVECTOR quat;
+	//float len, angle;
 
-	// ２つのベクトルの外積を取って任意の回転軸を求める
-	g_Player.upVector = {0.0f, 1.0f, 0.0f};
-	up = { 0.0f, 1.0f, 0.0f, 0.0f };
-	vx = XMVector3Cross(up, XMLoadFloat3(&g_Player.upVector));
+	//// ２つのベクトルの外積を取って任意の回転軸を求める
+	//g_Player.upVector = {0.0f, 1.0f, 0.0f};
+	//up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	//vx = XMVector3Cross(up, XMLoadFloat3(&g_Player.upVector));
 
-	// 求めた回転軸からクォータニオンを作り出す
-	nvx = XMVector3Length(vx);
-	XMStoreFloat(&len, nvx);
-	nvx = XMVector3Normalize(vx);
-	angle = asinf(len);
-	quat = XMQuaternionRotationNormal(nvx, angle);
+	//// 求めた回転軸からクォータニオンを作り出す
+	//nvx = XMVector3Length(vx);
+	//XMStoreFloat(&len, nvx);
+	//nvx = XMVector3Normalize(vx);
+	//angle = asinf(len);
+	//quat = XMQuaternionRotationNormal(nvx, angle);
 
-	// 前回のクォータニオンから今回のクォータニオンまでの回転を滑らかにする
-	quat = XMQuaternionSlerp(XMLoadFloat4(&g_Player.quaternion), quat, 0.05f);
+	//// 前回のクォータニオンから今回のクォータニオンまでの回転を滑らかにする
+	//quat = XMQuaternionSlerp(XMLoadFloat4(&g_Player.quaternion), quat, 0.05f);
 
-	// 今回のクォータニオンの結果を保存する
-	XMStoreFloat4(&g_Player.quaternion, quat);
+	//// 今回のクォータニオンの結果を保存する
+	//XMStoreFloat4(&g_Player.quaternion, quat);
 
 
 
 #ifdef _DEBUG	// デバッグ情報を表示する
 	PrintDebugProc("Player:↑ → ↓ ←　Space\n");
 	PrintDebugProc("Player:X:%f Y:%f Z:%f\n", g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
-	PrintDebugProc("Player: dir:%f\n", dir);
+	PrintDebugProc("Player: dir:%f progress : %f\n", dir, g_FieldProgress);
 #endif
 }
 
@@ -587,8 +587,6 @@ void DrawPlayer(void)
 
 	}
 
-
-
 	// カリング設定を戻す
 	SetCullingMode(CULL_MODE_BACK);
 }
@@ -602,8 +600,62 @@ PLAYER *GetPlayer(void)
 	return &g_Player;
 }
 
-int IsPlayerEndOfBoarder()
+int IsPlayerOutOfBoarder()
 {
-	return g_OutOfBoarder;
+	return g_BoarderSignal;
 }
 
+float GetPlayerFieldProgress()
+{
+	return g_FieldProgress;
+}
+
+void ReleaseMoveTable()
+{
+	g_Player.tbl_adr = nullptr;
+	for (auto & part : g_Player_Parts)
+	{
+		part.tbl_adr = nullptr;
+	}
+}
+
+void BuildMoveTable()
+{
+
+	g_Player_Parts[0].tbl_adr = move_tbl_body;
+
+	g_Player_Parts[4].tbl_adr = move_tbl_foot_left;
+
+	g_Player_Parts[8].tbl_adr = move_tbl_foot_right;
+}
+
+void GetDecision()
+{
+	float nPiDiv2 = 0.0f; //rand() % 4;
+
+	if (GetKeyboardPress(DIK_A))
+	{
+		nPiDiv2 = -1.0f;
+		g_MadeDecision = true;
+	}
+	else if (GetKeyboardPress(DIK_D))
+	{
+		nPiDiv2 = 1.0f;
+		g_MadeDecision = true;
+	}
+	else if (GetKeyboardPress(DIK_W))
+	{
+		nPiDiv2 = 0.0f;
+		g_MadeDecision = true;
+	}
+	g_Player.dir += XM_PIDIV2 * nPiDiv2;
+
+	if (g_Player.dir > XM_2PI - 0.01f)	g_Player.dir -= XM_2PI;
+	if (g_Player.dir < 0.0f)	g_Player.dir += XM_2PI;
+
+	if (g_MadeDecision)
+	{
+		g_Player.spd = VALUE_MOVE;
+		BuildMoveTable();
+	}
+}

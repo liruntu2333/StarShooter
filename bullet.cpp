@@ -8,6 +8,8 @@
 #include "renderer.h"
 #include "shadow.h"
 #include "bullet.h"
+
+#include "enemy.h"
 #include "sound.h"
 
 
@@ -121,26 +123,42 @@ void UninitBullet(void)
 void UpdateBullet(void)
 {
 
-	for (int i = 0; i < MAX_BULLET; i++)
+	for (auto& bullet : g_Bullet)
 	{
-		if (g_Bullet[i].use)
+		if (bullet.use)
 		{
-			// 弾の移動処理
-			g_Bullet[i].pos.x -= sinf(g_Bullet[i].rot.y) * g_Bullet[i].spd;
-			g_Bullet[i].pos.z -= cosf(g_Bullet[i].rot.y) * g_Bullet[i].spd;
+			if (bullet.curve != nullptr)
+			{
+				const float tCurr = bullet.flyingTime;
+				const float tHit = bullet.hitTime;
+				if (bullet.target != nullptr)
+				{
+					bullet.curve->SetControlPoint2(bullet.target->pos);
+				}
+				bullet.pos = bullet.curve->GetPosition(tCurr / tHit);
+				//bullet.rot
+				bullet.flyingTime += 1.0f / 60.0f;
+			}
+			else
+			{
+				bullet.pos.x -= sinf(bullet.rot.y) * bullet.spd;
+				bullet.pos.z -= cosf(bullet.rot.y) * bullet.spd;
+			}
+
 
 			// 影の位置設定
-			SetPositionShadow(g_Bullet[i].shadowIdx, XMFLOAT3(g_Bullet[i].pos.x, 0.1f, g_Bullet[i].pos.z));
+			SetPositionShadow(bullet.shadowIdx, XMFLOAT3(bullet.pos.x, 0.1f, bullet.pos.z));
 
 
 			// フィールドの外に出たら弾を消す処理
-			if (g_Bullet[i].pos.x < MAP_LEFT
-				|| g_Bullet[i].pos.x > MAP_RIGHT
-				|| g_Bullet[i].pos.z < MAP_DOWN
-				|| g_Bullet[i].pos.z > MAP_TOP)
+			if (bullet.pos.x < MAP_LEFT
+				|| bullet.pos.x > MAP_RIGHT
+				|| bullet.pos.z < MAP_DOWN
+				|| bullet.pos.z > MAP_TOP)
 			{
-				g_Bullet[i].use = FALSE;
-				ReleaseShadow(g_Bullet[i].shadowIdx);
+				bullet.use = FALSE;
+				bullet.curve.release();
+				ReleaseShadow(bullet.shadowIdx);
 			}
 
 		}
@@ -155,6 +173,7 @@ void DrawBullet(void)
 {
 	// ライティングを無効
 	SetLightEnable(FALSE);
+	SetCullingMode(CULL_MODE_NONE);
 
 	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
 
@@ -204,7 +223,7 @@ void DrawBullet(void)
 
 	// ライティングを有効に
 	SetLightEnable(TRUE);
-
+	SetCullingMode(CULL_MODE_BACK);
 }
 
 //=============================================================================
@@ -276,6 +295,36 @@ int SetBullet(XMFLOAT3 pos, XMFLOAT3 rot)
 			nIdxBullet = nCntBullet;
 
 			// 発射音
+			PlaySound(SOUND_LABEL_SE_shot000);
+
+			break;
+		}
+	}
+
+	return nIdxBullet;
+}
+
+int SetBullet(const std::array<XMFLOAT3, 3>& controlPoints, float tHit, ENEMY* target)
+{
+	int nIdxBullet = -1;
+
+	for (int nCntBullet = 0; nCntBullet < MAX_BULLET; nCntBullet++)
+	{
+		if (!g_Bullet[nCntBullet].use)
+		{
+			auto& bullet = g_Bullet[nCntBullet];
+			bullet.curve = std::make_unique<BezierCurveQuadratic>(controlPoints);
+			bullet.flyingTime = 0.0f;
+			bullet.hitTime = tHit;
+			bullet.target = target;
+
+			bullet.scl = { 1.0f, 1.0f, 1.0f };
+			g_Bullet[nCntBullet].use = TRUE;
+
+			g_Bullet[nCntBullet].shadowIdx = CreateShadow(g_Bullet[nCntBullet].pos, 0.5f, 0.5f);
+
+			nIdxBullet = nCntBullet;
+
 			PlaySound(SOUND_LABEL_SE_shot000);
 
 			break;

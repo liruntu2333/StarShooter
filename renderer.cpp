@@ -383,7 +383,10 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.OutputWindow = hWnd;
+	sd.SampleDesc.Count = 8;
+#ifdef _DEBUG
 	sd.SampleDesc.Count = 1;
+#endif
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = bWindow;
 
@@ -444,7 +447,10 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvd;
 	ZeroMemory( &dsvd, sizeof(dsvd) );
 	dsvd.Format			= td.Format;
-	dsvd.ViewDimension	= D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvd.ViewDimension	= D3D11_DSV_DIMENSION_TEXTURE2DMS;
+#ifdef _DEBUG
+	dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+#endif
 	dsvd.Flags			= 0;
 	g_D3DDevice->CreateDepthStencilView( depthTexture, &dsvd, &g_DepthStencilView );
 
@@ -470,7 +476,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	rd.FillMode = D3D11_FILL_SOLID;
 	rd.CullMode = D3D11_CULL_NONE; 
 	rd.DepthClipEnable = TRUE; 
-	rd.MultisampleEnable = FALSE; 
+	rd.MultisampleEnable = true; 
 	g_D3DDevice->CreateRasterizerState( &rd, &g_RasterStateCullOff);
 
 	rd.CullMode = D3D11_CULL_FRONT;
@@ -554,7 +560,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	// サンプラーステート設定
 	D3D11_SAMPLER_DESC samplerDesc;
 	ZeroMemory( &samplerDesc, sizeof( samplerDesc ) );
-	//samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;

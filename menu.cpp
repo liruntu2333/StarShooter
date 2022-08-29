@@ -10,7 +10,7 @@
 #include "model.h"
 #include "light.h"
 #include "bullet.h"
-#include "weapon.h"
+#include "player.h"
 #include "menu.h"
 
 
@@ -21,6 +21,7 @@
 #define	MODEL_MENU_PARTS			"data/MODEL/torus.obj"			// 読み込むモデル名 メニューのパーツ
 
 #define	VALUE_MOVE					(10.0f)							// 移動量
+
 #define	VALUE_ROTATE				(XM_PI * 0.02f)					// 回転量
 
 
@@ -68,14 +69,14 @@ HRESULT InitMenu(void)
 	LoadModel(MODEL_MENU, &g_Menu[0].model);
 	g_Menu[0].load = TRUE;
 
-	WEAPON* weapon = GetWeapon();
+	PLAYER* player = GetPlayer();
 
 
 	for (int i = 0; i < MAX_MENU; i++)
 	{
-		g_Menu[i].pos = weapon->pos;
+		g_Menu[i].pos = player->pos;
 		g_Menu[i].rot = { 0.0f, XM_PI, 0.0f };
-		g_Menu[i].scl = { 1.0f, 1.0f, 1.0f };
+		g_Menu[i].scl = { 5.0f, 5.0f, 1.0f };
 
 		g_Menu[i].spd = 0.0f;			// 移動スピードクリア
 		g_Menu[i].isDisplay = FALSE;	// 初期化は表示しない
@@ -138,7 +139,7 @@ void UninitMenu(void)
 	if (g_Load == FALSE) return;
 
 	// モデルの解放処理
-	for (int i = 0; i < MAX_WEAPON; i++)
+	for (int i = 0; i < MAX_MENU; i++)
 	{
 		if (g_Menu[i].load)
 		{
@@ -156,14 +157,15 @@ void UninitMenu(void)
 void UpdateMenu(void)
 {
 	// 移動処理
-	WEAPON* weapon = GetWeapon();
+	PLAYER* player = GetPlayer();
 
-	for (int i = 0; i < MAX_WEAPON; i++)
+	for (int i = 0; i < MAX_MENU; i++)
 	{
-		g_Menu[i].pos.x += (weapon->pos.x + 20.0f - g_Menu[i].pos.x) * 0.05f;
-		g_Menu[i].pos.y += (weapon->pos.y + 10.0f - g_Menu[i].pos.y) * 0.05f;
-		g_Menu[i].pos.z += (weapon->pos.z - 10.0f - g_Menu[i].pos.z) * 0.05f;
+		g_Menu[i].pos.x += (player->pos.x + 0.0f - g_Menu[i].pos.x) * 0.05f;
+		g_Menu[i].pos.y += (player->pos.y + 70.0f - g_Menu[i].pos.y) * 0.05f;
+		g_Menu[i].pos.z += (player->pos.z + 50.0f - g_Menu[i].pos.z) * 0.05f;
 	}
+	
 
 
 	// メニューの表示制御
@@ -226,7 +228,19 @@ void UpdateMenu(void)
 		}
 	}
 
+	{	// ポイントライトのテスト
+		LIGHT* light = GetLightData(2);
+		XMFLOAT3 pos = g_Menu[0].pos;
+		pos.y += 20.0f;
+		pos.z -= 20.0f;
 
+		light->Position = pos;
+		light->Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		light->Type = LIGHT_TYPE_POINT;
+		light->Enable = TRUE;
+		SetLightData(2, light);
+	}
 
 
 

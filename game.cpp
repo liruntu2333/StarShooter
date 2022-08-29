@@ -251,7 +251,7 @@ void DrawGame(void)
 		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.05f;
 		pos = GetMenu()->pos;
 		//pos.y = 0.0f;			// ƒJƒƒ‰Œ‚¢‚ğ–h‚®‚½‚ß‚ÉƒNƒŠƒA‚µ‚Ä‚¢‚é
-		SetCameraAtMenu(pos, XM_PIDIV2, tCamera);
+		SetCameraAtMenu(pos, XM_PI, tCamera);
 		SetCamera();
 		break;
 	}

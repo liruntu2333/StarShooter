@@ -295,18 +295,18 @@ void UpdateWeapon(void)
 		}
 	}
 
-	{	// ポイントライトのテスト
-		LIGHT* light = GetLightData(2);
-		XMFLOAT3 pos = g_Weapon[0].pos;
-		pos.y += 20.0f;
+	//{	// ポイントライトのテスト
+	//	LIGHT* light = GetLightData(2);
+	//	XMFLOAT3 pos = g_Weapon[0].pos;
+	//	pos.y += 20.0f;
 
-		light->Position = pos;
-		light->Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		light->Type = LIGHT_TYPE_POINT;
-		light->Enable = TRUE;
-		SetLightData(2, light);
-	}
+	//	light->Position = pos;
+	//	light->Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	//	light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	//	light->Type = LIGHT_TYPE_POINT;
+	//	light->Enable = TRUE;
+	//	SetLightData(2, light);
+	//}
 
 #ifdef _DEBUG	// デバッグ情報を表示する
 	PrintDebugProc("WeaponOffset:X:%f Y:%f Z:%f\n", g_Weapon[0].pos.x - player->pos.x, g_Weapon[0].pos.y - player->pos.y, g_Weapon[0].pos.z - player->pos.z);

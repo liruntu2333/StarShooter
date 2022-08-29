@@ -298,7 +298,7 @@ void UpdatePlayer(void)
 	}
 	else if (!g_MadeDecision)
 	{
-		g_Player.spd = VALUE_MOVE * 0.01f;
+		g_Player.spd = VALUE_MOVE * 0.0f;
 		ReleaseMoveTable();
 		BuildMoveTableIdle();
 
@@ -467,18 +467,18 @@ void UpdatePlayer(void)
 
 
 
-	{	// ポイントライトのテスト
-		LIGHT *light = GetLightData(1);
-		XMFLOAT3 pos = g_Player.pos;
-		pos.y += 20.0f;
+	//{	// ポイントライトのテスト
+	//	LIGHT *light = GetLightData(1);
+	//	XMFLOAT3 pos = g_Player.pos;
+	//	pos.y += 20.0f;
 
-		light->Position = pos;
-		light->Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		light->Type = LIGHT_TYPE_POINT;
-		light->Enable = TRUE;
-		SetLightData(1, light);
-	}
+	//	light->Position = pos;
+	//	light->Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	//	light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	//	light->Type = LIGHT_TYPE_POINT;
+	//	light->Enable = TRUE;
+	//	SetLightData(1, light);
+	//}
 
 
 	//////////////////////////////////////////////////////////////////////

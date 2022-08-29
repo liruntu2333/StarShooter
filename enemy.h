@@ -5,6 +5,8 @@
 //
 //=============================================================================
 #pragma once
+#include <vector>
+
 #include "model.h"
 
 //*****************************************************************************
@@ -41,6 +43,9 @@ struct ENEMY
 	INTERPOLATION_DATA	*tbl_adr;			// アニメデータのテーブル先頭アドレス
 	int					tbl_size;			// 登録したテーブルのレコード総数
 	float				move_time;			// 実行時間
+
+	std::vector<int>	codes;
+	int					compare_index;
 
 	EnemyBehaviorType			type;
 };

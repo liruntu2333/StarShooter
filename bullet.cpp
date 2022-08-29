@@ -53,7 +53,7 @@ HRESULT InitBullet(void)
 	{
 		g_Bullet[i].pos = { 0.0f, 0.0f, 0.0f };
 		g_Bullet[i].rot = { 0.0f, 0.0f, 0.0f };
-		g_Bullet[i].scl = { 1.0f, 1.0f, 1.0f };
+		g_Bullet[i].scl = { 0.0f, 0.0f, 0.0f };
 
 		g_Bullet[i].attackSize = BULLET_ATTACK_SIZE;
 
@@ -249,33 +249,33 @@ void DrawBullet(void)
 //=============================================================================
 // 弾のパラメータをセット
 //=============================================================================
-int SetBullet(XMFLOAT3 pos, XMFLOAT3 rot)
-{
-	int nIdxBullet = -1;
-
-	for (int nCntBullet = 0; nCntBullet < MAX_BULLET; nCntBullet++)
-	{
-		if (!g_Bullet[nCntBullet].use)
-		{
-			g_Bullet[nCntBullet].pos = pos;
-			g_Bullet[nCntBullet].rot = rot;
-			g_Bullet[nCntBullet].scl = { 1.0f, 1.0f, 1.0f };
-			g_Bullet[nCntBullet].use = TRUE;
-
-			// 影の設定
-			g_Bullet[nCntBullet].shadowIdx = CreateShadow(g_Bullet[nCntBullet].pos, 0.5f, 0.5f);
-
-			nIdxBullet = nCntBullet;
-
-			// 発射音
-			PlaySound(SOUND_LABEL_SE_shot000);
-
-			break;
-		}
-	}
-
-	return nIdxBullet;
-}
+//int SetBullet(XMFLOAT3 pos, XMFLOAT3 rot)
+//{
+//	int nIdxBullet = -1;
+//
+//	for (int nCntBullet = 0; nCntBullet < MAX_BULLET; nCntBullet++)
+//	{
+//		if (!g_Bullet[nCntBullet].use)
+//		{
+//			g_Bullet[nCntBullet].pos = pos;
+//			g_Bullet[nCntBullet].rot = rot;
+//			g_Bullet[nCntBullet].scl = { 1.0f, 1.0f, 1.0f };
+//			g_Bullet[nCntBullet].use = TRUE;
+//
+//			// 影の設定
+//			g_Bullet[nCntBullet].shadowIdx = CreateShadow(g_Bullet[nCntBullet].pos, 0.5f, 0.5f);
+//
+//			nIdxBullet = nCntBullet;
+//
+//			// 発射音
+//			PlaySound(SOUND_LABEL_SE_shot000);
+//
+//			break;
+//		}
+//	}
+//
+//	return nIdxBullet;
+//}
 
 int SetBullet(const std::array<XMFLOAT3, 3>& controlPoints, float tHit, ENEMY* target)
 {
@@ -291,7 +291,7 @@ int SetBullet(const std::array<XMFLOAT3, 3>& controlPoints, float tHit, ENEMY* t
 			bullet.hitTime = tHit;
 			bullet.target = target;
 
-			bullet.scl = { 1.0f, 1.0f, 1.0f };
+			bullet.scl = { 5.0f, 5.0f, 5.0f };
 			g_Bullet[nCntBullet].use = TRUE;
 
 			g_Bullet[nCntBullet].shadowIdx = CreateShadow(g_Bullet[nCntBullet].pos, 0.5f, 0.5f);

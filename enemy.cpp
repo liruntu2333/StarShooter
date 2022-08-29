@@ -18,7 +18,7 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define	MODEL_ENEMY			"data/MODEL/enemy.obj"		// 読み込むモデル名
+#define	MODEL_ENEMY			"data/MODEL/enemy_complete.obj"		// 読み込むモデル名
 
 #define	VALUE_MOVE			(1.0f)						// 移動量
 #define	VALUE_AMP			(50.0f)						// 移動量

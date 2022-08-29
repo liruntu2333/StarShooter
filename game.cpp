@@ -285,7 +285,7 @@ void DrawGame(void)
 	DrawTree();
 
 	// パーティクルの描画処理
-	//DrawParticle();
+	DrawParticle();
 
 
 	// 2Dの物を描画する処理

@@ -15,6 +15,7 @@
 #include "bullet.h"
 #include "meshfield.h"
 #include "enemy.h"
+#include "weapon.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -383,6 +384,8 @@ void UpdatePlayer(void)
 	XMFLOAT3 pos = g_Player.pos;
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	SetPositionShadow(g_Player.shadowIdx, pos);
+	XMFLOAT3 wandPos = GetWeapon()->pos;
+	wandPos.y += 20.0f;
 
 	if (GetKeyboardTrigger(DIK_J))
 	{
@@ -394,7 +397,7 @@ void UpdatePlayer(void)
 		{
 			ENEMY& enemy = *(pEnemy + i);
 			XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);
-			XMVECTOR enemyDir = XMVector3Normalize(enemyPos - XMLoadFloat3(&pos));
+			XMVECTOR enemyDir = XMVector3Normalize(enemyPos - XMLoadFloat3(&wandPos));
 			float enemyDis = (enemyDir / enemyPos).m128_f32[0];
 
 			static const float cos45 = cosf(XM_PIDIV4);
@@ -413,7 +416,7 @@ void UpdatePlayer(void)
 				XMStoreFloat3(&p1, target);
 				std::array<XMFLOAT3, 3> points =
 				{
-					g_Player.pos,
+					wandPos,
 					p1,
 					enemy.pos
 				};

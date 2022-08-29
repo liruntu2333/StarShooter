@@ -52,7 +52,8 @@ static constexpr float HIT_TIME = 0.8f;
 // プロトタイプ宣言
 //*****************************************************************************
 void ReleaseMoveTable();
-void BuildMoveTable();
+void BuildMoveTableIdle();
+void BuildMoveTableRun();
 void GetDecision();
 
 //*****************************************************************************
@@ -75,33 +76,42 @@ static bool			g_MadeDecision = false;
 static float		g_FieldProgress = 0.0f;
 
 // プレイヤーの階層アニメーションデータ
-static INTERPOLATION_DATA move_tbl_idle[] = {	// pos, rot, scl, frame
+// idleのアニメ
+static INTERPOLATION_DATA move_tbl_body_idle[] = {					// pos, rot, scl, frame
+	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, 3.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
-static INTERPOLATION_DATA move_tbl_body[] = {	// pos, rot, scl, frame
-	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
-	{ XMFLOAT3(0.0f, 3.0f, 0.0f),	XMFLOAT3(0.3f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+static INTERPOLATION_DATA move_tbl_foot_left_idle[] = {				// pos, rot, scl, frame
 	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
-static INTERPOLATION_DATA move_tbl_foot_left[] = {	// pos, rot, scl, frame
+static INTERPOLATION_DATA move_tbl_foot_right_idle[] = {			// pos, rot, scl, frame
 	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+};
+
+
+// runのアニメ
+static INTERPOLATION_DATA move_tbl_body_run[] = {					// pos, rot, scl, frame
+	{ XMFLOAT3(0.0f, 3.0f, 0.0f),	XMFLOAT3(0.5f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, 5.0f, 0.0f),	XMFLOAT3(0.5f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, 3.0f, 0.0f),	XMFLOAT3(0.5f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+};
+
+static INTERPOLATION_DATA move_tbl_foot_left_run[] = {				// pos, rot, scl, frame
 	{ XMFLOAT3(0.0f, -0.5f, -0.5f),	XMFLOAT3(0.5f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
-	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
-static INTERPOLATION_DATA move_tbl_foot_right[] = {	// pos, rot, scl, frame
-	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+static INTERPOLATION_DATA move_tbl_foot_right_run[] = {				// pos, rot, scl, frame
 	{ XMFLOAT3(0.0f, -0.5f, -0.5f),	XMFLOAT3(0.5f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+};
+
+static INTERPOLATION_DATA move_tbl_pants_left[] = {					// pos, rot, scl, frame
 	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
-static INTERPOLATION_DATA move_tbl_pants_left[] = {	// pos, rot, scl, frame
-	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
-};
-
-static INTERPOLATION_DATA move_tbl_pants_right[] = {	// pos, rot, scl, frame
+static INTERPOLATION_DATA move_tbl_pants_right[] = {				// pos, rot, scl, frame
 	{ XMFLOAT3(0.0f, 0.0f, 0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f),      XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
 };
 
@@ -167,8 +177,8 @@ HRESULT InitPlayer(void)
 	// MODEL_PLAYER_PARTS_BODY
 	g_Player_Parts[0].use = TRUE;
 	g_Player_Parts[0].parent = &g_Player;														// 親(player)をセット
-	g_Player_Parts[0].tbl_adr = move_tbl_body;													// 再生するアニメデータの先頭アドレスをセット
-	g_Player_Parts[0].tbl_size = sizeof(move_tbl_body) / sizeof(INTERPOLATION_DATA);			// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[0].tbl_adr = move_tbl_body_run;												// 再生するアニメデータの先頭アドレスをセット
+	g_Player_Parts[0].tbl_size = sizeof(move_tbl_body_run) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
 	g_Player_Parts[0].load = TRUE;
 	LoadModel(MODEL_PLAYER_PARTS_BODY, &g_Player_Parts[0].model);
 
@@ -196,8 +206,8 @@ HRESULT InitPlayer(void)
 
 	g_Player_Parts[4].use = TRUE;
 	g_Player_Parts[4].parent   = &g_Player_Parts[3];											// 親(left leg 3)をセット 
-	g_Player_Parts[4].tbl_adr  = move_tbl_foot_left;											// 再生するアニメデータの先頭アドレスをセット
-	g_Player_Parts[4].tbl_size = sizeof(move_tbl_foot_left) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[4].tbl_adr  = move_tbl_foot_left_run;										// 再生するアニメデータの先頭アドレスをセット
+	g_Player_Parts[4].tbl_size = sizeof(move_tbl_foot_left_run) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
 	g_Player_Parts[4].load = TRUE;
 	LoadModel(MODEL_PLAYER_PARTS_FOOT_LEFT, &g_Player_Parts[4].model);
 
@@ -225,8 +235,8 @@ HRESULT InitPlayer(void)
 
 	g_Player_Parts[8].use = TRUE;
 	g_Player_Parts[8].parent   = &g_Player_Parts[7];											// 親(right leg 3)をセット 
-	g_Player_Parts[8].tbl_adr  = move_tbl_foot_right;											// 再生するアニメデータの先頭アドレスをセット
-	g_Player_Parts[8].tbl_size = sizeof(move_tbl_foot_right) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+	g_Player_Parts[8].tbl_adr  = move_tbl_foot_right_run;										// 再生するアニメデータの先頭アドレスをセット
+	g_Player_Parts[8].tbl_size = sizeof(move_tbl_foot_right_run) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
 	g_Player_Parts[8].load = TRUE;
 	LoadModel(MODEL_PLAYER_PARTS_FOOT_RIGHT, &g_Player_Parts[8].model);
 
@@ -284,17 +294,18 @@ void UpdatePlayer(void)
 	{
 		g_MadeDecision = false;
 		g_Player.spd = VALUE_MOVE;
-		BuildMoveTable();
+		BuildMoveTableRun();
 	}
 	else if (!g_MadeDecision)
 	{
 		g_Player.spd = VALUE_MOVE * 0.01f;
 		ReleaseMoveTable();
+		BuildMoveTableIdle();
 
 		// Decision of road's branch.
 		GetDecision();
 
-		return;
+		//return;
 	}
 
 	// x pass
@@ -502,6 +513,8 @@ void UpdatePlayer(void)
 	PrintDebugProc("Player:↑ → ↓ ←　Space\n");
 	PrintDebugProc("Player:X:%f Y:%f Z:%f\n", g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
 	PrintDebugProc("Player: dir:%f progress : %f\n", dir, g_FieldProgress);
+	PrintDebugProc("g_AtConjunction:%d\n", g_AtConjunction);
+	PrintDebugProc("g_MadeDecision:%d\n", g_MadeDecision);
 #endif
 }
 
@@ -614,16 +627,27 @@ void ReleaseMoveTable()
 	{
 		part.tbl_adr = nullptr;
 	}
+
 }
 
-void BuildMoveTable()
+void BuildMoveTableIdle()
 {
 
-	g_Player_Parts[0].tbl_adr = move_tbl_body;
+	g_Player_Parts[0].tbl_adr = move_tbl_body_idle;
 
-	g_Player_Parts[4].tbl_adr = move_tbl_foot_left;
+	g_Player_Parts[4].tbl_adr = move_tbl_foot_left_idle;
 
-	g_Player_Parts[8].tbl_adr = move_tbl_foot_right;
+	g_Player_Parts[8].tbl_adr = move_tbl_foot_right_idle;
+}
+
+void BuildMoveTableRun()
+{
+
+	g_Player_Parts[0].tbl_adr = move_tbl_body_run;
+
+	g_Player_Parts[4].tbl_adr = move_tbl_foot_left_run;
+
+	g_Player_Parts[8].tbl_adr = move_tbl_foot_right_run;
 }
 
 void GetDecision()
@@ -650,6 +674,6 @@ void GetDecision()
 	if (g_MadeDecision)
 	{
 		g_Player.spd = VALUE_MOVE;
-		BuildMoveTable();
+		BuildMoveTableRun();
 	}
 }

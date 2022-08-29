@@ -186,6 +186,7 @@ void UpdateTree(void)
 //=============================================================================
 void DrawTree(void)
 {
+	return;
 	// ƒ¿ƒeƒXƒgİ’è
 	if (g_bAlpaTest == TRUE)
 	{

@@ -354,7 +354,7 @@ void CheckHit(void)
 				continue;
 
 			//BC‚Ì“–‚½‚è”»’è
-			if (CollisionBC(bullet[i].pos, enemy[j].pos, bullet[i].fWidth, enemy[j].size))
+			if (CollisionBC(bullet[i].pos, enemy[j].pos, bullet[i].attackSize, enemy[j].size))
 			{
 				// “–‚½‚Á‚½‚©‚ç–¢Žg—p‚É–ß‚·
 				bullet[i].use = FALSE;

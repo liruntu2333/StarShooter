@@ -10,9 +10,10 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define	MAX_BULLET		(256)	// 弾最大数
+#define	MAX_BULLET				(256)	// 弾最大数
 
-#define	BULLET_WH		(5.0f)	// 当たり判定の大きさ
+#define	BULLET_ATTACK_SIZE		(5.0f)	// 当たり判定の大きさ
+
 #include <memory>
 
 #include "MathHelper.h"
@@ -25,21 +26,32 @@ struct ENEMY;
 
 struct BULLET
 {
-	XMFLOAT4X4	mtxWorld;		// ワールドマトリックス
-	XMFLOAT3	pos;			// 位置
-	XMFLOAT3	rot;			// 角度
-	XMFLOAT3	scl;			// スケール
-	MATERIAL	material;		// マテリアル
-	float		spd;			// 移動量
-	float		fWidth;			// 幅
-	float		fHeight;		// 高さ
-	int			shadowIdx;		// 影ID
-	BOOL		use;			// 使用しているかどうか
+	XMFLOAT3			pos;			// ポリゴンの位置
+	XMFLOAT3			rot;			// ポリゴンの向き(回転)
+	XMFLOAT3			scl;			// ポリゴンの大きさ(スケール)
+
+	XMFLOAT4X4			mtxWorld;		// ワールドマトリックス
+
+	BOOL				load;
+	DX11_MODEL			model;			// モデル情報
+	
+	// 階層アニメーション用のメンバー変数
+	INTERPOLATION_DATA* tbl_adr;		// アニメデータのテーブル先頭アドレス
+	int					tbl_size;		// 登録したテーブルのレコード総数
+	float				move_time;		// 実行時間
+
+	// 親は、NULL、子供は親のアドレスを入れる
+	BULLET*				parent;			// 自分が親ならNULL、自分が子供なら親のplayerアドレス
+
+	float				spd;			// 移動量
+	int					shadowIdx;		// 影ID
+	float				attackSize;		// 当たり判定の大きさ
+	BOOL				use;			// 使用しているかどうか
 
 	std::unique_ptr<BezierCurveQuadratic> curve = nullptr;
-	float		flyingTime;
-	float		hitTime;
-	ENEMY*		target;
+	float				flyingTime;
+	float				hitTime;
+	ENEMY*				target;
 } ;
 
 

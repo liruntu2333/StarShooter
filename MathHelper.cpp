@@ -47,3 +47,11 @@ void BezierCurveQuadratic::SetControlPoint2(DirectX::XMFLOAT3 target)
 {
 	MControlPoints[2] = target;
 }
+
+DirectX::XMFLOAT3 BezierCurveQuadratic::GetNormalizedDerivative(float t)
+{
+	XMFLOAT3 ret;
+	XMFLOAT3 der = GetDerivative(t);
+	XMStoreFloat3(&ret, XMVector3Normalize(XMLoadFloat3(&der)));
+	return ret;
+}

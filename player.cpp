@@ -396,9 +396,6 @@ void UpdatePlayer(void)
 				XMFLOAT3 p1{};
 				XMVECTOR target = XMLoadFloat3(&g_Player.pos);
 
-				float zBias = CONTROL_POINT_Z_BIAS * enemyDis * 0.02f;
-				float xyRange = CONTROL_POINT_Z_BIAS * enemyDis * 0.02f;
-
 				target += front * CONTROL_POINT_Z_BIAS;
 				target += right * cosf(theta) * CONTROL_POINT_XY_RANGE;
 				target += up * sinf(theta) * CONTROL_POINT_XY_RANGE;
@@ -631,7 +628,7 @@ void BuildMoveTable()
 
 void GetDecision()
 {
-	float nPiDiv2 = 0.0f; //rand() % 4;
+	float nPiDiv2 = 0.0f;
 
 	if (GetKeyboardPress(DIK_A))
 	{
@@ -649,9 +646,6 @@ void GetDecision()
 		g_MadeDecision = true;
 	}
 	g_Player.dir += XM_PIDIV2 * nPiDiv2;
-
-	if (g_Player.dir > XM_2PI - 0.01f)	g_Player.dir -= XM_2PI;
-	if (g_Player.dir < 0.0f)	g_Player.dir += XM_2PI;
 
 	if (g_MadeDecision)
 	{

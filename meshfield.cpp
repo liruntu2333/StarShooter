@@ -61,20 +61,23 @@ static BOOL			g_Load = FALSE;
 inline float GetFieldHeight(float x, float z);
 inline bool IsFacingWest(const float dir)
 {
-	return dir > XM_PIDIV2 - 0.01f && dir < XM_PIDIV2 + 0.01f;
+	const float sin = sinf(dir);
+	return sin > 1.0f - 0.05f;
 }
 inline bool IsFacingEast(const float dir)
 {
-	return dir > XM_PIDIV2 + XM_PI - 0.01f && dir < XM_PIDIV2 + XM_PI + 0.01f;
+	const float sin = sinf(dir);
+	return sin < -1.0f + 0.05f;
 }
 inline bool IsFacingNorth(const float dir)
 {
-	return dir > XM_PI - 0.01f && dir < XM_PI + 0.01f;
+	const float cos = cosf(dir);
+	return cos < -1.0f + 0.05f;
 }
 inline bool IsFacingSouth(const float dir)
 {
-	return dir > 0.0f - 0.01f && dir < 0.0f + 0.01f ||
-		dir > XM_2PI - 0.01f && dir < XM_2PI + 0.01f;
+	const float cos = cosf(dir);
+	return cos > 1.0f - 0.05f;
 }
 
 //=============================================================================

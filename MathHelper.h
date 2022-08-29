@@ -61,6 +61,7 @@ public:
 
 	virtual DirectX::XMFLOAT3 GetPosition(float t) = 0;
 	virtual DirectX::XMFLOAT3 GetDerivative(float t) = 0;
+	virtual DirectX::XMFLOAT3 GetNormalizedDerivative(float t) = 0;
 };
 
 //class BezierCurveLinear : BezierCurve
@@ -94,6 +95,7 @@ public:
 
 	DirectX::XMFLOAT3 GetPosition(float t) override;
 	DirectX::XMFLOAT3 GetDerivative(float t) override;
+	DirectX::XMFLOAT3 GetNormalizedDerivative(float t) override;
 	void SetControlPoint2(DirectX::XMFLOAT3 target);
 
 private:

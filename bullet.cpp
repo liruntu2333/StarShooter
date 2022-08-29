@@ -129,14 +129,22 @@ void UpdateBullet(void)
 		{
 			if (bullet.curve != nullptr)
 			{
-				const float tCurr = bullet.flyingTime;
-				const float tHit = bullet.hitTime;
+				const float t = bullet.flyingTime / bullet.hitTime;
 				if (bullet.target != nullptr)
 				{
 					bullet.curve->SetControlPoint2(bullet.target->pos);
 				}
-				bullet.pos = bullet.curve->GetPosition(tCurr / tHit);
+				bullet.pos = bullet.curve->GetPosition(t);
+				const XMFLOAT3 dir = bullet.curve->GetNormalizedDerivative(t);
+				const XMVECTOR dirVec = XMLoadFloat3(&dir);
+				constexpr XMVECTOR right = { -1.0f, 0.0f, 0.0f };
+				constexpr XMVECTOR up = { 0.0f, -1.0f, 0.0f };
+				constexpr XMVECTOR front = { 0.0f, 0.0f, -1.0f };
+				bullet.rot.x = XMVectorGetX(XMVector3AngleBetweenNormals(dirVec, right));
+				bullet.rot.y = XMVectorGetX(XMVector3AngleBetweenNormals(dirVec , up));
+				bullet.rot.z = XMVectorGetX(XMVector3AngleBetweenNormals(dirVec , front));
 				//bullet.rot
+				
 				bullet.flyingTime += 1.0f / 60.0f;
 			}
 			else

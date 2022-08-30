@@ -54,14 +54,17 @@ static ENEMY			g_Enemy[MAX_ENEMY];				// エネミー
 
 static BOOL				g_Load = FALSE;
 
-static ENEMY			g_Enemy_Parts[ENEMY_PARTS_MAX];
+static ENEMY			g_Enemy_Parts[MAX_ENEMY][ENEMY_PARTS_MAX];
 
 
 // エネミーの階層アニメーションデータ
+
 static INTERPOLATION_DATA move_tbl_wings[] = {	// pos, rot, scl, frame
-	{ XMFLOAT3(0.0f, ENEMY_OFFSET_Y,  0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
-	{ XMFLOAT3(0.0f, ENEMY_OFFSET_Y,  0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
-	{ XMFLOAT3(0.0f, ENEMY_OFFSET_Y,  0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 60 },
+	{ XMFLOAT3(0.0f, ENEMY_OFFSET_Y,		0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 30 },
+	{ XMFLOAT3(0.0f, ENEMY_OFFSET_Y + 3.0f, 0.0f),	XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 30 },
+	{ XMFLOAT3(0.0f, ENEMY_OFFSET_Y ,		0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 30 },
+	{ XMFLOAT3(0.0f, ENEMY_OFFSET_Y - 3.0f, 0.0f),	XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 30 },
+	{ XMFLOAT3(0.0f, ENEMY_OFFSET_Y,		0.0f),	XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 30 },
 };
 
 
@@ -89,71 +92,72 @@ HRESULT InitEnemy(void)
 		pos.y -= (ENEMY_OFFSET_Y - 0.1f);
 		g_Enemy[i].shadowIdx = CreateShadow(pos, ENEMY_SHADOW_SIZE, ENEMY_SHADOW_SIZE);
 
-		g_Enemy[i].move_time = 0.0f;	
-		g_Enemy[i].tbl_adr = NULL;		
-		g_Enemy[i].tbl_size = 0;		
+		g_Enemy[i].move_time = 0.0f;
+		g_Enemy[i].tbl_adr = NULL;
+		g_Enemy[i].tbl_size = 0;
 
 		// 階層アニメーション用の初期化処理
 		g_Enemy[i].parent = NULL;
 
 		g_Enemy[i].type = Flyable;
-		g_Enemy[i].use = TRUE;			
+		g_Enemy[i].use = TRUE;
 
 		for (int j = 0; j < ENEMY_PARTS_MAX; j++)
 		{
-			g_Enemy_Parts[j].use = FALSE;
+			g_Enemy_Parts[i][j].use = FALSE;
 
 			// 位置・回転・スケールの初期設定
-			g_Enemy_Parts[j].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_Enemy_Parts[j].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_Enemy_Parts[j].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+			g_Enemy_Parts[i][j].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_Enemy_Parts[i][j].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			g_Enemy_Parts[i][j].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
 			// 親子関係
-			g_Enemy_Parts[j].parent = &g_Enemy[i];		// ← ここに親のアドレスを入れる
+			g_Enemy_Parts[i][j].parent = &g_Enemy[i];		// ← ここに親のアドレスを入れる
 			//g_Parts[腕].parent= &g_Player;		// 腕だったら親は本体（プレイヤー）
 			//g_Parts[手].parent= &g_Paerts[腕];	// 指が腕の子供だった場合の例
 
 			// 階層アニメーション用のメンバー変数の初期化
-			g_Enemy_Parts[j].tbl_adr = NULL;		// 再生するアニメデータの先頭アドレスをセット
-			g_Enemy_Parts[j].move_time = 0.0f;		// 実行時間をクリア
-			g_Enemy_Parts[j].tbl_size = 0;			// 再生するアニメデータのレコード数をセット
+			g_Enemy_Parts[i][j].tbl_adr = NULL;		// 再生するアニメデータの先頭アドレスをセット
+			g_Enemy_Parts[i][j].move_time = 0.0f;		// 実行時間をクリア
+			g_Enemy_Parts[i][j].tbl_size = 0;			// 再生するアニメデータのレコード数をセット
 
 			// パーツの読み込みはまだしていない
-			g_Enemy_Parts[j].load = FALSE;
+			g_Enemy_Parts[i][j].load = FALSE;
 		}
 	}
 
+
+
 	for (int i = 0; i < MAX_ENEMY; i++)
 	{
-		g_Enemy_Parts[0].use = TRUE;
-		g_Enemy_Parts[0].parent = &g_Enemy[i];													// 親(enemy_body)をセット
-		g_Enemy_Parts[0].tbl_adr = move_tbl_wings;												// 再生するアニメデータの先頭アドレスをセット
-		g_Enemy_Parts[0].tbl_size = sizeof(move_tbl_wings) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
-		g_Enemy_Parts[0].load = TRUE;
-		LoadModel(MODEL_ENEMY_PARTS_WINGS_LEFT, &g_Enemy_Parts[0].model);
+		g_Enemy_Parts[i][0].use = TRUE;
+		g_Enemy_Parts[i][0].parent = &g_Enemy[i];													// 親(enemy_body)をセット
+		g_Enemy_Parts[i][0].tbl_adr = move_tbl_wings;												// 再生するアニメデータの先頭アドレスをセット
+		g_Enemy_Parts[i][0].tbl_size = sizeof(move_tbl_wings) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+		g_Enemy_Parts[i][0].load = TRUE;
+		LoadModel(MODEL_ENEMY_PARTS_WINGS_LEFT, &g_Enemy_Parts[i][0].model);
 
-		g_Enemy_Parts[1].use = TRUE;
-		g_Enemy_Parts[1].parent = &g_Enemy[i];													// 親(enemy_body)をセット
-		g_Enemy_Parts[1].tbl_adr = move_tbl_wings;												// 再生するアニメデータの先頭アドレスをセット
-		g_Enemy_Parts[1].tbl_size = sizeof(move_tbl_wings) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
-		g_Enemy_Parts[1].load = TRUE;
-		LoadModel(MODEL_ENEMY_PARTS_WINGS_RIGHT, &g_Enemy_Parts[1].model);
+		g_Enemy_Parts[i][1].use = TRUE;
+		g_Enemy_Parts[i][1].parent = &g_Enemy[i];													// 親(enemy_body)をセット
+		g_Enemy_Parts[i][1].tbl_adr = move_tbl_wings;												// 再生するアニメデータの先頭アドレスをセット
+		g_Enemy_Parts[i][1].tbl_size = sizeof(move_tbl_wings) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+		g_Enemy_Parts[i][1].load = TRUE;
+		LoadModel(MODEL_ENEMY_PARTS_WINGS_RIGHT, &g_Enemy_Parts[i][1].model);
 
-		g_Enemy_Parts[2].use = TRUE;
-		g_Enemy_Parts[2].parent = &g_Enemy[i];													// 親(enemy_body)をセット
-		//g_Enemy_Parts[2].tbl_adr = move_tbl_wings;												// 再生するアニメデータの先頭アドレスをセット
-		//g_Enemy_Parts[2].tbl_size = sizeof(move_tbl_wings) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
-		g_Enemy_Parts[2].load = TRUE;
-		LoadModel(MODEL_ENEMY_PARTS_EYE_LEFT, &g_Enemy_Parts[2].model);
+		g_Enemy_Parts[i][2].use = TRUE;
+		g_Enemy_Parts[i][2].parent = &g_Enemy[i];													// 親(enemy_body)をセット
+		//g_Enemy_Parts[i][2].tbl_adr = move_tbl_wings;												// 再生するアニメデータの先頭アドレスをセット
+		//g_Enemy_Parts[i][2].tbl_size = sizeof(move_tbl_wings) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+		g_Enemy_Parts[i][2].load = TRUE;
+		LoadModel(MODEL_ENEMY_PARTS_EYE_LEFT, &g_Enemy_Parts[i][2].model);
 
-		g_Enemy_Parts[3].use = TRUE;
-		g_Enemy_Parts[3].parent = &g_Enemy[i];													// 親(enemy_body)をセット
-		//g_Enemy_Parts[3].tbl_adr = move_tbl_wings;												// 再生するアニメデータの先頭アドレスをセット
-		//g_Enemy_Parts[3].tbl_size = sizeof(move_tbl_wings) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
-		g_Enemy_Parts[3].load = TRUE;
-		LoadModel(MODEL_ENEMY_PARTS_EYE_RIGHT, &g_Enemy_Parts[3].model);
+		g_Enemy_Parts[i][3].use = TRUE;
+		g_Enemy_Parts[i][3].parent = &g_Enemy[i];													// 親(enemy_body)をセット
+		//g_Enemy_Parts[i][3].tbl_adr = move_tbl_wings;												// 再生するアニメデータの先頭アドレスをセット
+		//g_Enemy_Parts[i][3].tbl_size = sizeof(move_tbl_wings) / sizeof(INTERPOLATION_DATA);		// 再生するアニメデータのレコード数をセット
+		g_Enemy_Parts[i][3].load = TRUE;
+		LoadModel(MODEL_ENEMY_PARTS_EYE_RIGHT, &g_Enemy_Parts[i][3].model);
 	}
-	
 
 
 
@@ -283,46 +287,54 @@ void UpdateEnemy(void)
 
 
 
-			// パーツの階層アニメーション
-			for (int i = 0; i < ENEMY_PARTS_MAX; i++)
+			
+		}
+	}
+
+
+	// パーツの階層アニメーション
+	for (int i = 0; i < MAX_ENEMY; i++)
+	{
+		for (int j = 0; j < ENEMY_PARTS_MAX; j++)
+		{
+			if ((g_Enemy_Parts[i][j].use == TRUE) && (g_Enemy_Parts[i][j].tbl_adr != NULL))
 			{
-				if ((g_Enemy_Parts[i].use == TRUE) && (g_Enemy_Parts[i].tbl_adr != NULL))
+				int		index = (int)g_Enemy_Parts[i][j].move_time;
+				float	time = g_Enemy_Parts[i][j].move_time - index;
+				int		size = g_Enemy_Parts[i][j].tbl_size;
+
+				float dt = 1.0f / g_Enemy_Parts[i][j].tbl_adr[index].frame;	// 1フレームで進める時間
+				g_Enemy_Parts[i][j].move_time += dt;					// アニメーションの合計時間に足す
+
+				if (index > (size - 2))	// ゴールをオーバーしていたら、最初へ戻す
 				{
-					int		index = (int)g_Enemy_Parts[i].move_time;
-					float	time = g_Enemy_Parts[i].move_time - index;
-					int		size = g_Enemy_Parts[i].tbl_size;
-
-					float dt = 1.0f / g_Enemy_Parts[i].tbl_adr[index].frame;	// 1フレームで進める時間
-					g_Enemy_Parts[i].move_time += dt;					// アニメーションの合計時間に足す
-
-					if (index > (size - 2))	// ゴールをオーバーしていたら、最初へ戻す
-					{
-						g_Enemy_Parts[i].move_time = 0.0f;
-						index = 0;
-					}
-
-					// 座標を求める	X = StartX + (EndX - StartX) * 今の時間
-					XMVECTOR p1 = XMLoadFloat3(&g_Enemy_Parts[i].tbl_adr[index + 1].pos);	// 次の場所
-					XMVECTOR p0 = XMLoadFloat3(&g_Enemy_Parts[i].tbl_adr[index + 0].pos);	// 現在の場所
-					XMVECTOR vec = p1 - p0;
-					XMStoreFloat3(&g_Enemy_Parts[i].pos, p0 + vec * time);
-
-					// 回転を求める	R = StartX + (EndX - StartX) * 今の時間
-					XMVECTOR r1 = XMLoadFloat3(&g_Enemy_Parts[i].tbl_adr[index + 1].rot);	// 次の角度
-					XMVECTOR r0 = XMLoadFloat3(&g_Enemy_Parts[i].tbl_adr[index + 0].rot);	// 現在の角度
-					XMVECTOR rot = r1 - r0;
-					XMStoreFloat3(&g_Enemy_Parts[i].rot, r0 + rot * time);
-
-					// scaleを求める S = StartX + (EndX - StartX) * 今の時間
-					XMVECTOR s1 = XMLoadFloat3(&g_Enemy_Parts[i].tbl_adr[index + 1].scl);	// 次のScale
-					XMVECTOR s0 = XMLoadFloat3(&g_Enemy_Parts[i].tbl_adr[index + 0].scl);	// 現在のScale
-					XMVECTOR scl = s1 - s0;
-					XMStoreFloat3(&g_Enemy_Parts[i].scl, s0 + scl * time);
-
+					g_Enemy_Parts[i][j].move_time = 0.0f;
+					index = 0;
 				}
+
+				// 座標を求める	X = StartX + (EndX - StartX) * 今の時間
+				XMVECTOR p1 = XMLoadFloat3(&g_Enemy_Parts[i][j].tbl_adr[index + 1].pos);	// 次の場所
+				XMVECTOR p0 = XMLoadFloat3(&g_Enemy_Parts[i][j].tbl_adr[index + 0].pos);	// 現在の場所
+				XMVECTOR vec = p1 - p0;
+				XMStoreFloat3(&g_Enemy_Parts[i][j].pos, p0 + vec * time);
+
+				// 回転を求める	R = StartX + (EndX - StartX) * 今の時間
+				XMVECTOR r1 = XMLoadFloat3(&g_Enemy_Parts[i][j].tbl_adr[index + 1].rot);	// 次の角度
+				XMVECTOR r0 = XMLoadFloat3(&g_Enemy_Parts[i][j].tbl_adr[index + 0].rot);	// 現在の角度
+				XMVECTOR rot = r1 - r0;
+				XMStoreFloat3(&g_Enemy_Parts[i][j].rot, r0 + rot * time);
+
+				// scaleを求める S = StartX + (EndX - StartX) * 今の時間
+				XMVECTOR s1 = XMLoadFloat3(&g_Enemy_Parts[i][j].tbl_adr[index + 1].scl);	// 次のScale
+				XMVECTOR s0 = XMLoadFloat3(&g_Enemy_Parts[i][j].tbl_adr[index + 0].scl);	// 現在のScale
+				XMVECTOR scl = s1 - s0;
+				XMStoreFloat3(&g_Enemy_Parts[i][j].scl, s0 + scl * time);
+
 			}
 		}
 	}
+
+	
 }
 
 //=============================================================================
@@ -369,35 +381,35 @@ void DrawEnemy(void)
 			mtxWorld = XMMatrixIdentity();
 
 			// スケールを反映
-			mtxScl = XMMatrixScaling(g_Enemy_Parts[j].scl.x, g_Enemy_Parts[j].scl.y, g_Enemy_Parts[j].scl.z);
+			mtxScl = XMMatrixScaling(g_Enemy_Parts[i][j].scl.x, g_Enemy_Parts[i][j].scl.y, g_Enemy_Parts[i][j].scl.z);
 			mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
 			// 回転を反映
-			mtxRot = XMMatrixRotationRollPitchYaw(g_Enemy_Parts[j].rot.x, g_Enemy_Parts[j].rot.y, g_Enemy_Parts[j].rot.z);
+			mtxRot = XMMatrixRotationRollPitchYaw(g_Enemy_Parts[i][j].rot.x, g_Enemy_Parts[i][j].rot.y, g_Enemy_Parts[i][j].rot.z);
 			mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
 			// 移動を反映
-			mtxTranslate = XMMatrixTranslation(g_Enemy_Parts[j].pos.x, g_Enemy_Parts[j].pos.y, g_Enemy_Parts[j].pos.z);
+			mtxTranslate = XMMatrixTranslation(g_Enemy_Parts[i][j].pos.x, g_Enemy_Parts[i][j].pos.y, g_Enemy_Parts[i][j].pos.z);
 			mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
-			if (g_Enemy_Parts[j].parent != NULL)	// 子供だったら親と結合する
+			if (g_Enemy_Parts[i][j].parent != NULL)	// 子供だったら親と結合する
 			{
-				mtxWorld = XMMatrixMultiply(mtxWorld, XMLoadFloat4x4(&g_Enemy_Parts[j].parent->mtxWorld));
+				mtxWorld = XMMatrixMultiply(mtxWorld, XMLoadFloat4x4(&g_Enemy_Parts[i][j].parent->mtxWorld));
 				// ↑
 				// g_Player.mtxWorldを指している
 			}
 
-			XMStoreFloat4x4(&g_Enemy_Parts[j].mtxWorld, mtxWorld);
+			XMStoreFloat4x4(&g_Enemy_Parts[i][j].mtxWorld, mtxWorld);
 
 			// 使われているなら処理する。ここまで処理している理由は他のパーツがこのパーツを参照している可能性があるから。
-			if (g_Enemy_Parts[j].use == FALSE) continue;
+			if (g_Enemy_Parts[i][j].use == FALSE) continue;
 
 			// ワールドマトリックスの設定
 			SetWorldMatrix(&mtxWorld);
 
 
 			// モデル描画
-			DrawModel(&g_Enemy_Parts[j].model);
+			DrawModel(&g_Enemy_Parts[i][j].model);
 
 		}
 	}

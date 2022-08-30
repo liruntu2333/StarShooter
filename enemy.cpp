@@ -427,7 +427,7 @@ void DrawEnemy(void)
 			0.0f,
 			zIncrease,
 		};
-		vPos -= (float)enemy.codes.size() * 0.5f * increase;
+		vPos -= static_cast<float>(enemy.codes.size() - 1) * 0.5f * increase;
 
 		int cmdIdx = 0;
 		XMFLOAT3 pos{};

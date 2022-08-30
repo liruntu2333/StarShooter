@@ -35,4 +35,5 @@ float GetFieldProgress(float x, float z, float dir);
 int IsAtConjunction(float x, float z, float dir);
 
 XMFLOAT3 GetRandomValidPosition();
+XMFLOAT3 GetRandomValidPositionAtConjuction();
 XMFLOAT3 GetRandomPosition();

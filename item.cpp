@@ -25,7 +25,7 @@
 #define	VALUE_ROTATE		(XM_PI * 0.02f)				// 回転量
 
 #define ITEM_SHADOW_SIZE	(0.4f)						// 影の大きさ
-#define ITEM_OFFSET_Y		(7.0f)						// アイテムの足元をあわせる
+#define ITEM_OFFSET_Y		(0.0f)						// アイテムの足元をあわせる
 
 
 //*****************************************************************************
@@ -136,30 +136,16 @@ void UpdateItem(void)
 		{
 			//item.type = static_cast<itemBehaviorType>(rand() % 3);
 			item.use = true;
-			item.pos = GetRandomValidPosition();
+			item.pos = GetRandomValidPositionAtConjuction();
 			item.pos.y += ITEM_OFFSET_Y;
 
-			item.codes.clear();
-			const int len = rand() % 5 + 1;
-			for (int i = 0; i < len; ++i)
-			{
-				item.codes.push_back(rand() % 4);
-			}
-			item.compare_index = 0;
 
 			/*if (item.type == Obstacle)
 			{
 
 			}*/
 
-			if (item.type == hpHeal || item.type == hpKill)
-			{
-				item.pos = GetRandomValidPosition();
-				item.pos.y += ITEM_OFFSET_Y;
-				float vx = VALUE_MOVE * (float)rand() / RAND_MAX;
-				float vz = sqrtf(VALUE_MOVE * VALUE_MOVE - vx * vx);
-				item.velocity = { vx,0.0f,vz };
-			}
+			
 		}
 		return;
 	}
@@ -173,38 +159,9 @@ void UpdateItem(void)
 				continue;
 			}*/
 
-			if (item.type == hpHeal || item.type == hpKill)
-			{
-				const XMVECTOR target = XMLoadFloat3(&item.pos) + XMLoadFloat3(&item.velocity);
-				const float& tarX = target.m128_f32[0];
-				const float& tarZ = target.m128_f32[2];
-
-				if (IsPositionValid(tarX, tarZ))
-				{
-					XMStoreFloat3(&item.pos, target);
-				}
-				else
-				{
-					XMStoreFloat3(&item.velocity, -XMLoadFloat3(&item.velocity));
-				}
-			}
-
-
-			{
-				XMFLOAT3 itemDir = playerPos - item.pos;
-				XMVECTOR dirVec = XMLoadFloat3(&itemDir);
-				dirVec = XMVector3Normalize(dirVec);
-				const auto& x = dirVec.m128_f32[0];
-				const auto& z = dirVec.m128_f32[2];
-				item.rot = { 0.0f, atan2f(x, z) + XM_PI,0.0f };
-			}
-
 			XMFLOAT3 pos = item.pos;
 			pos.y -= (ITEM_OFFSET_Y - 0.1f);
 			SetPositionShadow(item.shadowIdx, pos);
-
-
-
 
 		}
 	}

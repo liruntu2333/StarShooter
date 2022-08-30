@@ -13,11 +13,11 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define TEXTURE_MAX		(1)				// テクスチャの数
-#define ROAD_HALF_WIDTH		50.0f
-#define ROAD_WIDTH		(ROAD_HALF_WIDTH * 2.0f)
-#define WIDTH_BIAS 10.0f
-#define DECISION_AREA_HALF_WIDTH	20.0f		
+#define TEXTURE_MAX									(1)				// テクスチャの数
+#define ROAD_HALF_WIDTH								(50.0f)
+#define ROAD_WIDTH									(ROAD_HALF_WIDTH * 2.0f)
+#define WIDTH_BIAS									(10.0f)
+#define DECISION_AREA_HALF_WIDTH					(20.0f)		
 
 //*****************************************************************************
 // グローバル変数
@@ -537,6 +537,25 @@ XMFLOAT3 GetRandomValidPosition()
 	float y = GetFieldHeight(x, z);
 	
 	return {x, y, z};
+}
+
+
+XMFLOAT3 GetRandomValidPositionAtConjuction()
+{
+	float x = 0.0, z = 0.0;
+
+	if (rand() % 2)
+	{
+		x = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
+		z = rand() % (int)g_FieldSizeZ - g_FieldHalfDepth;
+	}
+	else
+	{
+		x = rand() % (int)g_FieldSizeX - g_FieldHalfWidth;
+		z = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
+	}
+	float y = GetFieldHeight(x, z);
+	return { x, y, z };
 }
 
 XMFLOAT3 GetRandomPosition()

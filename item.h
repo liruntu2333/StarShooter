@@ -5,15 +5,14 @@
 //
 //=============================================================================
 #pragma once
-#include <vector>
 
 #include "model.h"
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define MAX_ITEM		(5)					// itemの数
-#define MAX_ITEM_GOOD	(3)
+#define MAX_ITEM		(10)					// itemの数
+#define MAX_ITEM_GOOD	(6)
 #define MAX_ITEM_WORSE	(MAX_ITEM - MAX_ITEM_GOOD)	
 
 #define	ITEM_SIZE		(5.0f)				// 当たり判定の大きさ
@@ -48,9 +47,6 @@ struct ITEM
 
 	// 親は、NULL、子供は親のアドレスを入れる
 	ITEM* parent;				// 自分が親ならNULL、自分が子供なら親のplayerアドレス
-
-	std::vector<int>	codes;
-	int					compare_index;
 
 	ItemType			type;
 };

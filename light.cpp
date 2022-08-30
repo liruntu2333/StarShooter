@@ -59,7 +59,7 @@ void InitLight(void)
 	g_Fog.FogEnd   = 1250.0f;									// ここまで離れるとフォグの色で見えなくなる
 	g_Fog.FogColor = XMFLOAT4( .3f, .3f, .3f, 1.0f );		// フォグの色
 	SetFog(&g_Fog);
-	SetFogEnable(TRUE);		// 他の場所もチェックする shadow
+	SetFogEnable(FALSE);		// 他の場所もチェックする shadow
 
 }
 

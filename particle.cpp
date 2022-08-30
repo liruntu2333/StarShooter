@@ -354,7 +354,7 @@ void DrawParticle(void)
 	SetDepthEnable(TRUE);
 
 	// フォグ有効
-	SetFogEnable(TRUE);
+	SetFogEnable(FALSE);
 
 }
 

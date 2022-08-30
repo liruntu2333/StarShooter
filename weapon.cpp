@@ -296,7 +296,7 @@ void UpdateWeapon(void)
 	}
 
 	{	// ポイントライトのテスト
-		LIGHT* light = GetLightData(2);
+		LIGHT* light = GetLightData(1);
 		auto obj = XMLoadFloat3(&g_Weapon[0].pos);
 
 		XMFLOAT3 lightPos{ g_Weapon[0].pos };
@@ -307,7 +307,7 @@ void UpdateWeapon(void)
 		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 		light->Type = LIGHT_TYPE_POINT;
 		light->Enable = TRUE;
-		SetLightData(2, light);
+		SetLightData(1, light);
 	}
 
 #ifdef _DEBUG	// デバッグ情報を表示する

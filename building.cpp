@@ -10,6 +10,8 @@
 #include "input.h"
 #include "model.h"
 #include "building.h"
+
+#include "light.h"
 #include "shadow.h"
 #include "meshfield.h"
 
@@ -31,6 +33,26 @@ enum BuildingType : int
 {
 	
 };
+
+void GetYOffset(XMFLOAT3& pos)
+{
+	pos.y = GetFieldHeight(pos.x, pos.z);
+}
+
+void SetStreetLight(const BUILDING& building, int lightIdx)
+{
+	LIGHT* light = GetLightData(lightIdx);
+	XMFLOAT3 lightPos{ building.pos };
+	lightPos.y += 20.0f;
+
+	light->Position    = lightPos;
+	light->Diffuse     = { 0.7f, 0.7f, 0.7f, 1.0f };
+	light->Ambient     = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	light->Attenuation = 500.0f;
+	light->Type        = LIGHT_TYPE_POINT;
+	light->Enable      = TRUE;
+	SetLightData(lightIdx, light);
+}
 
 //*****************************************************************************
 // ÉOÉçÅ[ÉoÉãïœêî
@@ -77,19 +99,24 @@ HRESULT InitBuilding(void)
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTSINGLE, &g_Building[0].model);
 	g_Building[0].load = TRUE;
-	g_Building[0].pos = XMFLOAT3(50.0f, 0.0f, 100.0f);
+	g_Building[0].pos = XMFLOAT3(40.0f, 0.0f, 100.0f);
+	GetYOffset(g_Building[0].pos);
 	g_Building[0].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
+	SetStreetLight(g_Building[0], 2);
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTSINGLE, &g_Building[1].model);
 	g_Building[1].load = TRUE;
-	g_Building[1].pos = XMFLOAT3(50.0f, 0.0f, 300.0f);
+	g_Building[1].pos = XMFLOAT3(40.0f, 0.0f, 300.0f);
+	GetYOffset(g_Building[1].pos);
 	g_Building[1].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
-
+	SetStreetLight(g_Building[1], 3);
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTSINGLE, &g_Building[2].model);
 	g_Building[2].load = TRUE;
-	g_Building[2].pos = XMFLOAT3(50.0f, 0.0f, 500.0f);
+	g_Building[2].pos = XMFLOAT3(40.0f, 0.0f, 500.0f);
+	GetYOffset(g_Building[2].pos);
 	g_Building[2].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
+	SetStreetLight(g_Building[2], 4);
 
 	g_Load = TRUE;
 	return S_OK;

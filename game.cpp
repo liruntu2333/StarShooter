@@ -17,6 +17,7 @@
 #include "enemy.h"
 #include "weapon.h"
 #include "item.h"
+#include "building.h"
 #include "menu.h"
 #include "gameUI.h"
 #include "meshfield.h"
@@ -64,6 +65,9 @@ HRESULT InitGame(void)
 {
 	// フィールドの初期化
 	InitMeshField(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 100, 100, 13.0f, 13.0f);
+
+	// 建物の初期化
+	InitBuilding();
 
 	// ライトを有効化	// 影の初期化処理
 	InitShadow();
@@ -150,6 +154,9 @@ void UninitGame(void)
 	// 地面の終了処理
 	UninitMeshField();
 
+	// 建物の終了処理
+	UninitBuilding();
+
 	// メニューの終了処理
 	UninitMenu();
 
@@ -195,6 +202,9 @@ void UpdateGame(void)
 
 	// 地面処理の更新
 	UpdateMeshField();
+
+	// 建物の更新処理
+	UpdateBuilding();
 
 	// プレイヤーの更新処理
 	UpdatePlayer();
@@ -269,6 +279,9 @@ void DrawGame(void)
 	// 3Dの物を描画する処理
 	// 地面の描画処理
 	DrawMeshField();
+
+	// 建物の描画処理
+	DrawBuilding();
 
 	// 影の描画処理
 	//DrawShadow();

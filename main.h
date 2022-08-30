@@ -52,8 +52,8 @@ using namespace DirectX;
 #define SCREEN_CENTER_X	(SCREEN_WIDTH / 2)	// ウインドウの中心Ｘ座標
 #define SCREEN_CENTER_Y	(SCREEN_HEIGHT / 2)	// ウインドウの中心Ｙ座標
 
-#define	MAP_W			(1280.0f)
-#define	MAP_H			(1280.0f)
+#define	MAP_W			(1300.0f)
+#define	MAP_H			(1300.0f)
 #define	MAP_TOP			(MAP_H/2)
 #define	MAP_DOWN		(-MAP_H/2)
 #define	MAP_LEFT		(-MAP_W/2)

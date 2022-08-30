@@ -33,10 +33,10 @@ static BOOL					g_Load = FALSE;
 
 static char* g_TextureName[TEXTURE_MAX] =
 {
-	"data/TEXTURE/tree001.png",
-	"data/TEXTURE/tree002.png",
-	"data/TEXTURE/tree003.png",
-	"data/TEXTURE/tree004.png",
+	"data/TEXTURE/GAME/DIK_UP_KEYON.png",
+	"data/TEXTURE/GAME/DIK_DOWN_KEYON.png",
+	"data/TEXTURE/GAME/DIK_LEFT_KEYON.png",
+	"data/TEXTURE/GAME/DIK_RIGHT_KEYON.png",
 };
 
 HRESULT InitBillboard(void)

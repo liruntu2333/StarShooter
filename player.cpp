@@ -562,6 +562,8 @@ void UpdatePlayer(void)
 	PrintDebugProc("Player:↑ → ↓ ←　Space\n");
 	PrintDebugProc("Player:X:%f Y:%f Z:%f\n", g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
 	PrintDebugProc("Player: dir:%f progress : %f\n", dir, g_FieldProgress);
+	PrintDebugProc("Player hp:%d\n", g_Player.HP);
+	
 	PrintDebugProc("g_AtConjunction:%d\n", g_AtConjunction);
 	PrintDebugProc("g_MadeDecision:%d\n", g_MadeDecision);
 #endif

@@ -47,7 +47,6 @@ struct GameUI_HP
 	XMFLOAT3		pos;			// ポリゴンの座標
 	float			w, h;			// 幅と高さ
 	int				texNo;			// 使用しているテクスチャ番号
-	int				isUse;			// HPは利用かどうか
 };
 
 struct GameUI_MP
@@ -55,7 +54,6 @@ struct GameUI_MP
 	XMFLOAT3		pos;			// ポリゴンの座標
 	float			w, h;			// 幅と高さ
 	int				texNo;			// 使用しているテクスチャ番号
-	int				isUse;			// HPは利用かどうか
 };
 
 //*****************************************************************************

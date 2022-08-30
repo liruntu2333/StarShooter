@@ -7,6 +7,7 @@
 #include "gameUI.h"
 #include "sprite.h"
 #include "player.h"
+#include "debugproc.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -105,7 +106,6 @@ HRESULT InitGameUI(void)
 			g_UIBox[BOX_HP].pos.y - TEXTURE_HEIGHT_HP,
 			0.0f);
 		g_UIHP[i].texNo = TEXTURE_HP_1;
-		g_UIHP[i].isUse = FALSE;
 	}
 
 	// MP
@@ -117,7 +117,6 @@ HRESULT InitGameUI(void)
 			g_UIBox[BOX_MP].pos.y - TEXTURE_HEIGHT_MP,
 			0.0f);
 		g_UIMP[i].texNo = TEXTURE_MP_1;
-		g_UIMP[i].isUse = FALSE;
 	}
 
 	g_Load = TRUE;	// データの初期化を行った
@@ -159,10 +158,16 @@ void UpdateGameUI(void)
 	PLAYER* player = GetPlayer();
 	// HPの更新
 	{
+
 		for (int i = PLAYER_HP_MAX - 1; i > player->HP - 1; i--)
 		{
-			g_UIHP[i].isUse = FALSE;
 			g_UIHP[i].texNo = TEXTURE_HP_0;
+		}
+
+
+		for (int i = 0; i < player->HP ; i++)
+		{
+			g_UIHP[i].texNo = TEXTURE_HP_1;
 		}
 	}
 
@@ -172,11 +177,14 @@ void UpdateGameUI(void)
 		for (int i = PLAYER_MP_MAX - 1; i > player->MP - 1; i--)
 
 		{
-			g_UIMP[i].isUse = FALSE;
 			g_UIMP[i].texNo = TEXTURE_MP_0;
 		}
 	}
 
+
+#ifdef _DEBUG	// デバッグ情報を表示する
+
+#endif
 }
 
 //=============================================================================

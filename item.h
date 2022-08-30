@@ -21,7 +21,11 @@
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
-enum ItemType : int;
+enum ItemType : int
+{
+	hpHeal = 0,
+	hpKill = 1,
+};
 
 struct ITEM
 {
@@ -29,7 +33,6 @@ struct ITEM
 	XMFLOAT3			pos;				// モデルの位置
 	XMFLOAT3			rot;				// モデルの向き(回転)
 	XMFLOAT3			scl;				// モデルの大きさ(スケール)
-	XMFLOAT3			velocity;
 
 	BOOL				use;
 	BOOL				load;

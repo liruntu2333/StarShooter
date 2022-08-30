@@ -328,28 +328,29 @@ void DrawGame(void)
 //=============================================================================
 void CheckHit(void)
 {
-	ENEMY *enemy = GetEnemy();		// エネミーのポインターを初期化
-	PLAYER *player = GetPlayer();	// プレイヤーのポインターを初期化
-	BULLET *bullet = GetBullet();	// 弾のポインターを初期化
+	ENEMY	*enemy = GetEnemy();		// エネミーのポインターを初期化
+	PLAYER	*player = GetPlayer();		// プレイヤーのポインターを初期化
+	BULLET	*bullet = GetBullet();		// 弾のポインターを初期化
+	ITEM* item = GetItem();				// アイテムのポインターを初期化
 
-	// 敵とプレイヤーキャラ
-	for (int i = 0; i < MAX_ENEMY; i++)
-	{
-		//敵の有効フラグをチェックする
-		if (enemy[i].use == FALSE)
-			continue;
+	//// 敵とプレイヤーキャラ
+	//for (int i = 0; i < MAX_ENEMY; i++)
+	//{
+	//	//敵の有効フラグをチェックする
+	//	if (enemy[i].use == FALSE)
+	//		continue;
 
-		//BCの当たり判定
-		if (CollisionBC(player->pos, enemy[i].pos, player->size, enemy[i].size))
-		{
-			// 敵キャラクターは倒される
-			enemy[i].use = FALSE;
-			ReleaseShadow(enemy[i].shadowIdx);
+	//	//BCの当たり判定
+	//	if (CollisionBC(player->pos, enemy[i].pos, player->size, enemy[i].size))
+	//	{
+	//		// 敵キャラクターは倒される
+	//		enemy[i].use = FALSE;
+	//		ReleaseShadow(enemy[i].shadowIdx);
 
-			// スコアを足す
-			AddScore(100);
-		}
-	}
+	//		// スコアを足す
+	//		AddScore(100);
+	//	}
+	//}
 
 
 	// プレイヤーの弾と敵
@@ -384,20 +385,54 @@ void CheckHit(void)
 
 	}
 
-
-	// エネミーが全部死亡したら状態遷移
-	int enemy_count = 0;
-	for (int i = 0; i < MAX_ENEMY; i++)
+	// プレイヤーとアイテム
+	for (int i = 0; i < MAX_ITEM; i++)
 	{
-		if (enemy[i].use == FALSE) continue;
-		enemy_count++;
+		//アイテムの有効フラグをチェックする
+		if (item[i].use == FALSE)
+			continue;
+
+		//BCの当たり判定
+		if (CollisionBC(player->pos, item[i].pos, player->size, item[i].size))
+		{
+			// アイテムを得る
+			item[i].use = FALSE;
+			ReleaseShadow(item[i].shadowIdx);
+
+
+			if (item[i].type == hpHeal)
+			{
+				if (player->HP < PLAYER_HP_MAX)
+				{
+					player->HP += 1;
+				}
+			}
+			else if (item[i].type == hpKill)
+			{
+				if (player->HP > 0)
+				{
+					player->HP -= 1;
+				}
+			}
+			
+			
+		}
 	}
 
-	// エネミーが０匹？
-	if (enemy_count == 0)
-	{
-		SetFade(FADE_OUT, MODE_RESULT);
-	}
+
+	//// エネミーが全部死亡したら状態遷移
+	//int enemy_count = 0;
+	//for (int i = 0; i < MAX_ENEMY; i++)
+	//{
+	//	if (enemy[i].use == FALSE) continue;
+	//	enemy_count++;
+	//}
+
+	//// エネミーが０匹？
+	//if (enemy_count == 0)
+	//{
+	//	SetFade(FADE_OUT, MODE_RESULT);
+	//}
 
 }
 

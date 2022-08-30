@@ -12,17 +12,19 @@
 #include "shadow.h"
 #include "particle.h"
 #include "player.h"
+#include "MathHelper.h"
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
 #define TEXTURE_MAX			(1)			// テクスチャの数
 
-#define	PARTICLE_SIZE_X		(40.0f)		// 頂点サイズ
-#define	PARTICLE_SIZE_Y		(40.0f)		// 頂点サイズ
+#define	PARTICLE_SIZE_X		(10.0f)		// 頂点サイズ
+#define	PARTICLE_SIZE_Y		(10.0f)		// 頂点サイズ
 #define	VALUE_MOVE_PARTICLE	(5.0f)		// 移動速度
 
 #define	MAX_PARTICLE		(512)		// パーティクル最大数
+#define PARTICLE_INTENSITY	(0.6f)
 
 #define	DISP_SHADOW						// 影の表示
 //#undef DISP_SHADOW
@@ -67,7 +69,7 @@ static float					g_spd = 0.0f;					// 移動スピード
 
 static char *g_TextureName[TEXTURE_MAX] =
 {
-	"data/TEXTURE/effect000.jpg",
+	"data/TEXTURE/doge.jpg",
 };
 
 static BOOL						g_Load = FALSE;
@@ -160,19 +162,19 @@ void UpdateParticle(void)
 		{
 			if(g_aParticle[nCntParticle].bUse)
 			{// 使用中
-				g_aParticle[nCntParticle].pos.x += g_aParticle[nCntParticle].move.x;
-				g_aParticle[nCntParticle].pos.z += g_aParticle[nCntParticle].move.z;
+				//g_aParticle[nCntParticle].pos.x += g_aParticle[nCntParticle].move.x;
+				//g_aParticle[nCntParticle].pos.z += g_aParticle[nCntParticle].move.z;
 
-				g_aParticle[nCntParticle].pos.y += g_aParticle[nCntParticle].move.y;
-				if(g_aParticle[nCntParticle].pos.y <= g_aParticle[nCntParticle].fSizeY / 2)
-				{// 着地した
-					g_aParticle[nCntParticle].pos.y = g_aParticle[nCntParticle].fSizeY / 2;
-					g_aParticle[nCntParticle].move.y = -g_aParticle[nCntParticle].move.y * 0.75f;
-				}
+				//g_aParticle[nCntParticle].pos.y += g_aParticle[nCntParticle].move.y;
+				//if(g_aParticle[nCntParticle].pos.y <= g_aParticle[nCntParticle].fSizeY / 2)
+				//{// 着地した
+				//	g_aParticle[nCntParticle].pos.y = g_aParticle[nCntParticle].fSizeY / 2;
+				//	g_aParticle[nCntParticle].move.y = -g_aParticle[nCntParticle].move.y * 0.75f;
+				//}
 
-				g_aParticle[nCntParticle].move.x += (0.0f - g_aParticle[nCntParticle].move.x) * 0.015f;
-				g_aParticle[nCntParticle].move.y -= 0.25f;
-				g_aParticle[nCntParticle].move.z += (0.0f - g_aParticle[nCntParticle].move.z) * 0.015f;
+				//g_aParticle[nCntParticle].move.x += (0.0f - g_aParticle[nCntParticle].move.x) * 0.015f;
+				//g_aParticle[nCntParticle].move.y -= 0.25f;
+				//g_aParticle[nCntParticle].move.z += (0.0f - g_aParticle[nCntParticle].move.z) * 0.015f;
 
 #ifdef DISP_SHADOW
 				if(g_aParticle[nCntParticle].nIdxShadow != -1)
@@ -188,6 +190,8 @@ void UpdateParticle(void)
 				}
 #endif
 
+
+
 				g_aParticle[nCntParticle].nLife--;
 				if(g_aParticle[nCntParticle].nLife <= 0)
 				{
@@ -197,51 +201,68 @@ void UpdateParticle(void)
 				}
 				else
 				{
-					if(g_aParticle[nCntParticle].nLife <= 80)
-					{
-						g_aParticle[nCntParticle].material.Diffuse.x = 0.8f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.8f;
-						g_aParticle[nCntParticle].material.Diffuse.y = 0.7f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.7f;
-						g_aParticle[nCntParticle].material.Diffuse.z = 0.2f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.2f;
-					}
+					//if(g_aParticle[nCntParticle].nLife <= 80)
+					//{
+					//	g_aParticle[nCntParticle].material.Diffuse.x = 0.8f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.8f;
+					//	g_aParticle[nCntParticle].material.Diffuse.y = 0.7f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.7f;
+					//	g_aParticle[nCntParticle].material.Diffuse.z = 0.2f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.2f;
+					//}
 
-					if(g_aParticle[nCntParticle].nLife <= 20)
+					auto& particle = g_aParticle[nCntParticle];
+					const float t = 1.0f - (float)particle.nLife / 120;
+					float r = 0.0f;
+					float g = 0.0f;
+					float b = 0.0f;
+					if (t < 0.5f)
 					{
-						// α値設定
-						g_aParticle[nCntParticle].material.Diffuse.w -= 0.05f;
-						if(g_aParticle[nCntParticle].material.Diffuse.w < 0.0f)
-						{
-							g_aParticle[nCntParticle].material.Diffuse.w = 0.0f;
-						}
+						const float r2 = PARTICLE_INTENSITY * (1.0f - 2.0f * t);
+						r = sqrtf(r2);
+						g = sqrtf(PARTICLE_INTENSITY - r2);
 					}
+					else
+					{
+						const float g2 = PARTICLE_INTENSITY * (2.0f - 2.0f * t);
+						g = sqrtf(g2);
+						b = sqrtf(PARTICLE_INTENSITY - g2);
+					}
+					auto& diffuse = particle.material.Diffuse;
+					diffuse.x = r;
+					diffuse.y = g;
+					diffuse.z = b;
+					diffuse.w = 1.0f - t;
+					//g_aParticle[nCntParticle].material.Diffuse.x = 0.8f - (float)(120 - g_aParticle[nCntParticle].nLife) / 120 * 0.8f;
+					//g_aParticle[nCntParticle].material.Diffuse.y = 0.7f - (float)(120 - g_aParticle[nCntParticle].nLife) / 120 * 0.7f;
+					//g_aParticle[nCntParticle].material.Diffuse.z = 0.2f - (float)(120 - g_aParticle[nCntParticle].nLife) / 120 * 0.2f;
+
 				}
 			}
 		}
 
-		// パーティクル発生
-		{
-			XMFLOAT3 pos;
-			XMFLOAT3 move;
-			float fAngle, fLength;
-			int nLife;
-			float fSize;
+		//// パーティクル発生
+		//{
+		//	XMFLOAT3 pos;
+		//	XMFLOAT3 move;
+		//	float fAngle, fLength;
+		//	int nLife;
+		//	float fSize;
 
-			pos = g_posBase;
+		//	pos = g_posBase;
 
-			fAngle = (float)(rand() % 628 - 314) / 100.0f;
-			fLength = rand() % (int)(g_fWidthBase * 200 ) / 100.0f - g_fWidthBase;
-			move.x = sinf(fAngle) * fLength;
-			move.y = rand() % 300 / 100.0f + g_fHeightBase;
-			move.z = cosf(fAngle) * fLength;
+		//	fAngle = (float)(rand() % 628 - 314) / 100.0f;
+		//	fLength = rand() % (int)(g_fWidthBase * 200 ) / 100.0f - g_fWidthBase;
+		//	move.x = sinf(fAngle) * fLength;
+		//	move.y = rand() % 300 / 100.0f + g_fHeightBase;
+		//	move.z = cosf(fAngle) * fLength;
 
-			nLife = rand() % 100 + 150;  
+		//	nLife = rand() % 100 + 150;  
 
-			fSize = (float)(rand() % 30 + 20);
+		//	fSize = (float)(rand() % 30 + 20);
 
-			pos.y = fSize / 2;
+		//	pos.y = fSize / 2;
 
-			// ビルボードの設定
-			SetParticle(pos, move, XMFLOAT4(0.8f, 0.7f, 0.2f, 0.85f), fSize, fSize, nLife);
-		}
+		//	// ビルボードの設定
+		//	SetParticle(pos, move, XMFLOAT4(0.8f, 0.7f, 0.2f, 0.85f), fSize, fSize, nLife);
+		//}
 	}
 }
 

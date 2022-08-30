@@ -14,6 +14,7 @@
 #include "player.h"
 #include "MathHelper.h"
 #include "meshfield.h"
+#include "billboard.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -85,7 +86,6 @@ HRESULT InitEnemy(void)
 
 		g_Enemy[i].type = Flyable;
 		g_Enemy[i].use = TRUE;			
-		
 	}
 
 
@@ -93,6 +93,8 @@ HRESULT InitEnemy(void)
 	g_Enemy[0].move_time = 0.0f;		// 線形補間用のタイマーをクリア
 	//g_Enemy[0].tbl_adr = move_tbl;		// 再生するアニメデータの先頭アドレスをセット
 	g_Enemy[0].tbl_size = sizeof(move_tbl) / sizeof(INTERPOLATION_DATA);	// 再生するアニメデータのレコード数をセット
+
+	InitBillboard();
 
 	g_Load = TRUE;
 	return S_OK;
@@ -114,6 +116,8 @@ void UninitEnemy(void)
 		}
 	}
 
+	ShutdownBillboard();
+
 	g_Load = FALSE;
 }
 
@@ -131,10 +135,18 @@ void UpdateEnemy(void)
 	{
 		for (auto & enemy : g_Enemy)
 		{
-			enemy.type = static_cast<EnemyBehaviorType>(rand() % 3);
+			//enemy.type = static_cast<EnemyBehaviorType>(rand() % 3);
 			enemy.use = true;
 			enemy.pos = GetRandomValidPosition();
 			enemy.pos.y += ENEMY_OFFSET_Y;
+
+			enemy.codes.clear();
+			const int len = rand() % 5 + 1;
+			for (int i = 0; i < len; ++i)
+			{
+				enemy.codes.push_back(rand() % 4);
+			}
+			enemy.compare_index = 0;
 
 			if (enemy.type == Obstacle)
 			{
@@ -217,7 +229,7 @@ void DrawEnemy(void)
 	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
 
 	// カリング無効
-	SetCullingMode(CULL_MODE_NONE);
+	//SetCullingMode(CULL_MODE_NONE);
 
 	for (int i = 0; i < MAX_ENEMY; i++)
 	{
@@ -249,7 +261,46 @@ void DrawEnemy(void)
 	}
 
 	// カリング設定を戻す
-	SetCullingMode(CULL_MODE_BACK);
+	//SetCullingMode(CULL_MODE_BACK);
+
+	for (auto & enemy : g_Enemy)
+	{
+		if (enemy.use == FALSE) continue;
+
+		auto vPos = XMLoadFloat3(&enemy.pos);
+		const float dis = XMVectorGetX(XMVector3Length(XMLoadFloat3(&GetPlayer()->pos) - vPos));
+		const float tScl = MathHelper::Clamp((dis - 20.0f) / 980.0f, 0.0f, 1.0f);
+		const float fScl = MathHelper::Lerp(1.0f, 5.0f, tScl);
+
+		vPos.m128_f32[1] += enemy.size + 5.0f;
+		const float angle = enemy.rot.y + XM_PIDIV2;
+		const float xIncrease = sinf(angle) * Billboard_WIDTH * fScl;
+		const float zIncrease = cosf(angle) * Billboard_WIDTH * fScl;
+		const XMVECTOR increase =
+		{
+			xIncrease,
+			0.0f,
+			zIncrease,
+		};
+		vPos -= (float)enemy.codes.size() * 0.5f * increase;
+
+		int cmdIdx = 0;
+		XMFLOAT3 pos{};
+		XMFLOAT3 scl{ fScl, fScl, fScl };
+
+		for (; cmdIdx < enemy.compare_index; ++cmdIdx)
+		{
+			XMStoreFloat3(&pos, vPos);
+			DrawBillboard(static_cast<CommandCode>(enemy.codes[cmdIdx]), pos, scl, true);
+			vPos += increase;
+		}
+		for (; cmdIdx < enemy.codes.size(); ++cmdIdx)
+		{
+			XMStoreFloat3(&pos, vPos);
+			DrawBillboard(static_cast<CommandCode>(enemy.codes[cmdIdx]), pos, scl, false);
+			vPos += increase;
+		}
+	}
 }
 
 //=============================================================================

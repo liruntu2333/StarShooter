@@ -15,6 +15,8 @@
 #include "bullet.h"
 #include "meshfield.h"
 #include "enemy.h"
+#include "weapon.h"
+#include "billboard.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -36,7 +38,7 @@
 
 #define	VALUE_MOVE			(3.0f)							// 移動量
 #define	VALUE_JUMP			(10)							// 移動量
-#define	VALUE_SIDE_MOVE		(2.0f)							// 移動量
+#define	VALUE_SIDE_MOVE		(1.0f)							// 移動量
 #define	VALUE_ROTATE		(XM_PI * 0.02f)					// 回転量
 
 #define PLAYER_SHADOW_SIZE	(1.0f)							// 影の大きさ
@@ -383,24 +385,73 @@ void UpdatePlayer(void)
 	XMFLOAT3 pos = g_Player.pos;
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	SetPositionShadow(g_Player.shadowIdx, pos);
+	XMFLOAT3 wandPos = GetWeapon()->pos;
+	wandPos.y += 20.0f;
 
-	if (GetKeyboardTrigger(DIK_J))
+	ENEMY* pEnemy = GetEnemy();
+	XMVECTOR front = { sinf(dir), 0.0f, cosf(dir) };
+	XMVECTOR up = { 0.0f, 1.0f, 0.0f };
+	XMVECTOR right = XMVector3Cross(front, up);
+
+	// auto shooting mode
+	//if (GetKeyboardTrigger(DIK_J))
+	//{
+	//	for (int i = 0; i < MAX_ENEMY; ++i)
+	//	{
+	//		ENEMY& enemy = *(pEnemy + i);
+	//		XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);
+	//		XMVECTOR enemyDir = XMVector3Normalize(enemyPos - XMLoadFloat3(&wandPos));
+	//		float enemyDis = (enemyDir / enemyPos).m128_f32[0];
+
+	//		static const float cos45 = cosf(XM_PIDIV4);
+
+	//		if (enemy.use && 
+	//			XMVector3Dot(enemyDir, front).m128_f32[0] > cos45)
+	//		{
+	//			// generate control point p1 on +y semi-circle, with a range of 20.0f
+	//			float theta = XM_PI * (float)rand() / (float)RAND_MAX;
+	//			XMFLOAT3 p1{};
+	//			XMVECTOR target = XMLoadFloat3(&g_Player.pos);
+
+	//			target += front * CONTROL_POINT_Z_BIAS;
+	//			target += right * cosf(theta) * CONTROL_POINT_XY_RANGE;
+	//			target += up * sinf(theta) * CONTROL_POINT_XY_RANGE;
+	//			XMStoreFloat3(&p1, target);
+	//			std::array<XMFLOAT3, 3> points =
+	//			{
+	//				wandPos,
+	//				p1,
+	//				enemy.pos
+	//			};
+	//			SetBullet(points, HIT_TIME, &enemy);
+	//			//SetBullet(g_Player.pos, g_Player.rot);
+	//			break;
+	//		}
+	//	}
+	//}
+
+	CommandCode cmd =
+		GetKeyboardTrigger(DIK_UP) ? Up :
+		GetKeyboardTrigger(DIK_DOWN) ? Down :
+		GetKeyboardTrigger(DIK_LEFT) ? Left :
+		GetKeyboardTrigger(DIK_RIGHT) ? Right : None;
+
+	for (int i = 0; i < MAX_ENEMY; ++i)
 	{
-		XMVECTOR front = { sinf(dir), 0.0f, cosf(dir) };
-		XMVECTOR up = { 0.0f, 1.0f, 0.0f };
-		XMVECTOR right = XMVector3Cross(front, up);
-		ENEMY* pEnemy = GetEnemy();
-		for (int i = 0; i < MAX_ENEMY; ++i)
+		ENEMY& enemy = *(pEnemy + i);
+		int& idx = enemy.compare_index;
+
+		if (enemy.use == false || idx == enemy.codes.size()) 
+			continue;
+
+		if (enemy.codes[idx] == cmd)
+			idx++;
+		else if (cmd != None)
+			idx = 0;
+
+		if (idx == enemy.codes.size())
 		{
-			ENEMY& enemy = *(pEnemy + i);
-			XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);
-			XMVECTOR enemyDir = XMVector3Normalize(enemyPos - XMLoadFloat3(&pos));
-			float enemyDis = (enemyDir / enemyPos).m128_f32[0];
-
-			static const float cos45 = cosf(XM_PIDIV4);
-
-			if (enemy.use && 
-				XMVector3Dot(enemyDir, front).m128_f32[0] > cos45)
+			for (int i = 0; i < 5; ++i)
 			{
 				// generate control point p1 on +y semi-circle, with a range of 20.0f
 				float theta = XM_PI * (float)rand() / (float)RAND_MAX;
@@ -413,13 +464,11 @@ void UpdatePlayer(void)
 				XMStoreFloat3(&p1, target);
 				std::array<XMFLOAT3, 3> points =
 				{
-					g_Player.pos,
+					wandPos,
 					p1,
 					enemy.pos
 				};
 				SetBullet(points, HIT_TIME, &enemy);
-				//SetBullet(g_Player.pos, g_Player.rot);
-				break;
 			}
 		}
 	}

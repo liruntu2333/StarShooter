@@ -13,6 +13,7 @@
 
 #include "enemy.h"
 #include "sound.h"
+#include "particle.h"
 
 
 //*****************************************************************************
@@ -21,6 +22,7 @@
 #define	MODEL_BULLET				"data/MODEL/bullet_star.obj"			// 読み込むモデル名
 
 #define	BULLET_SPEED				(5.0f)									// 弾の移動スピード
+#define PARTICLE_GENERATION_FRAME	1	
 
 //*****************************************************************************
 // 構造体定義
@@ -94,6 +96,7 @@ void UninitBullet(void)
 //=============================================================================
 void UpdateBullet(void)
 {
+	static int time = 0;
 
 	for (auto& bullet : g_Bullet)
 	{
@@ -125,6 +128,12 @@ void UpdateBullet(void)
 				bullet.pos.z -= cosf(bullet.rot.y) * bullet.spd;
 			}
 
+			{
+				if (time == PARTICLE_GENERATION_FRAME)
+				{
+					SetParticle(bullet.pos, {}, {1.0f,1.0f,1.0f,1.0f }, 0.5f, 0.5f, 120);
+				}
+			}
 
 			// 影の位置設定
 			SetPositionShadow(bullet.shadowIdx, XMFLOAT3(bullet.pos.x, 0.1f, bullet.pos.z));
@@ -144,6 +153,7 @@ void UpdateBullet(void)
 		}
 	}
 
+	time == PARTICLE_GENERATION_FRAME ? time = 0 : time++;
 }
 
 //=============================================================================

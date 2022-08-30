@@ -7,6 +7,12 @@
 #include "main.h"
 #include "renderer.h"
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "wrl/client.h"
+
 //デバッグ用画面テキスト出力を有効にする
 #define DEBUG_DISP_TEXTOUT
 //シェーダーデバッグ設定を有効にする
@@ -71,7 +77,8 @@ struct FUCHI
 // プロトタイプ宣言
 //*****************************************************************************
 static void SetLightBuffer(void);
-
+void InitSkyBox();
+void CreateSphere(int LatLines, int LongLines);
 
 //*****************************************************************************
 // グローバル変数
@@ -119,6 +126,16 @@ static FOG_CBUFFER		g_Fog;
 
 static FUCHI			g_Fuchi;
 
+Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxVB;
+Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxIB;
+Microsoft::WRL::ComPtr<ID3D11VertexShader>       g_SkyBoxVS;
+Microsoft::WRL::ComPtr<ID3D11PixelShader>        g_SkyBoxPS;
+Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> g_SkyBoxSrv;
+Microsoft::WRL::ComPtr<ID3D11Texture2D>          g_SkyBoxTex;
+
+static int g_NumSphereVertices;
+static int g_NumSphereFaces;
+static XMMATRIX g_SphereWorld = XMMatrixIdentity();
 
 ID3D11Device* GetDevice( void )
 {
@@ -362,7 +379,40 @@ void SetShaderCamera(XMFLOAT3 pos)
 	GetDeviceContext()->UpdateSubresource(g_CameraBuffer, 0, NULL, &tmp, 0, 0);
 }
 
+void DrawSkyBox()
+{
+	SetWorldMatrix(&g_SphereWorld);
+	SetCullingMode(CULL_MODE_NONE);
 
+	g_ImmediateContext->IASetIndexBuffer(g_SkyBoxIB.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	constexpr UINT stride = sizeof(VERTEX_3D);
+	constexpr UINT offset = 0;
+	g_ImmediateContext->IASetVertexBuffers(0, 1, g_SkyBoxVB.GetAddressOf(), &stride, &offset);
+	g_ImmediateContext->VSSetShader(g_SkyBoxVS.Get(), nullptr, 0);
+	g_ImmediateContext->PSSetShader(g_SkyBoxPS.Get(), nullptr, 0);
+	g_ImmediateContext->PSSetShaderResources(1, 1, g_SkyBoxSrv.GetAddressOf());
+
+	g_ImmediateContext->DrawIndexed(g_NumSphereFaces * 3, 0, 0);
+
+	g_ImmediateContext->VSSetShader(g_VertexShader, nullptr, 0);
+	g_ImmediateContext->PSSetShader(g_PixelShader, nullptr, 0);
+	SetCullingMode(CULL_MODE_BACK);
+}
+
+void UpdateSkyBox(XMFLOAT3 cameraPos)
+{
+	//Reset sphereWorld
+	g_SphereWorld = XMMatrixIdentity();
+
+	//Define sphereWorld's world space matrix
+	const auto scale = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+	//Make sure the sphere is always centered around camera
+	const auto translation = XMMatrixTranslation(cameraPos.x, cameraPos.y, cameraPos.z);
+
+	//Set sphereWorld's world space using the transformations
+	g_SphereWorld = g_SphereWorld * scale * translation;
+}
 
 //=============================================================================
 // 初期化処理
@@ -704,9 +754,61 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	material.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	SetMaterial(material);
 
+	InitSkyBox();
+
 	return S_OK;
 }
 
+void InitSkyBox()
+{
+	D3DX11_IMAGE_LOAD_INFO imgInfo{};
+	imgInfo.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+	HRESULT hr = D3DX11CreateTextureFromFile(g_D3DDevice,
+		"data/TEXTURE/stars.dds", &imgInfo, nullptr,
+		reinterpret_cast<ID3D11Resource**>(g_SkyBoxTex.ReleaseAndGetAddressOf()), nullptr);
+
+	D3D11_TEXTURE2D_DESC skyTexDesc{};
+	g_SkyBoxTex->GetDesc(&skyTexDesc);
+	const auto srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(D3D11_SRV_DIMENSION_TEXTURECUBE, skyTexDesc.Format);
+
+	g_D3DDevice->CreateShaderResourceView(g_SkyBoxTex.Get(), &srvDesc, g_SkyBoxSrv.ReleaseAndGetAddressOf());
+
+	//HRESULT hr = D3DX11CreateShaderResourceViewFromFile(
+	//	g_D3DDevice,
+	//	"data/TEXTURE/grasscube1024.dds",
+	//	&imgInfo,
+	//	nullptr,
+	//	g_SkyBoxSrv.GetAddressOf(),
+	//	nullptr);
+
+	ID3DBlob* pErrorBlob;
+	ID3DBlob* pVsBlob = nullptr;
+	DWORD shFlag = D3DCOMPILE_ENABLE_STRICTNESS;
+
+#if defined(_DEBUG) && defined(DEBUG_SHADER)
+	shFlag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "SkyBoxVS", "vs_4_0", shFlag, 0, nullptr,
+		&pVsBlob, &pErrorBlob, nullptr);
+	if (FAILED(hr))
+		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), "VS", MB_OK | MB_ICONERROR);
+
+	g_D3DDevice->CreateVertexShader(pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), nullptr, &g_SkyBoxVS);
+
+	ID3DBlob* pPsBlob = nullptr;
+	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "SkyBoxPS", "ps_4_0", shFlag, 0, nullptr, &pPsBlob, &pErrorBlob, nullptr);
+	if (FAILED(hr))
+	{
+		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), "PS", MB_OK | MB_ICONERROR);
+	}
+
+	g_D3DDevice->CreatePixelShader(pPsBlob->GetBufferPointer(), pPsBlob->GetBufferSize(), nullptr, &g_SkyBoxPS);
+
+	pPsBlob->Release();
+
+	CreateSphere(10, 10);
+}
 
 //=============================================================================
 // 終了処理
@@ -763,6 +865,130 @@ void Present(void)
 {
 	g_SwapChain->Present( 0, 0 );
 }
+
+void CreateSphere(int LatLines, int LongLines)
+{
+	g_NumSphereVertices = ((LatLines - 2) * LongLines) + 2;
+	g_NumSphereFaces = ((LatLines - 3) * (LongLines) * 2) + (LongLines * 2);
+
+	float sphereYaw = 0.0f;
+	float spherePitch = 0.0f;
+
+	std::vector<VERTEX_3D> vertices(g_NumSphereVertices);
+
+	XMVECTOR currVertPos = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+
+	vertices[0].Position.x = 0.0f;
+	vertices[0].Position.y = 0.0f;
+	vertices[0].Position.z = 1.0f;
+
+	for (DWORD i = 0; i < LatLines - 2; ++i)
+	{
+		spherePitch = (i + 1) * (3.14 / (LatLines - 1));
+		XMMATRIX Rotationx = XMMatrixRotationX(spherePitch);
+		for (DWORD j = 0; j < LongLines; ++j)
+		{
+			sphereYaw = j * (6.28 / (LongLines));
+			XMMATRIX Rotationy = XMMatrixRotationZ(sphereYaw);
+			currVertPos = XMVector3TransformNormal(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), (Rotationx * Rotationy));
+			currVertPos = XMVector3Normalize(currVertPos);
+			vertices[i * LongLines + j + 1].Position.x = XMVectorGetX(currVertPos);
+			vertices[i * LongLines + j + 1].Position.y = XMVectorGetY(currVertPos);
+			vertices[i * LongLines + j + 1].Position.z = XMVectorGetZ(currVertPos);
+		}
+	}
+
+	vertices[g_NumSphereVertices - 1].Position.x = 0.0f;
+	vertices[g_NumSphereVertices - 1].Position.y = 0.0f;
+	vertices[g_NumSphereVertices - 1].Position.z = -1.0f;
+
+
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
+
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.ByteWidth = sizeof(VERTEX_3D) * g_NumSphereVertices;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA vertexBufferData;
+
+	ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
+	vertexBufferData.pSysMem = &vertices[0];
+	g_D3DDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &g_SkyBoxVB);
+
+
+	std::vector<DWORD> indices(g_NumSphereFaces * 3);
+
+	int k = 0;
+	for (DWORD l = 0; l < LongLines - 1; ++l)
+	{
+		indices[k] = 0;
+		indices[k + 1] = l + 1;
+		indices[k + 2] = l + 2;
+		k += 3;
+	}
+
+	indices[k] = 0;
+	indices[k + 1] = LongLines;
+	indices[k + 2] = 1;
+	k += 3;
+
+	for (DWORD i = 0; i < LatLines - 3; ++i)
+	{
+		for (DWORD j = 0; j < LongLines - 1; ++j)
+		{
+			indices[k] = i * LongLines + j + 1;
+			indices[k + 1] = i * LongLines + j + 2;
+			indices[k + 2] = (i + 1) * LongLines + j + 1;
+
+			indices[k + 3] = (i + 1) * LongLines + j + 1;
+			indices[k + 4] = i * LongLines + j + 2;
+			indices[k + 5] = (i + 1) * LongLines + j + 2;
+
+			k += 6; // next quad
+		}
+
+		indices[k] = (i * LongLines) + LongLines;
+		indices[k + 1] = (i * LongLines) + 1;
+		indices[k + 2] = ((i + 1) * LongLines) + LongLines;
+
+		indices[k + 3] = ((i + 1) * LongLines) + LongLines;
+		indices[k + 4] = (i * LongLines) + 1;
+		indices[k + 5] = ((i + 1) * LongLines) + 1;
+
+		k += 6;
+	}
+
+	for (DWORD l = 0; l < LongLines - 1; ++l)
+	{
+		indices[k] = g_NumSphereVertices - 1;
+		indices[k + 1] = (g_NumSphereVertices - 1) - (l + 1);
+		indices[k + 2] = (g_NumSphereVertices - 1) - (l + 2);
+		k += 3;
+	}
+
+	indices[k] = g_NumSphereVertices - 1;
+	indices[k + 1] = (g_NumSphereVertices - 1) - LongLines;
+	indices[k + 2] = g_NumSphereVertices - 2;
+
+	D3D11_BUFFER_DESC indexBufferDesc;
+	ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
+
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(DWORD) * g_NumSphereFaces * 3;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA iinitData;
+
+	iinitData.pSysMem = &indices[0];
+	g_D3DDevice->CreateBuffer(&indexBufferDesc, &iinitData, &g_SkyBoxIB);
+
+}
+
 
 
 //=============================================================================

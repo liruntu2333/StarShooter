@@ -276,6 +276,8 @@ void DrawGame(void)
 		break;
 	}
 
+	UpdateSkyBox(GetCamera()->pos);
+
 	// 3Dの物を描画する処理
 	// 地面の描画処理
 	DrawMeshField();
@@ -310,9 +312,10 @@ void DrawGame(void)
 	// 木の描画処理
 	DrawTree();
 
+	DrawSkyBox();
+
 	// パーティクルの描画処理
 	DrawParticle();
-
 
 	// 2Dの物を描画する処理
 	// Z比較なし

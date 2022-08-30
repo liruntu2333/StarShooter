@@ -102,6 +102,9 @@
     <ClInclude Include="billboard.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="item.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="input.cpp">
@@ -189,6 +192,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="billboard.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="item.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

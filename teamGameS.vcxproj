@@ -145,6 +145,7 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="gameUI.h" />
     <ClInclude Include="input.h" />
+    <ClInclude Include="item.h" />
     <ClInclude Include="light.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="menu.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="game.cpp" />
     <ClCompile Include="gameUI.cpp" />
     <ClCompile Include="input.cpp" />
+    <ClCompile Include="item.cpp" />
     <ClCompile Include="light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MathHelper.cpp" />

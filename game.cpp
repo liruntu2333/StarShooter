@@ -16,6 +16,7 @@
 #include "player.h"
 #include "enemy.h"
 #include "weapon.h"
+#include "item.h"
 #include "menu.h"
 #include "gameUI.h"
 #include "meshfield.h"
@@ -72,6 +73,9 @@ HRESULT InitGame(void)
 
 	// 武器の初期化
 	InitWeapon();
+
+	// アイテムの初期化
+	InitItem();
 
 	// エネミーの初期化
 	InitEnemy();
@@ -152,6 +156,9 @@ void UninitGame(void)
 	// エネミーの終了処理
 	UninitEnemy();
 
+	// アイテムの終了処理
+	UninitItem();
+
 	// 武器の終了処理
 	UninitWeapon();
 
@@ -194,6 +201,9 @@ void UpdateGame(void)
 
 	// 武器の更新処理
 	UpdateWeapon();
+
+	// アイテムの更新処理
+	UpdateItem();
 
 	// エネミーの更新処理
 	UpdateEnemy();
@@ -265,6 +275,9 @@ void DrawGame(void)
 
 	// エネミーの描画処理
 	DrawEnemy();
+
+	// アイテムの描画処理
+	DrawItem();
 
 	// プレイヤーの描画処理
 	DrawPlayer();

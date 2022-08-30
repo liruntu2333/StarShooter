@@ -118,6 +118,7 @@ void VertexShaderPolygon( in  float4 inPosition		: POSITION0,
 // ÉOÉçÅ[ÉoÉãïœêî
 //*****************************************************************************
 Texture2D		g_Texture : register( t0 );
+TextureCube		g_SkyBoxTexture : register(t1);
 SamplerState	g_SamplerState : register( s0 );
 
 
@@ -226,4 +227,35 @@ void PixelShaderPolygon( in  float4 inPosition		: SV_POSITION,
 			outDiffuse.g = 0.0f;			
 		}
 	}
+}
+
+struct SkyBoxVSOut    //output structure for skymap vertex shader
+{
+    float4 Pos : SV_POSITION;
+    float3 texCoord : TEXCOORD;
+};
+
+
+SkyBoxVSOut SkyBoxVS(in float4 inPosition : POSITION0,
+						  in float4 inNormal : NORMAL0,
+						  in float4 inDiffuse : COLOR0,
+						  in float2 inTexCoord : TEXCOORD0)
+{
+    SkyBoxVSOut vout = (SkyBoxVSOut) 0;
+
+    //Set Pos to xyww instead of xyzw, so that z will always be 1 (furthest from camera)
+    matrix wvp;
+    wvp = mul(World, View);
+    wvp = mul(wvp, Projection);
+
+    inPosition.w = 1.0f;
+    vout.Pos = mul(inPosition, wvp).xyww;
+    vout.texCoord = inPosition;
+
+    return vout;
+}
+
+float4 SkyBoxPS(SkyBoxVSOut pin) : SV_Target
+{
+    return g_SkyBoxTexture.Sample(g_SamplerState, pin.texCoord);
 }

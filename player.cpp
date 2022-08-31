@@ -300,7 +300,7 @@ void UpdatePlayer(void)
 	}
 	else if (!g_MadeDecision)
 	{
-		g_Player.spd = VALUE_MOVE * 0.0f;
+		g_Player.spd = VALUE_MOVE * 0.1f;
 		ReleaseMoveTable();
 		BuildMoveTableIdle();
 

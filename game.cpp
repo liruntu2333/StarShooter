@@ -435,6 +435,11 @@ void CheckHit(void)
 		}
 	}
 
+	
+	if (player->HP == 0)
+	{
+		SetFade(FADE_OUT, MODE_RESULT);
+	}
 
 	//// エネミーが全部死亡したら状態遷移
 	//int enemy_count = 0;

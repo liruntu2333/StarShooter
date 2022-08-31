@@ -175,9 +175,13 @@ void UpdateGameUI(void)
 	// MP‚ÌXV
 	{
 		for (int i = PLAYER_MP_MAX - 1; i > player->MP - 1; i--)
-
 		{
 			g_UIMP[i].texNo = TEXTURE_MP_0;
+		}
+
+		for (int i = 0; i < player->MP; i++)
+		{
+			g_UIMP[i].texNo = TEXTURE_MP_1;
 		}
 	}
 

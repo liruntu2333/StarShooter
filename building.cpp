@@ -21,6 +21,8 @@
 #define	MODEL_BUILDING_LIGHTPOSTSINGLE			"data/MODEL/lightpostSingle.obj"			// 読み込むモデル名
 #define MODEL_BUILDING_LIGHTPOSTDOUBLE			"data/MODEL/lightpostDouble.obj"
 
+#define MODEL_BUILDING_HANGAR_LARGEB			"data/MODEL/hangar_largeB.obj"
+
 #define	VALUE_ROTATE			(XM_PI * 0.02f)				// 回転量
 
 #define BUILDING_SHADOW_SIZE	(0.4f)						// 影の大きさ
@@ -62,9 +64,6 @@ static BUILDING			g_Building[MAX_BUILDING];
 
 static BOOL				g_Load = FALSE;
 
-static char* g_BuildingName[MAX_BUILDING] = {
-	"data/MODEL/lightpostSingle.obj",
-};
 
 
 //=============================================================================
@@ -79,7 +78,7 @@ HRESULT InitBuilding(void)
 
 		g_Building[i].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		g_Building[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Building[i].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
+		g_Building[i].scl = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 
 		// モデルのディフューズを保存しておく。色変え対応の為。
@@ -104,6 +103,7 @@ HRESULT InitBuilding(void)
 	g_Building[0].pos = XMFLOAT3(40.0f, 0.0f, 300.0f);
 	GetYOffset(g_Building[0].pos);
 	g_Building[0].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
+	g_Building[0].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
 	SetStreetLight(g_Building[0], 2);
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTSINGLE, &g_Building[1].model);
@@ -111,6 +111,7 @@ HRESULT InitBuilding(void)
 	g_Building[1].pos = XMFLOAT3(-40.0f, 0.0f, -300.0f);
 	GetYOffset(g_Building[1].pos);
 	g_Building[1].rot = XMFLOAT3(0.0f, -XM_PIDIV2, 0.0f);
+	g_Building[1].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
 	SetStreetLight(g_Building[1], 3);
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTDOUBLE, &g_Building[2].model);
@@ -118,7 +119,15 @@ HRESULT InitBuilding(void)
 	g_Building[2].pos = XMFLOAT3(300.0f, 0.0f, -40.0f);
 	GetYOffset(g_Building[2].pos);
 	g_Building[2].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
+	g_Building[2].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
 	SetStreetLight(g_Building[2], 4);
+
+	LoadModel(MODEL_BUILDING_HANGAR_LARGEB, &g_Building[3].model);
+	g_Building[3].load = TRUE;
+	g_Building[3].pos = XMFLOAT3(300.0f, 0.0f, -300.0f);
+	GetYOffset(g_Building[3].pos);
+	g_Building[3].rot = XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f);
+	g_Building[3].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
 	
 

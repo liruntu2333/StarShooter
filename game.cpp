@@ -319,6 +319,11 @@ int GetFocusMode()
 	return g_focusMode;
 }
 
+void SetFocusMode(int mode)
+{
+	g_focusMode = mode;
+}
+
 
 //=============================================================================
 // “–‚½‚è”»’èˆ—
@@ -446,6 +451,7 @@ void SetCameraFocus()
 	const float playerDir = GetPlayer()->dir;
 	playerPos.y += 35.f; // set whatever the y offset you want
 	float tPos;
+	bool playerRampaging = IsPlayerRampage();
 	
 	const auto target = GetPlayerLockedTarget();
 
@@ -453,16 +459,16 @@ void SetCameraFocus()
 	{
 	case FOCUS_PLAYER:
 		tPos = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
-		LerpCameraViewAngle(XM_PI / 4.0f, 0.5f);
+		if (playerRampaging) LerpCameraViewAngle(XM_PIDIV2 * 0.8f, 0.5f);
+		else LerpCameraViewAngle(XM_PIDIV4, 0.5f);
 		LerpCameraPosition(playerPos, playerDir, tPos);
 		SetCamera();
 		break;
 
 	case FOCUS_ENEMY:
 		tPos = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
-		//if (target != nullptr)
-		LerpCameraViewAngle(XM_PI / 6.0f, 0.5f);
-		//else LerpCameraViewAngle(XM_PI / 4.0f, 0.5f);
+		if (playerRampaging) LerpCameraViewAngle(XM_PIDIV2 * 0.8f, 0.5f);
+		else LerpCameraViewAngle(XM_PI / 6.0f, 0.5f);
 		
 		if (target != nullptr) 
 			LerpCameraPositionAt(playerPos, target->pos, playerDir, tPos, 0.4f);

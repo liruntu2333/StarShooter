@@ -21,7 +21,26 @@
 #define	MODEL_BUILDING_LIGHTPOSTSINGLE			"data/MODEL/lightpostSingle.obj"			// ì«Ç›çûÇﬁÉÇÉfÉãñº
 #define MODEL_BUILDING_LIGHTPOSTDOUBLE			"data/MODEL/lightpostDouble.obj"
 
+#define MODEL_BUILDING_HANGAR_LARGEA			"data/MODEL/hangar_largeA.obj"
 #define MODEL_BUILDING_HANGAR_LARGEB			"data/MODEL/hangar_largeB.obj"
+#define MODEL_BUILDING_HANGAR_SMALLA			"data/MODEL/hangar_smallA.obj"
+#define MODEL_BUILDING_HANGAR_SMALLB			"data/MODEL/hangar_smallB.obj"
+#define MODEL_BUILDING_HANGAR_ROUNDA			"data/MODEL/hangar_roundA.obj"
+#define MODEL_BUILDING_HANGAR_ROUNDB			"data/MODEL/hangar_roundB.obj"
+
+#define MODEL_BUILDING_CRAFT_MINER				"data/MODEL/craft_miner.obj"
+
+#define MODEL_BUILDING_TURRET_SINGLE			"data/MODEL/turret_single.obj"
+#define MODEL_BUILDING_TURRET_DOUBLE			"data/MODEL/turret_double.obj"
+
+#define MODEL_BUILDING_STRUCTURE				"data/MODEL/structure.obj"
+#define MODEL_BUILDING_STRUCTURE_CLOSED			"data/MODEL/structure_closerd.obj"
+#define MODEL_BUILDING_STRUCTURE_DETAILED		"data/MODEL/structure_detailed.obj"
+#define MODEL_BUILDING_STRUCTURE_DIAGONAL		"data/MODEL/structure_diagonal.obj"
+
+
+
+
 
 #define	VALUE_ROTATE			(XM_PI * 0.02f)				// âÒì]ó 
 
@@ -129,6 +148,12 @@ HRESULT InitBuilding(void)
 	g_Building[3].rot = XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f);
 	g_Building[3].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
+	LoadModel(MODEL_BUILDING_HANGAR_ROUNDA, &g_Building[4].model);
+	g_Building[4].load = TRUE;
+	g_Building[4].pos = XMFLOAT3(200.0f, 0.0f, -400.0f);
+	GetYOffset(g_Building[4].pos);
+	g_Building[4].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	g_Building[4].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 	
 
 	g_Load = TRUE;

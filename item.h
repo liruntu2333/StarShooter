@@ -11,8 +11,8 @@
 //*****************************************************************************
 // ƒ}ƒNƒ’è‹`
 //*****************************************************************************
-#define MAX_ITEM		(10)					// item‚Ì”
-#define MAX_ITEM_GOOD	(6)
+#define MAX_ITEM		(20)					// item‚Ì”
+#define MAX_ITEM_GOOD	(10)
 #define MAX_ITEM_WORSE	(MAX_ITEM - MAX_ITEM_GOOD)	
 
 #define	ITEM_SIZE		(5.0f)				// “–‚½‚è”»’è‚Ì‘å‚«‚³

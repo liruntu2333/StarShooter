@@ -53,3 +53,5 @@ CAMERA *GetCamera(void);
 
 void SetCameraAtPlayer(XMFLOAT3 pos, float dir, float t = 1.0f);
 void SetCameraAtMenu(XMFLOAT3 pos, float dir, float t = 1.0f);
+void SetCameraAtEnemy(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, float tPos, float tAt);
+

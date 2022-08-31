@@ -23,6 +23,7 @@
 //*****************************************************************************
 // 構造体定義
 //*****************************************************************************
+struct ENEMY;
 struct PLAYER
 {
 	XMFLOAT3			pos;		// ポリゴンの位置
@@ -78,3 +79,5 @@ PLAYER *GetPlayer(void);
  */
 int IsPlayerOutOfBoarder();
 float GetPlayerFieldProgress();
+
+ENEMY* GetPlayerLockedTarget();

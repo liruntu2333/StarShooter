@@ -18,6 +18,12 @@ enum
 	GAMEMODE_MAX,
 };
 
+enum FocusMode
+{
+	FOCUS_PLAYER,
+	//FOCUS_MENU,
+	FOCUS_ENEMY,
+};
 
 //*****************************************************************************
 // プロトタイプ宣言
@@ -26,4 +32,4 @@ HRESULT InitGame(void);
 void UninitGame(void);
 void UpdateGame(void);
 void DrawGame(void);
-
+int GetFocusMode();

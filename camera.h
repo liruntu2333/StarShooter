@@ -51,7 +51,7 @@ void SetCamera(void);
 
 CAMERA *GetCamera(void);
 
-void SetCameraAtPlayer(XMFLOAT3 pos, float dir, float t = 1.0f);
-void SetCameraAtMenu(XMFLOAT3 pos, float dir, float t = 1.0f);
-void SetCameraAtEnemy(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, float tPos, float tAt);
-
+void LerpCameraPosition(XMFLOAT3 pos, float dir, float tPos = 1.0f);
+//void SetCameraAtMenu(XMFLOAT3 pos, float dir, float t = 1.0f);
+void LerpCameraPositionAt(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, float tPos, float tAt);
+void LerpCameraViewAngle(float angle, float t);

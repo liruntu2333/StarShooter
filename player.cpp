@@ -300,6 +300,7 @@ void UpdatePlayer(void)
 
 	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z, dir);
 	g_FieldProgress = GetFieldProgress(g_Player.pos.x, g_Player.pos.z, dir);
+	bool cameraAtPlayer = GetFocusMode() == FOCUS_PLAYER;
 
 	if (!g_AtConjunction)
 	{
@@ -317,6 +318,17 @@ void UpdatePlayer(void)
 		GetDecision();
 
 		//return;
+	}
+
+	if (!cameraAtPlayer && g_LockedTarget && g_Player.MP > 0)
+	{
+		g_Player.spd = VALUE_MOVE * 0.1f;
+		static int t = 0;
+		if (++t == 60)
+		{
+			g_Player.MP--;
+			t = 0;
+		}
 	}
 
 	// x pass
@@ -353,7 +365,6 @@ void UpdatePlayer(void)
 		if (g_BoarderSignal)
 		{
 			g_Player.pos = GetWrapPosition(g_Player.pos, g_BoarderSignal);
-			// TODO: make player set on the right offset of road
 		}
 	}
 
@@ -383,7 +394,6 @@ void UpdatePlayer(void)
 		}
 	}
 
-	// レイキャストして足元の高さを求める
 	//XMFLOAT3 normal = { 0.0f, 1.0f, 0.0f };				// ぶつかったポリゴンの法線ベクトル（向き）
 	//XMFLOAT3 hitPosition;								// 交点
 	//hitPosition.y = g_Player.pos.y - PLAYER_OFFSET_Y;	// 外れた時用に初期化しておく
@@ -397,7 +407,6 @@ void UpdatePlayer(void)
 	XMFLOAT3 wandPos = GetWeapon()->pos;
 	wandPos.y += 20.0f;
 
-	ENEMY* pEnemy = GetEnemy();
 	XMVECTOR front = { sinf(dir), 0.0f, cosf(dir) };
 	XMVECTOR up = { 0.0f, 1.0f, 0.0f };
 	XMVECTOR right = XMVector3Cross(front, up);
@@ -445,7 +454,7 @@ void UpdatePlayer(void)
 		GetKeyboardTrigger(DIK_LEFT) ? Left :
 		GetKeyboardTrigger(DIK_RIGHT) ? Right : None;
 
-	if (GetFocusMode() == FOCUS_PLAYER)
+	if (cameraAtPlayer)
 	{
 		for (int i = 0; i < MAX_ENEMY; ++i)
 		{

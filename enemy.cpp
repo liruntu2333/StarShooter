@@ -102,6 +102,14 @@ HRESULT InitEnemy(void)
 		g_Enemy[i].type = Flyable;
 		g_Enemy[i].use = TRUE;
 
+		g_Enemy[i].codes.clear();
+		const int len = rand() % 5 + 1;
+		for (int i = 0; i < len; ++i)
+		{
+			g_Enemy[i].codes.push_back(rand() % 4);
+		}
+		g_Enemy[i].compare_index = 0;
+
 		for (int j = 0; j < ENEMY_PARTS_MAX; j++)
 		{
 			g_Enemy_Parts[i][j].use = FALSE;

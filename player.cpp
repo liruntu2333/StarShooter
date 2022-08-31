@@ -10,6 +10,9 @@
 #include "debugproc.h"
 #include "model.h"
 #include "player.h"
+
+#include <queue>
+
 #include "shadow.h"
 #include "light.h"
 #include "bullet.h"
@@ -17,6 +20,7 @@
 #include "enemy.h"
 #include "weapon.h"
 #include "billboard.h"
+#include "game.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -57,6 +61,9 @@ void ReleaseMoveTable();
 void BuildMoveTableIdle();
 void BuildMoveTableRun();
 void GetDecision();
+void UpdateLockedTarget();
+void ShootBullets(int nBullet, ENEMY& enemy, XMFLOAT3 p0, XMFLOAT3 p2, XMVECTOR front, XMVECTOR right, XMVECTOR up);
+bool CheckCode(CommandCode code, ENEMY& enemy);
 
 //*****************************************************************************
 // グローバル変数
@@ -76,6 +83,8 @@ static int			g_BoarderSignal = EndOfNone;
 static bool			g_AtConjunction = false;
 static bool			g_MadeDecision = false;
 static float		g_FieldProgress = 0.0f;
+
+static ENEMY*		g_LockedTarget = nullptr;
 
 // プレイヤーの階層アニメーションデータ
 // idleのアニメ
@@ -436,87 +445,72 @@ void UpdatePlayer(void)
 		GetKeyboardTrigger(DIK_LEFT) ? Left :
 		GetKeyboardTrigger(DIK_RIGHT) ? Right : None;
 
-	for (int i = 0; i < MAX_ENEMY; ++i)
+	if (GetFocusMode() == FOCUS_PLAYER)
 	{
-		ENEMY& enemy = *(pEnemy + i);
-		int& idx = enemy.compare_index;
-
-		if (enemy.use == false || idx == enemy.codes.size()) 
-			continue;
-
-		if (enemy.codes[idx] == cmd)
-			idx++;
-		else if (cmd != None)
-			idx = 0;
-
-		if (idx == enemy.codes.size())
+		for (int i = 0; i < MAX_ENEMY; ++i)
 		{
-			for (int i = 0; i < 5; ++i)
+			ENEMY& enemy = *(GetEnemy() + i);
+			if (CheckCode(cmd, enemy))
 			{
-				// generate control point p1 on +y semi-circle, with a range of 20.0f
-				float theta = XM_PI * (float)rand() / (float)RAND_MAX;
-				XMFLOAT3 p1{};
-				XMVECTOR target = XMLoadFloat3(&g_Player.pos);
+				ShootBullets(5, enemy, wandPos, enemy.pos, front, right, up);
+			}
+		}
+	}
+	else
+	{
+		UpdateLockedTarget();
 
-				target += front * CONTROL_POINT_Z_BIAS;
-				target += right * cosf(theta) * CONTROL_POINT_XY_RANGE;
-				target += up * sinf(theta) * CONTROL_POINT_XY_RANGE;
-				XMStoreFloat3(&p1, target);
-				std::array<XMFLOAT3, 3> points =
-				{
-					wandPos,
-					p1,
-					enemy.pos
-				};
-				SetBullet(points, HIT_TIME, &enemy);
+		if (g_LockedTarget != nullptr)
+		{
+			ENEMY& enemy = *g_LockedTarget;
+			if (CheckCode(cmd, enemy))
+			{
+				ShootBullets(5, enemy, wandPos, enemy.pos, front, right, up);
 			}
 		}
 	}
 
-	//g_Player.spd *= 0.5f;
-
-
-	for (int i = 0; i < PLAYER_PARTS_MAX; i++)
+	for (auto& g_Player_Part : g_Player_Parts)
 	{
-		if ((g_Player_Parts[i].use == TRUE)&&(g_Player_Parts[i].tbl_adr != NULL))
+		if ((g_Player_Part.use == TRUE)&&(g_Player_Part.tbl_adr != NULL))
 		{
-			int		index = (int)g_Player_Parts[i].move_time;
-			float	time = g_Player_Parts[i].move_time - index;
-			int		size = g_Player_Parts[i].tbl_size;
+			int		index = (int)g_Player_Part.move_time;
+			float	time = g_Player_Part.move_time - index;
+			int		size = g_Player_Part.tbl_size;
 
-			float dt = 1.0f / g_Player_Parts[i].tbl_adr[index].frame;	// 1フレームで進める時間
-			g_Player_Parts[i].move_time += dt;					// アニメーションの合計時間に足す
+			float dt = 1.0f / g_Player_Part.tbl_adr[index].frame;	// 1フレームで進める時間
+			g_Player_Part.move_time += dt;					// アニメーションの合計時間に足す
 
 			if (index > (size - 2))	// ゴールをオーバーしていたら、最初へ戻す
 			{
-				g_Player_Parts[i].move_time = 0.0f;
+				g_Player_Part.move_time = 0.0f;
 				index = 0;
 			}
 
 			// 座標を求める	X = StartX + (EndX - StartX) * 今の時間
-			XMVECTOR p1 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 1].pos);	// 次の場所
-			XMVECTOR p0 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 0].pos);	// 現在の場所
+			XMVECTOR p1 = XMLoadFloat3(&g_Player_Part.tbl_adr[index + 1].pos);	// 次の場所
+			XMVECTOR p0 = XMLoadFloat3(&g_Player_Part.tbl_adr[index + 0].pos);	// 現在の場所
 			XMVECTOR vec = p1 - p0;
-			XMStoreFloat3(&g_Player_Parts[i].pos, p0 + vec * time);
+			XMStoreFloat3(&g_Player_Part.pos, p0 + vec * time);
 
 			// 回転を求める	R = StartX + (EndX - StartX) * 今の時間
-			XMVECTOR r1 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 1].rot);	// 次の角度
-			XMVECTOR r0 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 0].rot);	// 現在の角度
+			XMVECTOR r1 = XMLoadFloat3(&g_Player_Part.tbl_adr[index + 1].rot);	// 次の角度
+			XMVECTOR r0 = XMLoadFloat3(&g_Player_Part.tbl_adr[index + 0].rot);	// 現在の角度
 			XMVECTOR rot = r1 - r0;
-			XMStoreFloat3(&g_Player_Parts[i].rot, r0 + rot * time);
+			XMStoreFloat3(&g_Player_Part.rot, r0 + rot * time);
 
 			// scaleを求める S = StartX + (EndX - StartX) * 今の時間
-			XMVECTOR s1 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 1].scl);	// 次のScale
-			XMVECTOR s0 = XMLoadFloat3(&g_Player_Parts[i].tbl_adr[index + 0].scl);	// 現在のScale
+			XMVECTOR s1 = XMLoadFloat3(&g_Player_Part.tbl_adr[index + 1].scl);	// 次のScale
+			XMVECTOR s0 = XMLoadFloat3(&g_Player_Part.tbl_adr[index + 0].scl);	// 現在のScale
 			XMVECTOR scl = s1 - s0;
-			XMStoreFloat3(&g_Player_Parts[i].scl, s0 + scl * time);
+			XMStoreFloat3(&g_Player_Part.scl, s0 + scl * time);
 
 		}
 	}
 
 
 
-	//{	// ポイントライトのテスト
+	//{
 	//	LIGHT *light = GetLightData(1);
 	//	XMFLOAT3 pos = g_Player.pos;
 	//	pos.y += 20.0f;
@@ -529,8 +523,7 @@ void UpdatePlayer(void)
 	//	SetLightData(1, light);
 	//}
 
-
-	//////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////
 	// 姿勢制御
 	//////////////////////////////////////////////////////////////////////
 
@@ -555,8 +548,6 @@ void UpdatePlayer(void)
 
 	//// 今回のクォータニオンの結果を保存する
 	//XMStoreFloat4(&g_Player.quaternion, quat);
-
-
 
 #ifdef _DEBUG	// デバッグ情報を表示する
 	PrintDebugProc("Player:↑ → ↓ ←　Space\n");
@@ -671,6 +662,11 @@ float GetPlayerFieldProgress()
 	return g_FieldProgress;
 }
 
+ENEMY* GetPlayerLockedTarget()
+{
+	return g_LockedTarget;
+}
+
 void ReleaseMoveTable()
 {
 	g_Player.tbl_adr = nullptr;
@@ -727,4 +723,84 @@ void GetDecision()
 		g_Player.spd = VALUE_MOVE;
 		BuildMoveTableRun();
 	}
+}
+
+void UpdateLockedTarget()
+{
+	const float dir = g_Player.dir;
+	const XMVECTOR playerPos = XMLoadFloat3(&g_Player.pos);
+	const XMVECTOR front = { sinf(dir), 0.0f, cosf(dir) };
+
+	auto disCmp = [&](const ENEMY* e1, const ENEMY* e2)
+	{
+		const float dis1 = XMVectorGetX(XMVector3LengthEst(XMLoadFloat3(&e1->pos) - playerPos));
+		const float dis2 = XMVectorGetX(XMVector3LengthEst(XMLoadFloat3(&e2->pos) - playerPos));
+		return dis1 > dis2;
+	};
+
+	std::priority_queue<ENEMY*, std::vector<ENEMY*>, decltype(disCmp)> pq(disCmp);
+	ENEMY* pEnemies = GetEnemy();
+	for (int i = 0; i < MAX_ENEMY; ++i)
+	{
+		ENEMY& enemy = *(pEnemies + i);
+		if (enemy.use == FALSE || enemy.compare_index == enemy.codes.size()) 
+			continue;
+
+		const XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);
+		const XMVECTOR enemyDir = XMVector3Normalize(enemyPos - playerPos);
+
+		const float angle = XMVectorGetX(XMVector3AngleBetweenNormalsEst(enemyDir, front));
+		if ((angle) < XM_PIDIV2 ) // only deal with enemy in front
+		{
+			pq.emplace(&enemy);
+		}
+	}
+
+	if (pq.empty()) g_LockedTarget = nullptr;
+	else g_LockedTarget = pq.top();
+}
+
+void ShootBullets(int nBullet, ENEMY& enemy, XMFLOAT3 p0, XMFLOAT3 p2, XMVECTOR front, XMVECTOR right, XMVECTOR up)
+{
+	for (int i = 0; i < nBullet; ++i)
+	{
+		// generate control point p1 on +y semi-circle, with a range of 20.0f
+		float theta = XM_PI * (float)rand() / (float)RAND_MAX;
+		XMFLOAT3 p1{};
+		XMVECTOR target = XMLoadFloat3(&g_Player.pos);
+
+		target += front * CONTROL_POINT_Z_BIAS;
+		target += right * cosf(theta) * CONTROL_POINT_XY_RANGE;
+		target += up * sinf(theta) * CONTROL_POINT_XY_RANGE;
+		XMStoreFloat3(&p1, target);
+		std::array<XMFLOAT3, 3> points =
+		{
+			p0,
+			p1,
+			p2
+		};
+		SetBullet(points, HIT_TIME, &enemy);
+	}
+}
+
+bool CheckCode(CommandCode code, ENEMY& enemy)
+{
+	int& idx = enemy.compare_index;
+
+	if (enemy.use == false || idx == enemy.codes.size())
+		return false;
+
+	if (enemy.codes[idx] == code)
+		idx++;
+
+	else if (code != None)
+	{
+		idx = 0;
+		return false;
+	}
+
+	if (idx == enemy.codes.size()) 
+		return true;
+
+	return false;
 }

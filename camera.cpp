@@ -246,3 +246,14 @@ void SetCameraAtMenu(XMFLOAT3 pos, float dir, float t)
 	XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), XMLoadFloat3(&target), t);
 	XMStoreFloat3(&g_Camera.pos, result);
 }
+
+void SetCameraAtEnemy(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, float tPos, float tAt)
+{
+	SetCameraAtPlayer(playerPos, dir);
+
+	//XMStoreFloat3(&g_Camera.at, pPos);
+	//XMStoreFloat3(&g_Camera.up, );
+	//SetCameraAtPlayer(playerPos, dir, tPos);
+	XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.at), XMLoadFloat3(&enemyPos), tAt);
+	XMStoreFloat3(&g_Camera.at, result);
+}

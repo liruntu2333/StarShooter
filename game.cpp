@@ -40,12 +40,7 @@
 // プロトタイプ宣言
 //*****************************************************************************
 void CheckHit(void);
-
-enum FocusMode
-{
-	FOCUS_PLAYER,
-	FOCUS_MENU,
-};
+void SetCameraFocus();
 
 
 //*****************************************************************************
@@ -195,7 +190,7 @@ void UpdateGame(void)
 	if(g_bPause == FALSE)
 		return;
 
-	if (GetKeyboardTrigger(DIK_H))
+	if (GetKeyboardTrigger(DIK_LSHIFT))
 	{
 		g_focusMode = (g_focusMode + 1) % 2;
 	}
@@ -251,30 +246,7 @@ void UpdateGame(void)
 //=============================================================================
 void DrawGame(void)
 {
-	XMFLOAT3 pos;
-
-	float tCamera;
-
-	switch (g_focusMode)
-	{
-	case FOCUS_PLAYER:
-		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
-		// プレイヤー視点
-		pos = GetPlayer()->pos;
-		pos.y += 25.f;	// set whatever the y offset you want
-		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
-		SetCameraAtPlayer(pos, GetPlayer()->dir, tCamera);
-		SetCamera();
-		break;
-		
-	case FOCUS_MENU:
-		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.05f;
-		pos = GetMenu()->pos;
-		//pos.y = 0.0f;			// カメラ酔いを防ぐためにクリアしている
-		SetCameraAtMenu(pos, XM_PI, tCamera);
-		SetCamera();
-		break;
-	}
+	SetCameraFocus();
 
 	UpdateSkyBox(GetCamera()->pos);
 
@@ -336,6 +308,11 @@ void DrawGame(void)
 	// Z比較あり
 	SetDepthEnable(TRUE);
 
+}
+
+int GetFocusMode()
+{
+	return g_focusMode;
 }
 
 
@@ -455,6 +432,37 @@ void CheckHit(void)
 	//	SetFade(FADE_OUT, MODE_RESULT);
 	//}
 
+}
+
+void SetCameraFocus()
+{
+	XMFLOAT3 playerPos = GetPlayer()->pos;
+	const float playerDir = GetPlayer()->dir;
+	playerPos.y += 25.f; // set whatever the y offset you want
+	float tCamera = 0.0f;
+	
+	const auto target = GetPlayerLockedTarget();
+
+	switch (g_focusMode)
+	{
+	case FOCUS_PLAYER:
+		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
+		SetCameraAtPlayer(playerPos, playerDir, tCamera);
+		SetCamera();
+		break;
+
+	case FOCUS_ENEMY:
+		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
+		if (target != nullptr) 
+			SetCameraAtEnemy(playerPos, target->pos, playerDir, tCamera, 1.0f);
+		else 
+			SetCameraAtPlayer(playerPos, playerDir, tCamera);
+
+		SetCamera();
+		break;
+
+	default: break;
+	}
 }
 
 

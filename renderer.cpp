@@ -1,6 +1,6 @@
 //=============================================================================
 //
-// ƒŒƒ“ƒ_ƒŠƒ“ƒOˆ— [renderer.cpp]
+// ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°å‡¦ç† [renderer.cpp]
 // Author : 
 //
 //=============================================================================
@@ -16,18 +16,18 @@
 #include "wrl/client.h"
 #include <comdef.h>
 
-//ƒfƒoƒbƒO—p‰æ–ÊƒeƒLƒXƒgo—Í‚ğ—LŒø‚É‚·‚é
+//ãƒ‡ãƒãƒƒã‚°ç”¨ç”»é¢ãƒ†ã‚­ã‚¹ãƒˆå‡ºåŠ›ã‚’æœ‰åŠ¹ã«ã™ã‚‹
 #define DEBUG_DISP_TEXTOUT
-//ƒVƒF[ƒ_[ƒfƒoƒbƒOİ’è‚ğ—LŒø‚É‚·‚é
+//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒ‡ãƒãƒƒã‚°è¨­å®šã‚’æœ‰åŠ¹ã«ã™ã‚‹
 //#define DEBUG_SHADER
 
 static const std::string g_SkyBoxPath = "data/TEXTURE/planets.dds";
 
 //*********************************************************
-// \‘¢‘Ì
+// æ§‹é€ ä½“
 //*********************************************************
 
-// ƒ}ƒeƒŠƒAƒ‹—p’è”ƒoƒbƒtƒ@\‘¢‘Ì
+// ãƒãƒ†ãƒªã‚¢ãƒ«ç”¨å®šæ•°ãƒãƒƒãƒ•ã‚¡æ§‹é€ ä½“
 struct MATERIAL_CBUFFER
 {
 	XMFLOAT4	Ambient;
@@ -36,40 +36,40 @@ struct MATERIAL_CBUFFER
 	XMFLOAT4	Emission;
 	float		Shininess;
 	int			noTexSampling;
-	float		Dummy[2];				// 16byte‹«ŠE—p
+	float		Dummy[2];				// 16byteå¢ƒç•Œç”¨
 };
 
-// ƒ‰ƒCƒg—pƒtƒ‰ƒO\‘¢‘Ì
+// ãƒ©ã‚¤ãƒˆç”¨ãƒ•ãƒ©ã‚°æ§‹é€ ä½“
 struct LIGHTFLAGS
 {
-	int			Type;		//ƒ‰ƒCƒgƒ^ƒCƒvienum LIGHT_TYPEj
-	int         OnOff;		//ƒ‰ƒCƒg‚ÌƒIƒ“orƒIƒtƒXƒCƒbƒ`
+	int			Type;		//ãƒ©ã‚¤ãƒˆã‚¿ã‚¤ãƒ—ï¼ˆenum LIGHT_TYPEï¼‰
+	int         OnOff;		//ãƒ©ã‚¤ãƒˆã®ã‚ªãƒ³orã‚ªãƒ•ã‚¹ã‚¤ãƒƒãƒ
 	int			Dummy[2];
 };
 
-// ƒ‰ƒCƒg—p’è”ƒoƒbƒtƒ@\‘¢‘Ì
+// ãƒ©ã‚¤ãƒˆç”¨å®šæ•°ãƒãƒƒãƒ•ã‚¡æ§‹é€ ä½“
 struct LIGHT_CBUFFER
 {
-	XMFLOAT4	Direction[LIGHT_MAX];	// ƒ‰ƒCƒg‚Ì•ûŒü
-	XMFLOAT4	Position[LIGHT_MAX];	// ƒ‰ƒCƒg‚ÌˆÊ’u
-	XMFLOAT4	Diffuse[LIGHT_MAX];		// ŠgUŒõ‚ÌF
-	XMFLOAT4	Ambient[LIGHT_MAX];		// ŠÂ‹«Œõ‚ÌF
-	XMFLOAT4	Attenuation[LIGHT_MAX];	// Œ¸Š—¦
-	LIGHTFLAGS	Flags[LIGHT_MAX];		// ƒ‰ƒCƒgí•Ê
-	int			Enable;					// ƒ‰ƒCƒeƒBƒ“ƒO—LŒøE–³Œøƒtƒ‰ƒO
-	int			Dummy[3];				// 16byte‹«ŠE—p
+	XMFLOAT4	Direction[LIGHT_MAX];	// ãƒ©ã‚¤ãƒˆã®æ–¹å‘
+	XMFLOAT4	Position[LIGHT_MAX];	// ãƒ©ã‚¤ãƒˆã®ä½ç½®
+	XMFLOAT4	Diffuse[LIGHT_MAX];		// æ‹¡æ•£å…‰ã®è‰²
+	XMFLOAT4	Ambient[LIGHT_MAX];		// ç’°å¢ƒå…‰ã®è‰²
+	XMFLOAT4	Attenuation[LIGHT_MAX];	// æ¸›è¡°ç‡
+	LIGHTFLAGS	Flags[LIGHT_MAX];		// ãƒ©ã‚¤ãƒˆç¨®åˆ¥
+	int			Enable;					// ãƒ©ã‚¤ãƒ†ã‚£ãƒ³ã‚°æœ‰åŠ¹ãƒ»ç„¡åŠ¹ãƒ•ãƒ©ã‚°
+	int			Dummy[3];				// 16byteå¢ƒç•Œç”¨
 };
 
-// ƒtƒHƒO—p’è”ƒoƒbƒtƒ@\‘¢‘Ì
+// ãƒ•ã‚©ã‚°ç”¨å®šæ•°ãƒãƒƒãƒ•ã‚¡æ§‹é€ ä½“
 struct FOG_CBUFFER
 {
-	XMFLOAT4	Fog;					// ƒtƒHƒO—Ê
-	XMFLOAT4	FogColor;				// ƒtƒHƒO‚ÌF
-	int			Enable;					// ƒtƒHƒO—LŒøE–³Œøƒtƒ‰ƒO
-	float		Dummy[3];				// 16byte‹«ŠE—p
+	XMFLOAT4	Fog;					// ãƒ•ã‚©ã‚°é‡
+	XMFLOAT4	FogColor;				// ãƒ•ã‚©ã‚°ã®è‰²
+	int			Enable;					// ãƒ•ã‚©ã‚°æœ‰åŠ¹ãƒ»ç„¡åŠ¹ãƒ•ãƒ©ã‚°
+	float		Dummy[3];				// 16byteå¢ƒç•Œç”¨
 };
 
-// ‰æ‚è—pƒoƒbƒtƒ@
+// ç¸å–ã‚Šç”¨ãƒãƒƒãƒ•ã‚¡
 struct FUCHI
 {
 	int			fuchi;
@@ -78,14 +78,14 @@ struct FUCHI
 
 
 //*****************************************************************************
-// ƒvƒƒgƒ^ƒCƒvéŒ¾
+// ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
 //*****************************************************************************
 static void SetLightBuffer(void);
 void InitSkyBox();
 void CreateSphere(int LatLines, int LongLines);
 
 //*****************************************************************************
-// ƒOƒ[ƒoƒ‹•Ï”
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //*****************************************************************************
 static D3D_FEATURE_LEVEL       g_FeatureLevel = D3D_FEATURE_LEVEL_11_0;
 
@@ -328,7 +328,7 @@ void SetLightBuffer(void)
 
 void SetLightEnable(BOOL flag)
 {
-	// ƒtƒ‰ƒO‚ğXV‚·‚é
+	// ãƒ•ãƒ©ã‚°ã‚’æ›´æ–°ã™ã‚‹
 	g_Light.Enable = flag;
 
 	SetLightBuffer();
@@ -354,7 +354,7 @@ void SetFogBuffer(void)
 
 void SetFogEnable(BOOL flag)
 {
-	// ƒtƒ‰ƒO‚ğXV‚·‚é
+	// ãƒ•ãƒ©ã‚°ã‚’æ›´æ–°ã™ã‚‹
 	g_Fog.Enable = flag;
 
 	SetFogBuffer();
@@ -421,13 +421,13 @@ void UpdateSkyBox(XMFLOAT3 cameraPos)
 }
 
 //=============================================================================
-// ‰Šú‰»ˆ—
+// åˆæœŸåŒ–å‡¦ç†
 //=============================================================================
 HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 {
 	HRESULT hr = S_OK;
 
-	// ƒfƒoƒCƒXAƒXƒƒbƒvƒ`ƒF[ƒ“AƒRƒ“ƒeƒLƒXƒg¶¬
+	// ãƒ‡ãƒã‚¤ã‚¹ã€ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ãƒ¼ãƒ³ã€ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆç”Ÿæˆ
 	DWORD deviceFlags = 0;
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory( &sd, sizeof( sd ) );
@@ -446,7 +446,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = bWindow;
 
-	//ƒfƒoƒbƒO•¶šo—Í—pİ’è
+	//ãƒ‡ãƒãƒƒã‚°æ–‡å­—å‡ºåŠ›ç”¨è¨­å®š
 #if defined(_DEBUG) && defined(DEBUG_DISP_TEXTOUT)
 	sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	sd.Flags = DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE;
@@ -468,14 +468,14 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	if( FAILED( hr ) )
 		return hr;
 
-	//ƒfƒoƒbƒO•¶šo—Í—pİ’è
+	//ãƒ‡ãƒãƒƒã‚°æ–‡å­—å‡ºåŠ›ç”¨è¨­å®š
 #if defined(_DEBUG) && defined(DEBUG_DISP_TEXTOUT)
 	hr = g_SwapChain->ResizeBuffers(0, SCREEN_WIDTH, SCREEN_HEIGHT, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE); // N.B. the GDI compatible flag
 	if (FAILED(hr))
 		return hr;
 #endif
 
-	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[¶¬Aİ’è
+	// ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ç”Ÿæˆã€è¨­å®š
 	ID3D11Texture2D* pBackBuffer = NULL;
 	g_SwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&pBackBuffer );
 	g_D3DDevice->CreateRenderTargetView( pBackBuffer, NULL, &g_RenderTargetView );
@@ -483,7 +483,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 
 
-	//ƒXƒeƒ“ƒVƒ‹—pƒeƒNƒXƒ`ƒƒ[ì¬
+	//ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ¼ä½œæˆ
 	ID3D11Texture2D* depthTexture = NULL;
 	D3D11_TEXTURE2D_DESC td;
 	ZeroMemory( &td, sizeof(td) );
@@ -499,7 +499,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
     td.MiscFlags		= 0;
 	g_D3DDevice->CreateTexture2D( &td, NULL, &depthTexture );
 
-	//ƒXƒeƒ“ƒVƒ‹ƒ^[ƒQƒbƒgì¬
+	//ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½œæˆ
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvd;
 	ZeroMemory( &dsvd, sizeof(dsvd) );
 	dsvd.Format			= td.Format;
@@ -514,7 +514,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	g_ImmediateContext->OMSetRenderTargets( 1, &g_RenderTargetView, g_DepthStencilView );
 
 
-	// ƒrƒ…[ƒ|[ƒgİ’è
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆè¨­å®š
 	D3D11_VIEWPORT vp;
 	vp.Width = (FLOAT)SCREEN_WIDTH;
 	vp.Height = (FLOAT)SCREEN_HEIGHT;
@@ -526,7 +526,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 
 
-	// ƒ‰ƒXƒ^ƒ‰ƒCƒUƒXƒe[ƒgì¬
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ã‚¹ãƒ†ãƒ¼ãƒˆä½œæˆ
 	D3D11_RASTERIZER_DESC rd; 
 	ZeroMemory( &rd, sizeof( rd ) );
 	rd.FillMode = D3D11_FILL_SOLID;
@@ -541,12 +541,12 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	rd.CullMode = D3D11_CULL_BACK;
 	g_D3DDevice->CreateRasterizerState(&rd, &g_RasterStateCullCCW);
 
-	// ƒJƒŠƒ“ƒOƒ‚[ƒhİ’èiCCWj
+	// ã‚«ãƒªãƒ³ã‚°ãƒ¢ãƒ¼ãƒ‰è¨­å®šï¼ˆCCWï¼‰
 	SetCullingMode(CULL_MODE_BACK);
 
 
 
-	// ƒuƒŒƒ“ƒhƒXƒe[ƒg‚Ìì¬
+	// ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆã®ä½œæˆ
 	D3D11_BLEND_DESC blendDesc;
 	ZeroMemory( &blendDesc, sizeof( blendDesc ) );
 	blendDesc.AlphaToCoverageEnable = FALSE;
@@ -588,13 +588,13 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	g_D3DDevice->CreateBlendState(&blendDesc, &g_BlendStateSubtract);
 
-	// ƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒhİ’è
+	// ã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‰è¨­å®š
 	SetBlendState(BLEND_MODE_ALPHABLEND);
 
 
 
 
-	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgì¬
+	// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆä½œæˆ
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	ZeroMemory( &depthStencilDesc, sizeof( depthStencilDesc ) );
 	depthStencilDesc.DepthEnable = TRUE;
@@ -602,18 +602,18 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	depthStencilDesc.StencilEnable = FALSE;
 
-	g_D3DDevice->CreateDepthStencilState( &depthStencilDesc, &g_DepthStateEnable );//[“x—LŒøƒXƒe[ƒg
+	g_D3DDevice->CreateDepthStencilState( &depthStencilDesc, &g_DepthStateEnable );//æ·±åº¦æœ‰åŠ¹ã‚¹ãƒ†ãƒ¼ãƒˆ
 
 	//depthStencilDesc.DepthEnable = FALSE;
 	depthStencilDesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ZERO;
-	g_D3DDevice->CreateDepthStencilState( &depthStencilDesc, &g_DepthStateDisable );//[“x–³ŒøƒXƒe[ƒg
+	g_D3DDevice->CreateDepthStencilState( &depthStencilDesc, &g_DepthStateDisable );//æ·±åº¦ç„¡åŠ¹ã‚¹ãƒ†ãƒ¼ãƒˆ
 
-	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgİ’è
+	// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆè¨­å®š
 	SetDepthEnable(TRUE);
 
 
 
-	// ƒTƒ“ƒvƒ‰[ƒXƒe[ƒgİ’è
+	// ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆè¨­å®š
 	D3D11_SAMPLER_DESC samplerDesc;
 	ZeroMemory( &samplerDesc, sizeof( samplerDesc ) );
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -633,7 +633,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 
 
-	// ’¸“_ƒVƒF[ƒ_ƒRƒ“ƒpƒCƒ‹E¶¬
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ãƒ»ç”Ÿæˆ
 	ID3DBlob* pErrorBlob;
 	ID3DBlob* pVSBlob = NULL;
 	DWORD shFlag = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -650,7 +650,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 	g_D3DDevice->CreateVertexShader( pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &g_VertexShader );
 
-	// “ü—ÍƒŒƒCƒAƒEƒg¶¬
+	// å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆç”Ÿæˆ
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,		0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -669,7 +669,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	pVSBlob->Release();
 
 
-	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_ƒRƒ“ƒpƒCƒ‹E¶¬
+	// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ãƒ»ç”Ÿæˆ
 	ID3DBlob* pPSBlob = NULL;
 	hr = D3DX11CompileFromFile( "shader.hlsl", NULL, NULL, "PixelShaderPolygon", "ps_4_0", shFlag, 0, NULL, &pPSBlob, &pErrorBlob, NULL );
 	if( FAILED(hr) )
@@ -682,7 +682,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	pPSBlob->Release();
 
 
-	// ’è”ƒoƒbƒtƒ@¶¬
+	// å®šæ•°ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 	D3D11_BUFFER_DESC hBufferDesc;
 	hBufferDesc.ByteWidth = sizeof(XMMATRIX);
 	hBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -691,60 +691,60 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	hBufferDesc.MiscFlags = 0;
 	hBufferDesc.StructureByteStride = sizeof(float);
 
-	//ƒ[ƒ‹ƒhƒ}ƒgƒŠƒNƒX
+	//ãƒ¯ãƒ¼ãƒ«ãƒ‰ãƒãƒˆãƒªã‚¯ã‚¹
 	g_D3DDevice->CreateBuffer(&hBufferDesc, NULL, &g_WorldBuffer);
 	g_ImmediateContext->VSSetConstantBuffers(0, 1, &g_WorldBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(0, 1, &g_WorldBuffer);
 
-	//ƒrƒ…[ƒ}ƒgƒŠƒNƒX
+	//ãƒ“ãƒ¥ãƒ¼ãƒãƒˆãƒªã‚¯ã‚¹
 	g_D3DDevice->CreateBuffer(&hBufferDesc, NULL, &g_ViewBuffer);
 	g_ImmediateContext->VSSetConstantBuffers(1, 1, &g_ViewBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(1, 1, &g_ViewBuffer);
 
-	//ƒvƒƒWƒFƒNƒVƒ‡ƒ“ƒ}ƒgƒŠƒNƒX
+	//ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³ãƒãƒˆãƒªã‚¯ã‚¹
 	g_D3DDevice->CreateBuffer(&hBufferDesc, NULL, &g_ProjectionBuffer);
 	g_ImmediateContext->VSSetConstantBuffers(2, 1, &g_ProjectionBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(2, 1, &g_ProjectionBuffer);
 
-	//ƒ}ƒeƒŠƒAƒ‹î•ñ
+	//ãƒãƒ†ãƒªã‚¢ãƒ«æƒ…å ±
 	hBufferDesc.ByteWidth = sizeof(MATERIAL_CBUFFER);
 	g_D3DDevice->CreateBuffer(&hBufferDesc, NULL, &g_MaterialBuffer);
 	g_ImmediateContext->VSSetConstantBuffers(3, 1, &g_MaterialBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(3, 1, &g_MaterialBuffer);
 
-	//ƒ‰ƒCƒgî•ñ
+	//ãƒ©ã‚¤ãƒˆæƒ…å ±
 	hBufferDesc.ByteWidth = sizeof(LIGHT_CBUFFER);
 	g_D3DDevice->CreateBuffer(&hBufferDesc, NULL, &g_LightBuffer);
 	g_ImmediateContext->VSSetConstantBuffers(4, 1, &g_LightBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(4, 1, &g_LightBuffer);
 
-	//ƒtƒHƒOî•ñ
+	//ãƒ•ã‚©ã‚°æƒ…å ±
 	hBufferDesc.ByteWidth = sizeof(FOG_CBUFFER);
 	g_D3DDevice->CreateBuffer(&hBufferDesc, NULL, &g_FogBuffer);
 	g_ImmediateContext->VSSetConstantBuffers(5, 1, &g_FogBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(5, 1, &g_FogBuffer);
 
-	//‰æ‚è
+	//ç¸å–ã‚Š
 	hBufferDesc.ByteWidth = sizeof(FUCHI);
 	g_D3DDevice->CreateBuffer(&hBufferDesc, NULL, &g_FuchiBuffer);
 	g_ImmediateContext->VSSetConstantBuffers(6, 1, &g_FuchiBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(6, 1, &g_FuchiBuffer);
 
-	//ƒJƒƒ‰
+	//ã‚«ãƒ¡ãƒ©
 	hBufferDesc.ByteWidth = sizeof(XMFLOAT4);
 	g_D3DDevice->CreateBuffer(&hBufferDesc, NULL, &g_CameraBuffer);
 	g_ImmediateContext->VSSetConstantBuffers(7, 1, &g_CameraBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(7, 1, &g_CameraBuffer);
 
 
-	// “ü—ÍƒŒƒCƒAƒEƒgİ’è
+	// å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆè¨­å®š
 	g_ImmediateContext->IASetInputLayout( g_VertexLayout );
 
-	// ƒVƒF[ƒ_İ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€è¨­å®š
 	g_ImmediateContext->VSSetShader( g_VertexShader, NULL, 0 );
 	g_ImmediateContext->PSSetShader( g_PixelShader, NULL, 0 );
 
-	//ƒ‰ƒCƒg‰Šú‰»
+	//ãƒ©ã‚¤ãƒˆåˆæœŸåŒ–
 	ZeroMemory(&g_Light, sizeof(LIGHT_CBUFFER));
 	g_Light.Direction[0] = XMFLOAT4(1.0f, -1.0f, 1.0f, 0.0f);
 	g_Light.Diffuse[0] = XMFLOAT4(0.9f, 0.9f, 0.9f, 1.0f);
@@ -753,7 +753,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	SetLightBuffer();
 
 
-	//ƒ}ƒeƒŠƒAƒ‹‰Šú‰»
+	//ãƒãƒ†ãƒªã‚¢ãƒ«åˆæœŸåŒ–
 	MATERIAL material;
 	ZeroMemory(&material, sizeof(material));
 	material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -817,11 +817,11 @@ void InitSkyBox()
 }
 
 //=============================================================================
-// I—¹ˆ—
+// çµ‚äº†å‡¦ç†
 //=============================================================================
 void UninitRenderer(void)
 {
-	// ƒIƒuƒWƒFƒNƒg‰ğ•ú
+	// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆè§£æ”¾
 	if (g_DepthStateEnable)		g_DepthStateEnable->Release();
 	if (g_DepthStateDisable)	g_DepthStateDisable->Release();
 	if (g_BlendStateNone)		g_BlendStateNone->Release();
@@ -853,11 +853,11 @@ void UninitRenderer(void)
 
 
 //=============================================================================
-// ƒoƒbƒNƒoƒbƒtƒ@ƒNƒŠƒA
+// ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã‚¯ãƒªã‚¢
 //=============================================================================
 void Clear(void)
 {
-	// ƒoƒbƒNƒoƒbƒtƒ@ƒNƒŠƒA
+	// ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã‚¯ãƒªã‚¢
 	float ClearColor[4] = { 0,0,0,1 };//{ 0.529411793f, 0.807843208f, 0.980392218f, 1.000000000f };
 	g_ImmediateContext->ClearRenderTargetView( g_RenderTargetView, ClearColor );
 	g_ImmediateContext->ClearDepthStencilView( g_DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -865,7 +865,7 @@ void Clear(void)
 
 
 //=============================================================================
-// ƒvƒŒƒ[ƒ“ƒg
+// ãƒ—ãƒ¬ã‚¼ãƒ³ãƒˆ
 //=============================================================================
 void Present(void)
 {
@@ -998,20 +998,20 @@ void CreateSphere(int LatLines, int LongLines)
 
 
 //=============================================================================
-// ƒfƒoƒbƒO—pƒeƒLƒXƒgo—Í
+// ãƒ‡ãƒãƒƒã‚°ç”¨ãƒ†ã‚­ã‚¹ãƒˆå‡ºåŠ›
 //=============================================================================
 void DebugTextOut(char* text, int x, int y)
 {
 #if defined(_DEBUG) && defined(DEBUG_DISP_TEXTOUT)
 	HRESULT hr;
 
-	//ƒoƒbƒNƒoƒbƒtƒ@‚©‚çƒT[ƒtƒFƒX‚ğæ“¾‚·‚é
+	//ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰ã‚µãƒ¼ãƒ•ã‚§ã‚¹ã‚’å–å¾—ã™ã‚‹
 	IDXGISurface1* pBackSurface = NULL;
 	hr = g_SwapChain->GetBuffer(0, __uuidof(IDXGISurface1), (void**)&pBackSurface);
 
 	if (SUCCEEDED(hr))
 	{
-		//æ“¾‚µ‚½ƒT[ƒtƒFƒX‚©‚çƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚ğæ“¾‚·‚é
+		//å–å¾—ã—ãŸã‚µãƒ¼ãƒ•ã‚§ã‚¹ã‹ã‚‰ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹
 		HDC hdc;
 		try
 		{
@@ -1024,9 +1024,9 @@ void DebugTextOut(char* text, int x, int y)
 
 		if (SUCCEEDED(hr))
 		{
-			//•¶šF‚ğ”’‚É•ÏX
+			//æ–‡å­—è‰²ã‚’ç™½ã«å¤‰æ›´
 			SetTextColor(hdc, RGB(255, 255, 255));
-			//”wŒi‚ğ“§–¾‚É•ÏX
+			//èƒŒæ™¯ã‚’é€æ˜ã«å¤‰æ›´
 			SetBkMode(hdc, TRANSPARENT);
 
 			RECT rect;
@@ -1035,16 +1035,16 @@ void DebugTextOut(char* text, int x, int y)
 			rect.right = SCREEN_WIDTH;
 			rect.bottom = SCREEN_HEIGHT;
 
-			//ƒeƒLƒXƒgo—Í
+			//ãƒ†ã‚­ã‚¹ãƒˆå‡ºåŠ›
 			DrawText(hdc, text, (int)strlen(text), &rect, DT_LEFT);
 
-			//ƒfƒoƒCƒXƒRƒ“ƒeƒLƒXƒg‚ğ‰ğ•ú‚·‚é
+			//ãƒ‡ãƒã‚¤ã‚¹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’è§£æ”¾ã™ã‚‹
 			pBackSurface->ReleaseDC(NULL);
 		}
-		//ƒT[ƒtƒFƒX‚ğ‰ğ•ú‚·‚é
+		//ã‚µãƒ¼ãƒ•ã‚§ã‚¹ã‚’è§£æ”¾ã™ã‚‹
 		pBackSurface->Release();
 
-		//ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ªƒŠƒZƒbƒg‚³‚ê‚é‚Ì‚ÅƒZƒbƒg‚µ‚È‚¨‚·
+		//ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãŒãƒªã‚»ãƒƒãƒˆã•ã‚Œã‚‹ã®ã§ã‚»ãƒƒãƒˆã—ãªãŠã™
 		g_ImmediateContext->OMSetRenderTargets(1, &g_RenderTargetView, g_DepthStencilView);
 	}
 #endif

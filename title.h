@@ -13,6 +13,10 @@
 enum
 {
 	TEXTURE_TITLE_BG,
+	TEXTURE_TITLE_MOON,
+	TEXTURE_TITLE_BOX,
+	TEXTURE_TITLE_TEXT,
+	TEXTRUE_TITLE_STAR,
 	TEXTURE_TITLE_MAX,
 };
 
@@ -23,13 +27,28 @@ enum
 //*****************************************************************************
 struct TITLE
 {
-	XMFLOAT3 pos;		// ポリゴンの座標
-	float widtht;		// 幅
-	float height;		// 高さ
-	int texNo;			// 使用しているテクスチャ番号
-	BOOL use;			// 利用かどうか
+	XMFLOAT3		pos;			// ポリゴンの座標
+	float			w, h;			// 幅と高さ
+	int				texNo;			// 使用しているテクスチャ番号
 };
 
+struct MOON
+{
+	XMFLOAT3		pos;			// ポリゴンの座標
+	XMFLOAT3		rot;			// ポリゴンの回転量
+	float			w, h;			// 幅と高さ
+	float			countAnim;		// アニメーションカウント
+	int				patternAnim;	// アニメーションパターンナンバー
+	int				texNo;			// テクスチャ番号
+};
+
+struct CONFIRM
+{
+	XMFLOAT3		pos;			// ポリゴンの座標
+	float			w, h;			// 幅と高さ
+	int				texNo;			// 使用しているテクスチャ番号
+	int				choose;			// 今選択したボタン
+};
 
 
 //*****************************************************************************

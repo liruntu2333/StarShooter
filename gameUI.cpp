@@ -21,6 +21,15 @@
 #define TEXTURE_WIDTH_MP					(40.0f)
 #define TEXTURE_HEIGHT_MP					(40.0f)
 
+#define TEXTURE_WIDTH_LEFT					(150.0f)
+#define TEXTURE_HEIGHT_LEFT					(150.0f)
+
+#define TEXTURE_WIDTH_RIGHT					(150.0f)
+#define TEXTURE_HEIGHT_RIGHT				(150.0f)
+
+#define TEXTURE_WIDTH_SHIFT					(200.0f)
+#define TEXTURE_HEIGHT_SHIFT				(40.0f)
+
 #define TEXTURE_PATTERN_DIVIDE_X			(1)														// アニメパターンのテクスチャ内分割数（X)
 #define TEXTURE_PATTERN_DIVIDE_Y			(1)														// アニメパターンのテクスチャ内分割数（Y)
 #define ANIM_PATTERN_NUM					(TEXTURE_PATTERN_DIVIDE_X*TEXTURE_PATTERN_DIVIDE_Y)		// アニメーションパターン数
@@ -46,6 +55,8 @@ static char* g_TexturName[TEXTURE_MAX] = {
 	"data/TEXTURE/GAME/hp_0.png",
 	"data/TEXTURE/GAME/mp_1.png",
 	"data/TEXTURE/GAME/mp_0.png",
+	"data/TEXTURE/GAME/DIK_A_KEYON.png",
+	"data/TEXTURE/GAME/DIK_D_KEYON.png",
 };
 
 static BOOL	g_Load = FALSE;		// 初期化を行ったかのフラグ
@@ -55,6 +66,12 @@ static GameUI_Box		g_UIBox[BOX_MAX];
 static GameUI_HP		g_UIHP[PLAYER_HP_MAX];
 
 static GameUI_MP		g_UIMP[PLAYER_MP_MAX];
+
+static GameUI_Box		g_UILeft;
+
+static GameUI_Box		g_UIRight;
+
+static GameUI_Box		g_UIShift;
 
 // 初期化処理
 //=============================================================================
@@ -118,6 +135,18 @@ HRESULT InitGameUI(void)
 			0.0f);
 		g_UIMP[i].texNo = TEXTURE_MP_1;
 	}
+
+	// Left_button
+	g_UILeft.w = TEXTURE_WIDTH_LEFT;
+	g_UILeft.h = TEXTURE_HEIGHT_LEFT;
+	g_UILeft.pos = XMFLOAT3(SCREEN_WIDTH * 0.5f - TEXTURE_WIDTH_LEFT * 2.0f, SCREEN_HEIGHT - TEXTURE_HEIGHT_LEFT, 0.0f);
+	g_UILeft.texNo = TEXTURE_BUTTON_LEFT;
+
+	// Right_button
+	g_UIRight.w = TEXTURE_WIDTH_RIGHT;
+	g_UIRight.h = TEXTURE_HEIGHT_RIGHT;
+	g_UIRight.pos = XMFLOAT3(SCREEN_WIDTH * 0.5f + TEXTURE_WIDTH_RIGHT * 2.0f, SCREEN_HEIGHT - TEXTURE_HEIGHT_LEFT, 0.0f);
+	g_UIRight.texNo = TEXTURE_BUTTON_RIGHT;
 
 	g_Load = TRUE;	// データの初期化を行った
 	return S_OK;
@@ -302,6 +331,61 @@ void DrawGameUI(void)
 
 	}
 
+
+	// Left_Buttonを描画
+	{
+		
+		// テクスチャ設定
+		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_UILeft.texNo]);
+
+		// UIの位置やテクスチャー座標を反映
+		float px = g_UILeft.pos.x;
+		float py = g_UILeft.pos.y;
+		float pw = g_UILeft.w;
+		float ph = g_UILeft.h;
+
+		float tw = 1.0f;
+		float th = 1.0f;
+		float tx = 0.0f;
+		float ty = 0.0f;
+
+		// １枚のポリゴンの頂点とテクスチャ座標を設定
+		SetSpriteColor(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
+			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+
+		// ポリゴン描画
+		GetDeviceContext()->Draw(4, 0);
+		
+
+	}
+
+
+	// Right_Buttonを描画
+	{
+
+		// テクスチャ設定
+		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_UIRight.texNo]);
+
+		// UIの位置やテクスチャー座標を反映
+		float px = g_UIRight.pos.x;
+		float py = g_UIRight.pos.y;
+		float pw = g_UIRight.w;
+		float ph = g_UIRight.h;
+
+		float tw = 1.0f;
+		float th = 1.0f;
+		float tx = 0.0f;
+		float ty = 0.0f;
+
+		// １枚のポリゴンの頂点とテクスチャ座標を設定
+		SetSpriteColor(g_VertexBuffer, px, py, pw, ph, tx, ty, tw, th,
+			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+
+		// ポリゴン描画
+		GetDeviceContext()->Draw(4, 0);
+
+
+	}
 
 }
 

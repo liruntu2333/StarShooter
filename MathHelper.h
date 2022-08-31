@@ -8,6 +8,7 @@
 #pragma once
 
 #include <array>
+#include <ctime>
 #include <DirectXMath.h>
 #include <vector>
 
@@ -36,6 +37,11 @@ public:
 	static T Clamp(const T& x, const T& low, const T& high)
 	{
 		return x < low ? low : (x > high ? high : x);
+	}
+
+	static float RandF()
+	{
+		return static_cast<float>(rand()) / RAND_MAX;
 	}
 
 	//static DirectX::XMVECTOR XM_CALLCONV ToXMVECTOR(const DirectX::XMFLOAT3& vec)

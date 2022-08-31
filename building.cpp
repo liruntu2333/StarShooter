@@ -38,10 +38,6 @@
 #define MODEL_BUILDING_STRUCTURE_DETAILED		"data/MODEL/structure_detailed.obj"
 #define MODEL_BUILDING_STRUCTURE_DIAGONAL		"data/MODEL/structure_diagonal.obj"
 
-
-
-
-
 #define	VALUE_ROTATE			(XM_PI * 0.02f)				// ‰ñ“]—Ê
 
 #define BUILDING_SHADOW_SIZE	(0.4f)						// ‰e‚Ì‘å‚«‚³
@@ -148,12 +144,26 @@ HRESULT InitBuilding(void)
 	g_Building[3].rot = XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f);
 	g_Building[3].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
+	LoadModel(MODEL_BUILDING_HANGAR_LARGEB, &g_Building[5].model);
+	g_Building[5].load = TRUE;
+	g_Building[5].pos = XMFLOAT3(-300.0f, 0.0f, 300.0f);
+	GetYOffset(g_Building[5].pos);
+	g_Building[5].rot = XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f);
+	g_Building[5].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
 	LoadModel(MODEL_BUILDING_HANGAR_ROUNDA, &g_Building[4].model);
 	g_Building[4].load = TRUE;
 	g_Building[4].pos = XMFLOAT3(200.0f, 0.0f, -400.0f);
 	GetYOffset(g_Building[4].pos);
 	g_Building[4].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	g_Building[4].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+	LoadModel(MODEL_BUILDING_HANGAR_ROUNDA, &g_Building[6].model);
+	g_Building[6].load = TRUE;
+	g_Building[6].pos = XMFLOAT3(-200.0f, 0.0f, 400.0f);
+	GetYOffset(g_Building[6].pos);
+	g_Building[6].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	g_Building[6].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 	
 
 	g_Load = TRUE;

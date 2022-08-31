@@ -442,6 +442,8 @@ char* GetDebugStr(void)
 void SetMode(int mode)
 {
 	// モードを変える前に全部メモリを解放しちゃう
+	// まず曲を止める
+	StopSound();			
 
 	// タイトル画面の終了処理
 	UninitTitle();
@@ -463,25 +465,40 @@ void SetMode(int mode)
 	case MODE_TITLE:
 		// タイトル画面の初期化
 		InitTitle();
+
+		PlaySound(SOUND_LABEL_BGM_sample000);
+
 		break;
 
 	case MODE_TUTORIAL:
 		// チュートリアル画面の初期化
 		InitTutorial();
+
+		PlaySound(SOUND_LABEL_BGM_sample000);
+
 		break;
 
 	case MODE_GAME:
 		// ゲーム画面の初期化
 		InitGame();
+
+		PlaySound(SOUND_LABEL_BGM_sample001);
+
 		break;
 
 	case MODE_RESULT:
 		// リザルト画面の初期化
 		InitResult();
+
+		PlaySound(SOUND_LABEL_BGM_sample002);
+
 		break;
 
 		// ゲーム終了時の処理
 	case MODE_MAX:
+
+		StopSound();
+
 		// エネミーの終了処理
 		UninitEnemy();
 

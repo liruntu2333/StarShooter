@@ -374,6 +374,8 @@ void CheckHit(void)
 
 				// ƒXƒRƒA‚ð‘«‚·
 				AddScore(10);
+
+				PlaySound(SOUND_LABEL_SE_shot000);
 			}
 		}
 
@@ -393,6 +395,8 @@ void CheckHit(void)
 			item[i].use = FALSE;
 			ReleaseShadow(item[i].shadowIdx);
 
+			PlaySound(SOUND_LABEL_SE_lockon000);
+			
 
 			if (item[i].type == hpHeal)
 			{

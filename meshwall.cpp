@@ -88,6 +88,7 @@ HRESULT InitMeshWall(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT4 col,
 	// マテリアル情報の初期化
 	ZeroMemory(&pMesh->material, sizeof(pMesh->material));
 	pMesh->material.Diffuse = col;
+	pMesh->material.Specular = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 	// ポリゴン表示位置の中心座標を設定
 	pMesh->pos = pos;
@@ -266,7 +267,7 @@ void DrawMeshWall(void)
 	int nCntMeshField;
 	
 	// ライティングオフ
-	SetLightEnable(FALSE);
+	//SetLightEnable(FALSE);
 
 	for(nCntMeshField = 0; nCntMeshField < g_nNumMeshWall; nCntMeshField++)
 	{
@@ -313,6 +314,6 @@ void DrawMeshWall(void)
 	}
 
 	// ライティングオン
-	SetLightEnable(TRUE);
+	//SetLightEnable(TRUE);
 }
 

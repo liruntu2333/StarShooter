@@ -386,6 +386,7 @@ void DrawSkyBox()
 {
 	SetWorldMatrix(&g_SphereWorld);
 	SetCullingMode(CULL_MODE_NONE);
+	SetLightEnable(FALSE);
 
 	g_ImmediateContext->IASetIndexBuffer(g_SkyBoxIB.Get(), DXGI_FORMAT_R32_UINT, 0);
 
@@ -401,6 +402,7 @@ void DrawSkyBox()
 	g_ImmediateContext->VSSetShader(g_VertexShader, nullptr, 0);
 	g_ImmediateContext->PSSetShader(g_PixelShader, nullptr, 0);
 	SetCullingMode(CULL_MODE_BACK);
+	SetLightEnable(TRUE);
 }
 
 void UpdateSkyBox(XMFLOAT3 cameraPos)
@@ -768,7 +770,7 @@ void InitSkyBox()
 	imgInfo.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 	HRESULT hr = D3DX11CreateTextureFromFile(g_D3DDevice,
-		"data/TEXTURE/stars.dds", &imgInfo, nullptr,
+		"data/TEXTURE/asteroids.dds", &imgInfo, nullptr,
 		reinterpret_cast<ID3D11Resource**>(g_SkyBoxTex.ReleaseAndGetAddressOf()), nullptr);
 
 	D3D11_TEXTURE2D_DESC skyTexDesc{};

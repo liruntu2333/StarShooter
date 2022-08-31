@@ -155,34 +155,45 @@ void PixelShaderPolygon( in  float4 inPosition		: SV_POSITION,
 		float4 tempColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
 		float4 outColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
+        float3 view_dir = normalize(Camera.xyz - inWorldPos.xyz);
+
 		for (int i = 0; i < 5; i++)
 		{
-			float3 lightDir;
+			float3 lightDir = 0;
 			float light = 0.2f; // Ambient
 
 			if (Light.Flags[i].y == 1)
 			{
+
 				if (Light.Flags[i].x == 1)
 				{
 					lightDir = normalize(-Light.Direction[i].xyz);
                     light = max(dot(lightDir, inNormal.xyz), 0.0f);
+                    float3 half_vec = normalize(lightDir + view_dir);
+                    float4 specular = Material.Specular *
+						pow(max(.0f, dot(normalize(inNormal.xyz), half_vec)), 150.f);
 					
 #ifdef TOON_SHADING
-                    light = light <= 0.0f ? 0.2f : light <= 0.3f ? 0.5f : light <= 0.5f ? 0.7f : light <= 0.7f ? 0.9f : 1.0f;
+                    light = light <= 0.0f ? 0.0f : light <= 0.3f ? 0.3f : light <= 0.5f ? 0.5f : light <= 0.7f ? 0.7f : 0.8f;
 #endif
-
 					//light = 0.5 - 0.5 * light;
-					tempColor = color * Material.Diffuse * light * Light.Diffuse[i];
-				}
+					tempColor += color * Material.Diffuse * light * Light.Diffuse[i];
+                    tempColor += color * Material.Specular * specular * light;
+
+                }
 				else if (Light.Flags[i].x == 2)
 				{
 					lightDir = normalize(Light.Position[i].xyz - inWorldPos.xyz);
-                    light = max(dot(lightDir, inNormal.xyz), 0.0f);
+                    light = max(dot(lightDir, inNormal.xyz), 0.2f);
+                    float3 half_vec = normalize(lightDir + view_dir);
+                    float4 specular = Material.Specular *
+						pow(max(.0f, dot(normalize(inNormal.xyz), half_vec)), 150.f);
 
 #ifdef TOON_SHADING
                     light = light <= 0.0f ? 0.2f : light <= 0.3f ? 0.5f : light <= 0.5f ? 0.7f : light <= 0.7f ? 0.9f : 1.0f;
 #endif
-					tempColor = color * Material.Diffuse * light * Light.Diffuse[i];
+                    tempColor += color * Material.Diffuse * light * Light.Diffuse[i];
+                    tempColor += color * Material.Specular * specular * light;
 
 					float distance = length(inWorldPos - Light.Position[i]);
 
@@ -198,20 +209,29 @@ void PixelShaderPolygon( in  float4 inPosition		: SV_POSITION,
 			}
 		}
 
+		// reflection
+		{
+            float3 incident = -view_dir;
+            float3 reflectionVec = reflect(incident, inNormal.xyz);
+            float4 reflCol = g_SkyBoxTexture.Sample(g_SamplerState, reflectionVec);
+
+            outColor += Material.Specular * reflCol;
+        }
+
 		color = outColor;
 		color.a = inDiffuse.a * Material.Diffuse.a;
 	}
 
 	//ƒtƒHƒO
-	if (Fog.Enable == 1)
-	{
-		float z = inPosition.z*inPosition.w;
-		float f = (Fog.Distance.y - z) / (Fog.Distance.y - Fog.Distance.x);
-		f = saturate(f);
-		outDiffuse = f * color + (1 - f)*Fog.FogColor;
-		outDiffuse.a = color.a;
-	}
-	else
+	//if (Fog.Enable == 1)
+	//{
+	//	float z = inPosition.z*inPosition.w;
+	//	float f = (Fog.Distance.y - z) / (Fog.Distance.y - Fog.Distance.x);
+	//	f = saturate(f);
+	//	outDiffuse = f * color + (1 - f)*Fog.FogColor;
+	//	outDiffuse.a = color.a;
+	//}
+	//else
 	{
 		outDiffuse = color;
 	}

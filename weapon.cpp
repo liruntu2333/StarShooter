@@ -303,7 +303,7 @@ void UpdateWeapon(void)
 		lightPos.y += 20.0f;
 
 		light->Position = lightPos;
-		light->Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		light->Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 		light->Type = LIGHT_TYPE_POINT;
 		light->Enable = TRUE;

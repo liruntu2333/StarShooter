@@ -58,7 +58,6 @@ static float		g_wave_amplitude  = 20.0f;	// ”g‚ÌU•
 
 static BOOL			g_Load = FALSE;
 
-inline float GetFieldHeight(float x, float z);
 inline bool IsFacingWest(const float dir)
 {
 	const float sin = sinf(dir);
@@ -443,7 +442,7 @@ BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3 *HitPosition, XMFLOAT3 *Normal)
 	return FALSE;
 }
 
-inline float GetFieldHeight(float x, float z)
+float GetFieldHeight(float x, float z)
 {
 	if ((x > -ROAD_HALF_WIDTH && x < +ROAD_HALF_WIDTH) ||
 		(z > -ROAD_HALF_WIDTH && z < +ROAD_HALF_WIDTH))
@@ -540,7 +539,7 @@ XMFLOAT3 GetRandomValidPosition()
 }
 
 
-XMFLOAT3 GetRandomValidPositionAtConjuction()
+XMFLOAT3 GetRandomValidPositionOnRoad()
 {
 	float x = 0.0, z = 0.0;
 

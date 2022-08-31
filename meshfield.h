@@ -30,10 +30,11 @@ bool IsPositionValid(float x, float z);
 
 XMFLOAT3 XM_CALLCONV GetWrapPosition(XMFLOAT3 pos, int endOfBoarderFlag);
 
+float GetFieldHeight(float x, float z);
 int IsOutOfBoarder(float x, float z);
 float GetFieldProgress(float x, float z, float dir);
 int IsAtConjunction(float x, float z, float dir);
 
 XMFLOAT3 GetRandomValidPosition();
-XMFLOAT3 GetRandomValidPositionAtConjuction();
+XMFLOAT3 GetRandomValidPositionOnRoad();
 XMFLOAT3 GetRandomPosition();

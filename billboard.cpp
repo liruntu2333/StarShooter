@@ -172,8 +172,8 @@ HRESULT MakeVertexBillboard(void)
 
 	VERTEX_3D* vertex = (VERTEX_3D*)msr.pData;
 
-	float fWidth = 20.0f;
-	float fHeight = 20.0f;
+	float fWidth = Billboard_WIDTH;
+	float fHeight = Billboard_HEIGHT;
 
 	vertex[0].Position = XMFLOAT3(-fWidth / 2.0f, fHeight, 0.0f);
 	vertex[1].Position = XMFLOAT3(fWidth / 2.0f, fHeight, 0.0f);

@@ -47,7 +47,7 @@ void InitLight(void)
 
 	// 並行光源の設定（世界を照らす光）
 	g_Light[0].Direction = XMFLOAT3( 0.0f, -0.7071067f, -0.7071067f );		// 光の向き
-	g_Light[0].Diffuse   = XMFLOAT4( 0.7f, 0.7f, 0.7f, 1.0f );	// 光の色
+	g_Light[0].Diffuse   = XMFLOAT4( 0.3f, 0.3f, 0.3f, 1.0f );	// 光の色
 	g_Light[0].Type = LIGHT_TYPE_DIRECTIONAL;					// 並行光源
 	g_Light[0].Enable = TRUE;									// このライトをON
 	SetLight(0, &g_Light[0]);									// これで設定している
@@ -59,7 +59,7 @@ void InitLight(void)
 	g_Fog.FogEnd   = 1250.0f;									// ここまで離れるとフォグの色で見えなくなる
 	g_Fog.FogColor = XMFLOAT4( .3f, .3f, .3f, 1.0f );		// フォグの色
 	SetFog(&g_Fog);
-	SetFogEnable(TRUE);		// 他の場所もチェックする shadow
+	SetFogEnable(FALSE);		// 他の場所もチェックする shadow
 
 }
 
@@ -87,6 +87,7 @@ void SetLightData(int index, LIGHT *light)
 
 LIGHT *GetLightData(int index)
 {
+	assert(index < LIGHT_MAX && "Light index out of range");
 	return(&g_Light[index]);
 }
 

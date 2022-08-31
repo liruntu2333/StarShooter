@@ -6,8 +6,8 @@
 //=============================================================================
 #pragma once
 
-#define	Billboard_WIDTH			(20.0f)
-#define	Billboard_HEIGHT		(20.0f)
+#define	Billboard_WIDTH			(15.0f)
+#define	Billboard_HEIGHT		(15.0f)
 
 enum CommandCode : int
 {

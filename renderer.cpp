@@ -7,11 +7,14 @@
 #include "main.h"
 #include "renderer.h"
 
+#include <iostream>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
 
 #include "wrl/client.h"
+#include <comdef.h>
 
 //デバッグ用画面テキスト出力を有効にする
 #define DEBUG_DISP_TEXTOUT
@@ -1007,7 +1010,14 @@ void DebugTextOut(char* text, int x, int y)
 	{
 		//取得したサーフェスからデバイスコンテキストを取得する
 		HDC hdc;
-		hr = pBackSurface->GetDC(FALSE, &hdc);
+		try
+		{
+			hr = pBackSurface->GetDC(FALSE, &hdc);	// something went wrong and throw exception by chance
+		}
+		catch (_com_error& error)
+		{
+			std::cout << error.ErrorMessage() << std::endl;
+		}
 
 		if (SUCCEEDED(hr))
 		{

@@ -22,8 +22,6 @@
 #define POS_Z_CAM_MENU				(-100.0f)		// カメラの位置(Z座標)
 
 
-#define	VIEW_ANGLE		(XMConvertToRadians(45.0f))						// ビュー平面の視野角
-#define	VIEW_ASPECT		((float)SCREEN_WIDTH / (float)SCREEN_HEIGHT)	// ビュー平面のアスペクト比	
 #define	VIEW_NEAR_Z		(10.0f)											// ビュー平面のNearZ値
 #define	VIEW_FAR_Z		(10000.0f)										// ビュー平面のFarZ値
 
@@ -34,6 +32,9 @@
 // グローバル変数
 //*****************************************************************************
 static CAMERA			g_Camera;		// カメラデータ
+
+static float g_ViewAngle = XMConvertToRadians(45.0f);
+static float g_ViewAspect = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
 
 //=============================================================================
 // 初期化処理
@@ -194,7 +195,7 @@ void SetCamera(void)
 
 	// プロジェクションマトリックス設定
 	XMMATRIX mtxProjection;
-	mtxProjection = XMMatrixPerspectiveFovLH(VIEW_ANGLE, VIEW_ASPECT, VIEW_NEAR_Z, VIEW_FAR_Z);
+	mtxProjection = XMMatrixPerspectiveFovLH(g_ViewAngle, g_ViewAspect, VIEW_NEAR_Z, VIEW_FAR_Z);
 
 	SetProjectionMatrix(&mtxProjection);
 	XMStoreFloat4x4(&g_Camera.mtxProjection, mtxProjection);
@@ -211,49 +212,39 @@ CAMERA *GetCamera(void)
 	return &g_Camera;
 }
 
-
-// カメラの視点と注視点をセット
-void SetCameraAtPlayer(XMFLOAT3 pos, float dir, float t)
+void LerpCameraPosition(XMFLOAT3 pos, float dir, float tPos)
 {
-	g_Camera.rot.y = MathHelper::Lerp(g_Camera.rot.y, dir, t);
-	// カメラの注視点をプレイヤーの座標にしてみる
+	const XMVECTOR pPos = XMLoadFloat3(&pos);
+	const XMVECTOR vDir = XMVector3Normalize({ sinf(dir), 0.0f, cosf(dir), 0.0f });
+
+	{
+		const XMVECTOR target = pPos - vDir * g_Camera.lenPlayer;
+		const XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), target, tPos);
+		XMStoreFloat3(&g_Camera.pos, result);
+	}
+
 	g_Camera.at = pos;
-
-	// カメラの視点をカメラのY軸回転に対応させている
-	XMFLOAT3 target {};
-	target.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
-	target.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
-	target.y = pos.y + 10.0f;
-
-	XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), XMLoadFloat3(&target), t);
-	XMStoreFloat3(&g_Camera.pos, result);
 }
 
-
-// カメラの視点と注視点をセット
-void SetCameraAtMenu(XMFLOAT3 pos, float dir, float t)
+void LerpCameraPositionAt(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, float tPos, float tAt)
 {
-	g_Camera.rot.y = MathHelper::Lerp(g_Camera.rot.y, dir, t);
-	// カメラの注視点をプレイヤーの座標にしてみる
-	g_Camera.at = pos;
+	const XMVECTOR pPos = XMLoadFloat3(&playerPos);
+	const XMVECTOR ePos = XMLoadFloat3(&enemyPos);
+	const XMVECTOR vDir = XMVector3Normalize(ePos - pPos);
 
-	// カメラの視点をカメラのY軸回転に対応させている
-	XMFLOAT3 target{};
-	target.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenMenu;
-	target.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenMenu;
-	target.y = pos.y + 10.0f;
+	{
+		const XMVECTOR target = pPos - vDir * g_Camera.lenPlayer;
+		const XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), target, tPos);
+		XMStoreFloat3(&g_Camera.pos, result);
+	}
 
-	XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), XMLoadFloat3(&target), t);
-	XMStoreFloat3(&g_Camera.pos, result);
+	{
+		const XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.at), XMLoadFloat3(&enemyPos), tAt);
+		XMStoreFloat3(&g_Camera.at, result);
+	}
 }
 
-void SetCameraAtEnemy(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, float tPos, float tAt)
+void LerpCameraViewAngle(float angle, float t = 1.0f)
 {
-	SetCameraAtPlayer(playerPos, dir);
-
-	//XMStoreFloat3(&g_Camera.at, pPos);
-	//XMStoreFloat3(&g_Camera.up, );
-	//SetCameraAtPlayer(playerPos, dir, tPos);
-	XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.at), XMLoadFloat3(&enemyPos), tAt);
-	XMStoreFloat3(&g_Camera.at, result);
+	g_ViewAngle = MathHelper::Lerp(g_ViewAngle, angle, t);
 }

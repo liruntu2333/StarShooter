@@ -477,7 +477,7 @@ void UpdatePlayer(void)
 			ENEMY& enemy = *(GetEnemy() + i);
 			if (CheckCode(cmd, enemy))
 			{
-				ShootBullets(5, enemy, wandPos, enemy.pos, front, right, up);
+				ShootBullets(6, enemy, wandPos, enemy.pos, front, right, up);
 			}
 		}
 	}
@@ -490,7 +490,7 @@ void UpdatePlayer(void)
 			ENEMY& enemy = *g_LockedTarget;
 			if (CheckCode(cmd, enemy))
 			{
-				ShootBullets(5, enemy, wandPos, enemy.pos, front, right, up);
+				ShootBullets(6, enemy, wandPos, enemy.pos, front, right, up);
 			}
 		}
 	}

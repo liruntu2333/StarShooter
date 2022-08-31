@@ -441,7 +441,7 @@ void SetCameraFocus()
 {
 	XMFLOAT3 playerPos = GetPlayer()->pos;
 	const float playerDir = GetPlayer()->dir;
-	playerPos.y += 25.f; // set whatever the y offset you want
+	playerPos.y += 35.f; // set whatever the y offset you want
 	float tCamera = 0.0f;
 	
 	const auto target = GetPlayerLockedTarget();
@@ -450,16 +450,18 @@ void SetCameraFocus()
 	{
 	case FOCUS_PLAYER:
 		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
-		SetCameraAtPlayer(playerPos, playerDir, tCamera);
+		LerpCameraViewAngle(XM_PI / 4.0f, 0.5f);
+		LerpCameraPosition(playerPos, playerDir, tCamera);
 		SetCamera();
 		break;
 
 	case FOCUS_ENEMY:
 		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
+		LerpCameraViewAngle(XM_PI / 6.0f, 0.5f);
 		if (target != nullptr) 
-			SetCameraAtEnemy(playerPos, target->pos, playerDir, tCamera, 1.0f);
+			LerpCameraPositionAt(playerPos, target->pos, playerDir, tCamera, 0.2f);
 		else 
-			SetCameraAtPlayer(playerPos, playerDir, tCamera);
+			LerpCameraPosition(playerPos, playerDir, tCamera);
 
 		SetCamera();
 		break;

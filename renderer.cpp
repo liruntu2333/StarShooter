@@ -21,6 +21,7 @@
 //シェーダーデバッグ設定を有効にする
 //#define DEBUG_SHADER
 
+static const std::string g_SkyBoxPath = "data/TEXTURE/planets.dds";
 
 //*********************************************************
 // 構造体
@@ -770,7 +771,7 @@ void InitSkyBox()
 	imgInfo.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 	HRESULT hr = D3DX11CreateTextureFromFile(g_D3DDevice,
-		"data/TEXTURE/asteroids.dds", &imgInfo, nullptr,
+		g_SkyBoxPath.c_str(), &imgInfo, nullptr,
 		reinterpret_cast<ID3D11Resource**>(g_SkyBoxTex.ReleaseAndGetAddressOf()), nullptr);
 
 	D3D11_TEXTURE2D_DESC skyTexDesc{};

@@ -154,115 +154,54 @@ void UninitParticle(void)
 //=============================================================================
 void UpdateParticle(void)
 {
-	//PLAYER *pPlayer = GetPlayer();
-	//g_posBase = pPlayer->pos;
+	const bool refresh = IsPlayerOutOfBoarder();
 
+	if (refresh)
 	{
-		for(int nCntParticle = 0; nCntParticle < MAX_PARTICLE; nCntParticle++)
+		for (auto & particle : g_aParticle)
 		{
-			if(g_aParticle[nCntParticle].bUse)
-			{// 使用中
-				//g_aParticle[nCntParticle].pos.x += g_aParticle[nCntParticle].move.x;
-				//g_aParticle[nCntParticle].pos.z += g_aParticle[nCntParticle].move.z;
+			particle.bUse = FALSE;
+		}
+		return;
+	}
 
-				//g_aParticle[nCntParticle].pos.y += g_aParticle[nCntParticle].move.y;
-				//if(g_aParticle[nCntParticle].pos.y <= g_aParticle[nCntParticle].fSizeY / 2)
-				//{// 着地した
-				//	g_aParticle[nCntParticle].pos.y = g_aParticle[nCntParticle].fSizeY / 2;
-				//	g_aParticle[nCntParticle].move.y = -g_aParticle[nCntParticle].move.y * 0.75f;
-				//}
-
-				//g_aParticle[nCntParticle].move.x += (0.0f - g_aParticle[nCntParticle].move.x) * 0.015f;
-				//g_aParticle[nCntParticle].move.y -= 0.25f;
-				//g_aParticle[nCntParticle].move.z += (0.0f - g_aParticle[nCntParticle].move.z) * 0.015f;
-
-#ifdef DISP_SHADOW
-				if(g_aParticle[nCntParticle].nIdxShadow != -1)
-				{// 影使用中
-					float colA;
-
-					// 影の位置設定
-					SetPositionShadow(g_aParticle[nCntParticle].nIdxShadow, XMFLOAT3(g_aParticle[nCntParticle].pos.x, 0.1f, g_aParticle[nCntParticle].pos.z));
-
-					// 影の色の設定
-					colA = g_aParticle[nCntParticle].material.Diffuse.w;
-					SetColorShadow(g_aParticle[nCntParticle].nIdxShadow, XMFLOAT4(0.5f, 0.5f, 0.5f, colA));
-				}
-#endif
-
-
-
-				g_aParticle[nCntParticle].nLife--;
-				if(g_aParticle[nCntParticle].nLife <= 0)
+	for (auto& nCntParticle : g_aParticle)
+	{
+		if(nCntParticle.bUse)
+		{
+			nCntParticle.nLife--;
+			if(nCntParticle.nLife <= 0)
+			{
+				nCntParticle.bUse = FALSE;
+				ReleaseShadow(nCntParticle.nIdxShadow);
+				nCntParticle.nIdxShadow = -1;
+			}
+			else
+			{
+				auto& particle = nCntParticle;
+				const float t = 1.0f - (float)particle.nLife / 120;
+				float r = 0.0f;
+				float g = 0.0f;
+				float b = 0.0f;
+				if (t < 0.5f)
 				{
-					g_aParticle[nCntParticle].bUse = FALSE;
-					ReleaseShadow(g_aParticle[nCntParticle].nIdxShadow);
-					g_aParticle[nCntParticle].nIdxShadow = -1;
+					const float r2 = PARTICLE_INTENSITY * (1.0f - 2.0f * t);
+					r = sqrtf(r2);
+					g = sqrtf(PARTICLE_INTENSITY - r2);
 				}
 				else
 				{
-					//if(g_aParticle[nCntParticle].nLife <= 80)
-					//{
-					//	g_aParticle[nCntParticle].material.Diffuse.x = 0.8f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.8f;
-					//	g_aParticle[nCntParticle].material.Diffuse.y = 0.7f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.7f;
-					//	g_aParticle[nCntParticle].material.Diffuse.z = 0.2f - (float)(80 - g_aParticle[nCntParticle].nLife) / 80 * 0.2f;
-					//}
-
-					auto& particle = g_aParticle[nCntParticle];
-					const float t = 1.0f - (float)particle.nLife / 120;
-					float r = 0.0f;
-					float g = 0.0f;
-					float b = 0.0f;
-					if (t < 0.5f)
-					{
-						const float r2 = PARTICLE_INTENSITY * (1.0f - 2.0f * t);
-						r = sqrtf(r2);
-						g = sqrtf(PARTICLE_INTENSITY - r2);
-					}
-					else
-					{
-						const float g2 = PARTICLE_INTENSITY * (2.0f - 2.0f * t);
-						g = sqrtf(g2);
-						b = sqrtf(PARTICLE_INTENSITY - g2);
-					}
-					auto& diffuse = particle.material.Diffuse;
-					diffuse.x = r;
-					diffuse.y = g;
-					diffuse.z = b;
-					diffuse.w = 1.0f - t;
-					//g_aParticle[nCntParticle].material.Diffuse.x = 0.8f - (float)(120 - g_aParticle[nCntParticle].nLife) / 120 * 0.8f;
-					//g_aParticle[nCntParticle].material.Diffuse.y = 0.7f - (float)(120 - g_aParticle[nCntParticle].nLife) / 120 * 0.7f;
-					//g_aParticle[nCntParticle].material.Diffuse.z = 0.2f - (float)(120 - g_aParticle[nCntParticle].nLife) / 120 * 0.2f;
-
+					const float g2 = PARTICLE_INTENSITY * (2.0f - 2.0f * t);
+					g = sqrtf(g2);
+					b = sqrtf(PARTICLE_INTENSITY - g2);
 				}
+				auto& diffuse = particle.material.Diffuse;
+				diffuse.x = r;
+				diffuse.y = g;
+				diffuse.z = b;
+				diffuse.w = 1.0f - t;
 			}
 		}
-
-		//// パーティクル発生
-		//{
-		//	XMFLOAT3 pos;
-		//	XMFLOAT3 move;
-		//	float fAngle, fLength;
-		//	int nLife;
-		//	float fSize;
-
-		//	pos = g_posBase;
-
-		//	fAngle = (float)(rand() % 628 - 314) / 100.0f;
-		//	fLength = rand() % (int)(g_fWidthBase * 200 ) / 100.0f - g_fWidthBase;
-		//	move.x = sinf(fAngle) * fLength;
-		//	move.y = rand() % 300 / 100.0f + g_fHeightBase;
-		//	move.z = cosf(fAngle) * fLength;
-
-		//	nLife = rand() % 100 + 150;  
-
-		//	fSize = (float)(rand() % 30 + 20);
-
-		//	pos.y = fSize / 2;
-
-		//	// ビルボードの設定
-		//	SetParticle(pos, move, XMFLOAT4(0.8f, 0.7f, 0.2f, 0.85f), fSize, fSize, nLife);
-		//}
 	}
 }
 

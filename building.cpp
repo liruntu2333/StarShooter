@@ -66,7 +66,7 @@ void SetStreetLight(const BUILDING& building, int lightIdx)
 	light->Position    = lightPos;
 	light->Diffuse = { 0.721568644f, 0.525490224f, 0.043137256f, 1.000000000f };
 	//light->Ambient     = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	light->Attenuation = 200.0f;
+	light->Attenuation = 500.0f;
 	light->Type        = LIGHT_TYPE_POINT;
 	light->Enable      = TRUE;
 	SetLightData(lightIdx, light);
@@ -119,7 +119,7 @@ HRESULT InitBuilding(void)
 	GetYOffset(g_Building[0].pos);
 	g_Building[0].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
 	g_Building[0].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
-	SetStreetLight(g_Building[0], 2);
+	SetStreetLight(g_Building[0], 1);
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTSINGLE, &g_Building[1].model);
 	g_Building[1].load = TRUE;
@@ -127,7 +127,7 @@ HRESULT InitBuilding(void)
 	GetYOffset(g_Building[1].pos);
 	g_Building[1].rot = XMFLOAT3(0.0f, -XM_PIDIV2, 0.0f);
 	g_Building[1].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
-	SetStreetLight(g_Building[1], 3);
+	SetStreetLight(g_Building[1], 2);
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTDOUBLE, &g_Building[2].model);
 	g_Building[2].load = TRUE;
@@ -135,7 +135,15 @@ HRESULT InitBuilding(void)
 	GetYOffset(g_Building[2].pos);
 	g_Building[2].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
 	g_Building[2].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
-	SetStreetLight(g_Building[2], 4);
+	SetStreetLight(g_Building[2], 3);
+
+	LoadModel(MODEL_BUILDING_LIGHTPOSTDOUBLE, &g_Building[14].model);
+	g_Building[14].load = TRUE;
+	g_Building[14].pos = XMFLOAT3(-300.0f, 0.0f, 40.0f);
+	GetYOffset(g_Building[2].pos);
+	g_Building[14].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
+	g_Building[14].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
+	SetStreetLight(g_Building[14], 4);
 
 	LoadModel(MODEL_BUILDING_HANGAR_LARGEB, &g_Building[3].model);
 	g_Building[3].load = TRUE;

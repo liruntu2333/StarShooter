@@ -755,7 +755,7 @@ void UpdateLockedTarget()
 	for (int i = 0; i < MAX_ENEMY; ++i)
 	{
 		ENEMY& enemy = *(pEnemies + i);
-		if (enemy.use == FALSE || enemy.compare_index == enemy.codes.size()) 
+		if (enemy.use == FALSE)//|| enemy.compare_index == enemy.codes.size()) 
 			continue;
 
 		const XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);

@@ -305,9 +305,10 @@ void UpdateWeapon(void)
 		light->Position = lightPos;
 		light->Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		light->Attenuation = 200.0f;
 		light->Type = LIGHT_TYPE_POINT;
 		light->Enable = TRUE;
-		SetLightData(1, light);
+		SetLightData(0, light);
 	}
 
 #ifdef _DEBUG	// デバッグ情報を表示する

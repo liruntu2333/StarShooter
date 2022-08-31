@@ -1,6 +1,6 @@
 //=============================================================================
 //
-// Œš•¨ƒ‚ƒfƒ‹ˆ— [building.cpp]
+// å»ºç‰©ãƒ¢ãƒ‡ãƒ«å‡¦ç† [building.cpp]
 // Author : 
 //
 //=============================================================================
@@ -16,9 +16,9 @@
 #include "meshfield.h"
 
 //*****************************************************************************
-// ƒ}ƒNƒ’è‹`
+// ãƒã‚¯ãƒ­å®šç¾©
 //*****************************************************************************
-#define	MODEL_BUILDING_LIGHTPOSTSINGLE			"data/MODEL/lightpostSingle.obj"			// “Ç‚İ‚Şƒ‚ƒfƒ‹–¼
+#define	MODEL_BUILDING_LIGHTPOSTSINGLE			"data/MODEL/lightpostSingle.obj"			// èª­ã¿è¾¼ã‚€ãƒ¢ãƒ‡ãƒ«å
 #define MODEL_BUILDING_LIGHTPOSTDOUBLE			"data/MODEL/lightpostDouble.obj"
 
 #define MODEL_BUILDING_HANGAR_LARGEA			"data/MODEL/hangar_largeA.obj"
@@ -38,14 +38,14 @@
 #define MODEL_BUILDING_STRUCTURE_DETAILED		"data/MODEL/structure_detailed.obj"
 #define MODEL_BUILDING_STRUCTURE_DIAGONAL		"data/MODEL/structure_diagonal.obj"
 
-#define	VALUE_ROTATE			(XM_PI * 0.02f)				// ‰ñ“]—Ê
+#define	VALUE_ROTATE			(XM_PI * 0.02f)				// å›è»¢é‡
 
-#define BUILDING_SHADOW_SIZE	(0.4f)						// ‰e‚Ì‘å‚«‚³
-#define BUILDING_OFFSET_Y		(0.0f)						// BUILDING‚Ì‘«Œ³‚ğ‚ ‚í‚¹‚é
+#define BUILDING_SHADOW_SIZE	(0.4f)						// å½±ã®å¤§ãã•
+#define BUILDING_OFFSET_Y		(0.0f)						// BUILDINGã®è¶³å…ƒã‚’ã‚ã‚ã›ã‚‹
 
 
 //*****************************************************************************
-// ƒvƒƒgƒ^ƒCƒvéŒ¾
+// ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
 //*****************************************************************************
 enum BuildingType : int
 {
@@ -73,7 +73,7 @@ void SetStreetLight(const BUILDING& building, int lightIdx)
 }
 
 //*****************************************************************************
-// ƒOƒ[ƒoƒ‹•Ï”
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //*****************************************************************************
 static BUILDING			g_Building[MAX_BUILDING];		
 
@@ -82,7 +82,7 @@ static BOOL				g_Load = FALSE;
 
 
 //=============================================================================
-// ‰Šú‰»ˆ—
+// åˆæœŸåŒ–å‡¦ç†
 //=============================================================================
 HRESULT InitBuilding(void)
 {
@@ -96,7 +96,7 @@ HRESULT InitBuilding(void)
 		g_Building[i].scl = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 
-		// ƒ‚ƒfƒ‹‚ÌƒfƒBƒtƒ…[ƒY‚ğ•Û‘¶‚µ‚Ä‚¨‚­BF•Ï‚¦‘Î‰‚Ìˆ×B
+		// ãƒ¢ãƒ‡ãƒ«ã®ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºã‚’ä¿å­˜ã—ã¦ãŠãã€‚è‰²å¤‰ãˆå¯¾å¿œã®ç‚ºã€‚
 		GetModelDiffuse(&g_Building[0].model, &g_Building[0].diffuse[0]);
 
 		XMFLOAT3 pos = g_Building[i].pos;
@@ -158,12 +158,71 @@ HRESULT InitBuilding(void)
 	g_Building[4].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	g_Building[4].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
-	LoadModel(MODEL_BUILDING_HANGAR_ROUNDA, &g_Building[6].model);
+	LoadModel(MODEL_BUILDING_HANGAR_ROUNDB, &g_Building[5].model);
+	g_Building[5].load = TRUE;
+	g_Building[5].pos = XMFLOAT3(-200.0f, 0.0f, -300.0f);
+	GetYOffset(g_Building[5].pos);
+	g_Building[5].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	g_Building[5].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+	LoadModel(MODEL_BUILDING_HANGAR_LARGEA, &g_Building[6].model);
 	g_Building[6].load = TRUE;
-	g_Building[6].pos = XMFLOAT3(-200.0f, 0.0f, 400.0f);
+	g_Building[6].pos = XMFLOAT3(-400.0f, 0.0f, -500.0f);
 	GetYOffset(g_Building[6].pos);
 	g_Building[6].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	g_Building[6].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+
+	LoadModel(MODEL_BUILDING_STRUCTURE, &g_Building[7].model);
+	g_Building[7].load = TRUE;
+	g_Building[7].pos = XMFLOAT3(-100.0f, 0.0f, -100.0f);
+	GetYOffset(g_Building[7].pos);
+	g_Building[7].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
+	g_Building[7].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+	
+	LoadModel(MODEL_BUILDING_TURRET_SINGLE, &g_Building[8].model);
+	g_Building[8].load = TRUE;
+	g_Building[8].pos = XMFLOAT3(-200.0f, 0.0f, -150.0f);
+	GetYOffset(g_Building[8].pos);
+	g_Building[8].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	g_Building[8].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+	LoadModel(MODEL_BUILDING_HANGAR_SMALLA, &g_Building[9].model);
+	g_Building[9].load = TRUE;
+	g_Building[9].pos = XMFLOAT3(200.0f, 0.0f, 150.0f);
+	GetYOffset(g_Building[9].pos);
+	g_Building[9].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
+	g_Building[9].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+	
+	LoadModel(MODEL_BUILDING_STRUCTURE_DIAGONAL, &g_Building[10].model);
+	g_Building[10].load = TRUE;
+	g_Building[10].pos = XMFLOAT3(100.0f, 0.0f, 400.0f);
+	GetYOffset(g_Building[10].pos);
+	g_Building[10].rot = XMFLOAT3(0.0f, XM_PIDIV4, 0.0f);
+	g_Building[10].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+	LoadModel(MODEL_BUILDING_HANGAR_SMALLB, &g_Building[11].model);
+	g_Building[11].load = TRUE;
+	g_Building[11].pos = XMFLOAT3(-100.0f, 0.0f, 300.0f);
+	GetYOffset(g_Building[11].pos);
+	g_Building[11].rot = XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f);
+	g_Building[11].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+	LoadModel(MODEL_BUILDING_STRUCTURE, &g_Building[12].model);
+	g_Building[12].load = TRUE;
+	g_Building[12].pos = XMFLOAT3(-150.0f, 0.0f, 150.0f);
+	GetYOffset(g_Building[12].pos);
+	g_Building[12].rot = XMFLOAT3(0.0f, XM_PIDIV4, 0.0f);
+	g_Building[12].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
+
+	LoadModel(MODEL_BUILDING_STRUCTURE, &g_Building[13].model);
+	g_Building[13].load = TRUE;
+	g_Building[13].pos = XMFLOAT3(-400.0f, 0.0f, 400.0f);
+	GetYOffset(g_Building[13].pos);
+	g_Building[13].rot = XMFLOAT3(0.0f, XM_PIDIV4, 0.0f);
+	g_Building[13].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 	
 
 	g_Load = TRUE;
@@ -171,7 +230,7 @@ HRESULT InitBuilding(void)
 }
 
 //=============================================================================
-// I—¹ˆ—
+// çµ‚äº†å‡¦ç†
 //=============================================================================
 void UninitBuilding(void)
 {
@@ -189,7 +248,7 @@ void UninitBuilding(void)
 }
 
 //=============================================================================
-// XVˆ—
+// æ›´æ–°å‡¦ç†
 //=============================================================================
 void UpdateBuilding(void)
 {
@@ -198,40 +257,40 @@ void UpdateBuilding(void)
 }
 
 //=============================================================================
-// •`‰æˆ—
+// æç”»å‡¦ç†
 //=============================================================================
 void DrawBuilding(void)
 {
 	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
 
-	// ƒJƒŠƒ“ƒO–³Œø
+	// ã‚«ãƒªãƒ³ã‚°ç„¡åŠ¹
 	//SetCullingMode(CULL_MODE_NONE);
 
 	for (int i = 0; i < MAX_BUILDING; i++)
 	{
 		if (g_Building[i].use == FALSE) continue;
 
-		// ƒ[ƒ‹ƒhƒ}ƒgƒŠƒbƒNƒX‚Ì‰Šú‰»
+		// ãƒ¯ãƒ¼ãƒ«ãƒ‰ãƒãƒˆãƒªãƒƒã‚¯ã‚¹ã®åˆæœŸåŒ–
 		mtxWorld = XMMatrixIdentity();
 
-		// ƒXƒP[ƒ‹‚ğ”½‰f
+		// ã‚¹ã‚±ãƒ¼ãƒ«ã‚’åæ˜ 
 		mtxScl = XMMatrixScaling(g_Building[i].scl.x, g_Building[i].scl.y, g_Building[i].scl.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-		// ‰ñ“]‚ğ”½‰f
+		// å›è»¢ã‚’åæ˜ 
 		mtxRot = XMMatrixRotationRollPitchYaw(g_Building[i].rot.x, g_Building[i].rot.y + XM_PI, g_Building[i].rot.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-		// ˆÚ“®‚ğ”½‰f
+		// ç§»å‹•ã‚’åæ˜ 
 		mtxTranslate = XMMatrixTranslation(g_Building[i].pos.x, g_Building[i].pos.y, g_Building[i].pos.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
-		// ƒ[ƒ‹ƒhƒ}ƒgƒŠƒbƒNƒX‚Ìİ’è
+		// ãƒ¯ãƒ¼ãƒ«ãƒ‰ãƒãƒˆãƒªãƒƒã‚¯ã‚¹ã®è¨­å®š
 		SetWorldMatrix(&mtxWorld);
 
 		XMStoreFloat4x4(&g_Building[i].mtxWorld, mtxWorld);
 
-		// ƒ‚ƒfƒ‹•`‰æ
+		// ãƒ¢ãƒ‡ãƒ«æç”»
 		DrawModel(&g_Building[i].model);
 
 
@@ -240,12 +299,12 @@ void DrawBuilding(void)
 
 
 
-	// ƒJƒŠƒ“ƒOİ’è‚ğ–ß‚·
+	// ã‚«ãƒªãƒ³ã‚°è¨­å®šã‚’æˆ»ã™
 	//SetCullingMode(CULL_MODE_BACK);
 }
 
 //=============================================================================
-// ƒGƒlƒ~[‚Ìæ“¾
+// ã‚¨ãƒãƒŸãƒ¼ã®å–å¾—
 //=============================================================================
 BUILDING* GetBuilding()
 {

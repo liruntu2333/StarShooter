@@ -18,6 +18,9 @@ enum
 	TEXTURE_HP_0,
 	TEXTURE_MP_1,
 	TEXTURE_MP_0,
+	TEXTURE_BUTTON_LEFT,
+	TEXTURE_BUTTON_RIGHT,
+	TEXTURE_BUTTON_SHIFT,
 	TEXTURE_MAX,
 };
 
@@ -40,7 +43,6 @@ struct GameUI_Box
 	int				texNo;			// 使用しているテクスチャ番号
 
 };
-
 
 struct GameUI_HP
 {

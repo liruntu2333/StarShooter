@@ -320,6 +320,7 @@ void UpdatePlayer(void)
 		//return;
 	}
 
+
 	if (!cameraAtPlayer && g_LockedTarget && g_Player.MP > 0)
 	{
 		g_Player.spd = VALUE_MOVE * 0.1f;
@@ -330,6 +331,21 @@ void UpdatePlayer(void)
 			t = 0;
 		}
 	}
+	else
+	{
+		if (g_Player.MP < PLAYER_MP_MAX)
+		{
+			static int t = 0;
+			if (++t == 60)
+			{
+				g_Player.MP++;
+				t = 0;
+			}
+		}
+		
+	}
+
+
 
 	// x pass
 	if (!g_AtConjunction || g_MadeDecision)
@@ -563,7 +579,7 @@ void UpdatePlayer(void)
 	PrintDebugProc("Player:X:%f Y:%f Z:%f\n", g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
 	PrintDebugProc("Player: dir:%f progress : %f\n", dir, g_FieldProgress);
 	PrintDebugProc("Player hp:%d\n", g_Player.HP);
-	
+	PrintDebugProc("Player mp:%d\n", g_Player.MP);
 	PrintDebugProc("g_AtConjunction:%d\n", g_AtConjunction);
 	PrintDebugProc("g_MadeDecision:%d\n", g_MadeDecision);
 #endif

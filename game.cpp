@@ -12,6 +12,7 @@
 #include "sound.h"
 #include "fade.h"
 #include "game.h"
+#include "result.h"
 
 #include "player.h"
 #include "enemy.h"
@@ -418,6 +419,8 @@ void CheckHit(void)
 	
 	if (player->HP == 0)
 	{
+		SetResult(GetScore());	// リザルト画面で点を表示させる用
+
 		SetFade(FADE_OUT, MODE_RESULT);
 	}
 

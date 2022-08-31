@@ -12,7 +12,12 @@
 //*****************************************************************************
 enum
 {
-	TEXTURE_TUTORIAL_BG,
+	TEXTURE_TUTORIAL_1,
+	TEXTURE_TUTORIAL_2,
+	TEXTURE_TUTORIAL_3,
+	TEXTURE_TUTORIAL_4,
+	TEXTURE_TUTORIAL_TIPS_1,
+	TEXTURE_TUTORIAL_TIPS_2,
 	TEXTURE_TUTORIAL_MAX,
 };
 
@@ -21,11 +26,12 @@ enum
 //*****************************************************************************
 struct TUTORIAL
 {
-	XMFLOAT3 pos;		// ポリゴンの座標
-	float widtht;		// 幅
-	float height;		// 高さ
-	int texNo;			// 使用しているテクスチャ番号
-	BOOL use;			// 利用かどうか
+	XMFLOAT3	pos;		// ポリゴンの座標
+	float		widtht;		// 幅
+	float		height;		// 高さ
+	int			texNo;		// 使用しているテクスチャ番号
+	BOOL		use;		// 利用かどうか
+	float		alpha;
 };
 
 //*****************************************************************************

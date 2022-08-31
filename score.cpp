@@ -12,8 +12,8 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define TEXTURE_WIDTH				(16)	// キャラサイズ
-#define TEXTURE_HEIGHT				(32)	// 
+#define TEXTURE_WIDTH				(32)	// キャラサイズ
+#define TEXTURE_HEIGHT				(64)	// 
 #define TEXTURE_MAX					(1)		// テクスチャの数
 
 
@@ -73,11 +73,11 @@ HRESULT InitScore(void)
 	GetDevice()->CreateBuffer(&bd, NULL, &g_VertexBuffer);
 
 
-	// プレイヤーの初期化
+	// スコアの初期化
 	g_Use   = TRUE;
 	g_w     = TEXTURE_WIDTH;
 	g_h     = TEXTURE_HEIGHT;
-	g_Pos   = { 500.0f, 20.0f, 0.0f };
+	g_Pos	= { SCREEN_WIDTH * 0.5f + TEXTURE_WIDTH * 0.5f , TEXTURE_HEIGHT, 0.0f };
 	g_TexNo = 0;
 
 	g_Score = 0;	// スコアの初期化

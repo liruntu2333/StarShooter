@@ -770,7 +770,7 @@ void InitSkyBox()
 	imgInfo.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 	HRESULT hr = D3DX11CreateTextureFromFile(g_D3DDevice,
-		"data/TEXTURE/asteroids.dds", &imgInfo, nullptr,
+		"data/TEXTURE/polluted.dds", &imgInfo, nullptr,
 		reinterpret_cast<ID3D11Resource**>(g_SkyBoxTex.ReleaseAndGetAddressOf()), nullptr);
 
 	D3D11_TEXTURE2D_DESC skyTexDesc{};

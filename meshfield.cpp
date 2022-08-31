@@ -40,8 +40,7 @@ static float		g_FieldSizeX, g_FieldSizeZ;	// ブロックサイズ
 static float		g_FieldHalfWidth, g_FieldHalfDepth;
 
 static char* g_TextureName[] = {
-	"data/TEXTURE/field004.jpg",
-	"data/TEXTURE/field002.jpg",
+	"data/TEXTURE/ground.jpg",
 };
 
 
@@ -450,7 +449,7 @@ float GetFieldHeight(float x, float z)
 	{
 		return -5.0f;
 	}
-	return -200.f;
+	return -30.f;
 }
 
 bool IsPositionValid(float x, float z)

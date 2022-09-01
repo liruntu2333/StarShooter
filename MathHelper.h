@@ -1,10 +1,3 @@
-/**
- * \file   MathHelper.h
- * \brief  Math helper functions to do lerp, slerp, clamp, etc
- * 
- * \author LiRuntu
- * \date   July 2022
- **/
 #pragma once
 
 #include <array>
@@ -44,15 +37,6 @@ public:
 		return static_cast<float>(rand()) / RAND_MAX;
 	}
 
-	//static DirectX::XMVECTOR XM_CALLCONV ToXMVECTOR(const DirectX::XMFLOAT3& vec)
-	//{
-	//	return XMLoadFloat3(&vec);
-	//}
-
-	//static DirectX::XMVECTOR XM_CALLCONV ToXMVECTOR(const DirectX::XMFLOAT4& vec)
-	//{
-	//	return XMLoadFloat4(&vec);
-	//}
 };
 
 class BezierCurve
@@ -70,24 +54,6 @@ public:
 	virtual DirectX::XMFLOAT3 GetNormalizedDerivative(float t) = 0;
 	virtual void SetControlPoint2(DirectX::XMFLOAT3 target) = 0;
 };
-
-//class BezierCurveLinear : BezierCurve
-//{
-//public:
-//	explicit BezierCurveLinear(const std::array<DirectX::XMFLOAT3, 2>& controlPoints);
-//	explicit BezierCurveLinear(std::array<DirectX::XMFLOAT3, 2>&& controlPoints);
-//	BezierCurveLinear(const BezierCurveLinear&) = default;
-//	BezierCurveLinear(BezierCurveLinear&&) = default;
-//	BezierCurveLinear& operator=(const BezierCurveLinear&) = default;
-//	BezierCurveLinear& operator=(BezierCurveLinear&&) = default;
-//	~BezierCurveLinear() override = default;
-//
-//	DirectX::XMFLOAT3 GetPosition(float t) override;
-//	DirectX::XMFLOAT3 GetDerivative(float t) override;
-//
-//private:
-//	std::array<DirectX::XMFLOAT3, 2> MControlPoints{};
-//};
 
 class BezierCurveQuadratic : BezierCurve
 {

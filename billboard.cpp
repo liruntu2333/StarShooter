@@ -2,34 +2,29 @@
 #include "renderer.h"
 #include "input.h"
 #include "camera.h"
-#include "shadow.h"
 #include "billboard.h"
-
 
 #define TEXTURE_MAX				(4)
 #define	MAX_Billboard			(4)
 
 typedef struct
 {
-	XMFLOAT3	pos;			 
-	XMFLOAT3	scl;			 
-	MATERIAL	material;		 
-	float		fWidth;			 
-	float		fHeight;		 
-	int			nIdxShadow;
-
+	XMFLOAT3	pos;
+	XMFLOAT3	scl;
+	MATERIAL	material;
+	float		fWidth;
+	float		fHeight;
 } Billboard;
 
 HRESULT MakeVertexBillboard(void);
 
-static ID3D11Buffer* g_VertexBuffer = NULL;	 
-static ID3D11ShaderResourceView* g_Texture[TEXTURE_MAX] = { NULL };	 
+static ID3D11Buffer* g_VertexBuffer = nullptr;
+static ID3D11ShaderResourceView* g_Texture[TEXTURE_MAX] = {nullptr};
 
-static Billboard			g_aBillboard[MAX_Billboard];	 
-static int					g_TexNo;			 
-static BOOL					g_bAlpaTest;		 
+static Billboard			g_aBillboard[MAX_Billboard];
+static int					g_TexNo;
+static BOOL					g_bAlpaTest;
 static BOOL					g_Load = FALSE;
-
 
 static char* g_TextureName[TEXTURE_MAX] =
 {
@@ -47,23 +42,23 @@ HRESULT InitBillboard(void)
 	{
 		D3DX11CreateShaderResourceViewFromFile(GetDevice(),
 			g_TextureName[i],
-			NULL,
-			NULL,
+			nullptr,
+			nullptr,
 			&g_Texture[i],
-			NULL);
+		nullptr);
 	}
 
 	g_TexNo = 0;
 
-	for (int i = 0; i < MAX_Billboard; i++)
+	for (auto& i : g_aBillboard)
 	{
-		ZeroMemory(&g_aBillboard[i].material, sizeof(g_aBillboard[i].material));
-		g_aBillboard[i].material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		ZeroMemory(&i.material, sizeof(i.material));
+		i.material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-		g_aBillboard[i].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_aBillboard[i].scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		g_aBillboard[i].fWidth = Billboard_WIDTH;
-		g_aBillboard[i].fHeight = Billboard_HEIGHT;
+		i.pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		i.scl = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		i.fWidth = Billboard_WIDTH;
+		i.fHeight = Billboard_HEIGHT;
 	}
 
 	g_bAlpaTest = TRUE;
@@ -76,19 +71,19 @@ void ShutdownBillboard(void)
 {
 	if (g_Load == FALSE) return;
 
-	for (int nCntTex = 0; nCntTex < TEXTURE_MAX; nCntTex++)
+	for (auto& nCntTex : g_Texture)
 	{
-		if (g_Texture[nCntTex] != NULL)
-		{ 
-			g_Texture[nCntTex]->Release();
-			g_Texture[nCntTex] = NULL;
+		if (nCntTex != nullptr)
+		{
+			nCntTex->Release();
+			nCntTex = nullptr;
 		}
 	}
 
-	if (g_VertexBuffer != NULL)
-	{ 
+	if (g_VertexBuffer != nullptr)
+	{
 		g_VertexBuffer->Release();
-		g_VertexBuffer = NULL;
+		g_VertexBuffer = nullptr;
 	}
 
 	g_Load = FALSE;
@@ -106,10 +101,10 @@ void DrawBillboard(const CommandCode code, const XMFLOAT3 position, const XMFLOA
 	SetLightEnable(FALSE);
 
 	XMMATRIX mtxScl{}, mtxTranslate{}, mtxWorld{}, mtxView{};
-	CAMERA* cam = GetCamera();
+	const CAMERA* cam = GetCamera();
 
-	UINT stride = sizeof(VERTEX_3D);
-	UINT offset = 0;
+	const UINT stride = sizeof(VERTEX_3D);
+	const UINT offset = 0;
 	GetDeviceContext()->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
 	GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -140,9 +135,9 @@ void DrawBillboard(const CommandCode code, const XMFLOAT3 position, const XMFLOA
 		SetWorldMatrix(&mtxWorld);
 
 		auto material = billboard.material;
-		material.Diffuse = isTriggered ? 
+		material.Diffuse = isTriggered ?
 			XMFLOAT4{ 0.5f, 0.5f, 0.5f, 1.0f } :
-			XMFLOAT4{1.5f, 1.5f, 1.5f, 1.0f};
+			XMFLOAT4{ 1.5f, 1.5f, 1.5f, 1.0f };
 
 		SetMaterial(material);
 
@@ -165,15 +160,15 @@ HRESULT MakeVertexBillboard(void)
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-	GetDevice()->CreateBuffer(&bd, NULL, &g_VertexBuffer);
+	GetDevice()->CreateBuffer(&bd, nullptr, &g_VertexBuffer);
 
 	D3D11_MAPPED_SUBRESOURCE msr;
 	GetDeviceContext()->Map(g_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
 
-	VERTEX_3D* vertex = (VERTEX_3D*)msr.pData;
+	const auto vertex = static_cast<VERTEX_3D*>(msr.pData);
 
-	float fWidth = Billboard_WIDTH;
-	float fHeight = Billboard_HEIGHT;
+	constexpr float fWidth = Billboard_WIDTH;
+	constexpr float fHeight = Billboard_HEIGHT;
 
 	vertex[0].Position = XMFLOAT3(-fWidth / 2.0f, fHeight, 0.0f);
 	vertex[1].Position = XMFLOAT3(fWidth / 2.0f, fHeight, 0.0f);

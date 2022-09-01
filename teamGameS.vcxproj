@@ -159,12 +159,10 @@
     <ClInclude Include="renderer.h" />
     <ClInclude Include="result.h" />
     <ClInclude Include="score.h" />
-    <ClInclude Include="shadow.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="title.h" />
     <ClInclude Include="tutorial.h" />
-    <ClInclude Include="tree.h" />
     <ClInclude Include="weapon.h" />
   </ItemGroup>
   <ItemGroup>
@@ -192,11 +190,9 @@
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="score.cpp" />
-    <ClCompile Include="shadow.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="title.cpp" />
-    <ClCompile Include="tree.cpp" />
     <ClCompile Include="tutorial.cpp" />
     <ClCompile Include="weapon.cpp" />
   </ItemGroup>

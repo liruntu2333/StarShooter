@@ -3,7 +3,6 @@ using namespace DirectX;
 
 XMFLOAT3 operator-(const XMFLOAT3& lft, const XMFLOAT3& rht) noexcept
 {
-	
 	const XMVECTOR v1 = XMLoadFloat3(&lft);
 	const XMVECTOR v2 = XMLoadFloat3(&rht);
 	const XMVECTOR X = XMVectorSubtract(v1, v2);
@@ -27,7 +26,7 @@ XMFLOAT3 BezierCurveQuadratic::GetPosition(const float t)
 	const XMVECTOR p0 = XMLoadFloat3(&MControlPoints[0]);
 	const XMVECTOR p1 = XMLoadFloat3(&MControlPoints[1]);
 	const XMVECTOR p2 = XMLoadFloat3(&MControlPoints[2]);
-	XMVECTOR pos = p1 + oneMinusT * oneMinusT * (p0 - p1) + t * t * (p2 - p1);
+	const XMVECTOR pos = p1 + oneMinusT * oneMinusT * (p0 - p1) + t * t * (p2 - p1);
 	XMStoreFloat3(&ret, pos);
 	return ret;
 }
@@ -38,7 +37,7 @@ XMFLOAT3 BezierCurveQuadratic::GetDerivative(float t)
 	const XMVECTOR p0 = XMLoadFloat3(&MControlPoints[0]);
 	const XMVECTOR p1 = XMLoadFloat3(&MControlPoints[1]);
 	const XMVECTOR p2 = XMLoadFloat3(&MControlPoints[2]);
-	XMVECTOR der = 2.0f * (1 - t) * (p1 - p0) + 2.0f * t * (p2 - p1);
+	const XMVECTOR der = 2.0f * (1 - t) * (p1 - p0) + 2.0f * t * (p2 - p1);
 	XMStoreFloat3(&ret, der);
 	return ret;
 }
@@ -51,7 +50,7 @@ void BezierCurveQuadratic::SetControlPoint2(DirectX::XMFLOAT3 target)
 DirectX::XMFLOAT3 BezierCurveQuadratic::GetNormalizedDerivative(float t)
 {
 	XMFLOAT3 ret;
-	XMFLOAT3 der = GetDerivative(t);
+	const XMFLOAT3 der = GetDerivative(t);
 	XMStoreFloat3(&ret, XMVector3Normalize(XMLoadFloat3(&der)));
 	return ret;
 }

@@ -1,15 +1,5 @@
-//=============================================================================
-//
-// タイトル画面処理 [title.h]
-// Author : 
-//
-//=============================================================================
 #pragma once
 
-
-//*****************************************************************************
-// マクロ定義
-//*****************************************************************************
 enum
 {
 	TEXTURE_TITLE_BG,
@@ -20,44 +10,32 @@ enum
 	TEXTURE_TITLE_MAX,
 };
 
-
-
-//*****************************************************************************
-// 構造体
-//*****************************************************************************
 struct TITLE
 {
-	XMFLOAT3		pos;			// ポリゴンの座標
-	float			w, h;			// 幅と高さ
-	int				texNo;			// 使用しているテクスチャ番号
+	XMFLOAT3		pos;			 
+	float			w, h;			 
+	int				texNo;			 
 };
 
 struct MOON
 {
-	XMFLOAT3		pos;			// ポリゴンの座標
-	XMFLOAT3		rot;			// ポリゴンの回転量
-	float			w, h;			// 幅と高さ
-	float			countAnim;		// アニメーションカウント
-	int				patternAnim;	// アニメーションパターンナンバー
-	int				texNo;			// テクスチャ番号
+	XMFLOAT3		pos;			 
+	XMFLOAT3		rot;			 
+	float			w, h;			 
+	float			countAnim;		 
+	int				patternAnim;	 
+	int				texNo;			 
 };
 
 struct CONFIRM
 {
-	XMFLOAT3		pos;			// ポリゴンの座標
-	float			w, h;			// 幅と高さ
-	int				texNo;			// 使用しているテクスチャ番号
-	int				choose;			// 今選択したボタン
+	XMFLOAT3		pos;			 
+	float			w, h;			 
+	int				texNo;			 
+	int				choose;			 
 };
 
-
-//*****************************************************************************
-// プロトタイプ宣言
-//*****************************************************************************
 HRESULT InitTitle(void);
 void UninitTitle(void);
 void UpdateTitle(void);
 void DrawTitle(void);
-
-
-

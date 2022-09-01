@@ -1,73 +1,51 @@
-//=============================================================================
-//
-// サウンド処理 [sound.cpp]
-//
-//=============================================================================
 #include "sound.h"
 
-//*****************************************************************************
-// パラメータ構造体定義
-//*****************************************************************************
 typedef struct
 {
-	char *pFilename;	// ファイル名
-	int nCntLoop;		// ループカウント
+	char *pFilename;	 
+	int nCntLoop;		 
 } SOUNDPARAM;
 
-//*****************************************************************************
-// プロトタイプ宣言
-//*****************************************************************************
 HRESULT CheckChunk(HANDLE hFile, DWORD format, DWORD *pChunkSize, DWORD *pChunkDataPosition);
 HRESULT ReadChunkData(HANDLE hFile, void *pBuffer, DWORD dwBuffersize, DWORD dwBufferoffset);
 
-//*****************************************************************************
-// グローバル変数
-//*****************************************************************************
-IXAudio2 *g_pXAudio2 = NULL;								// XAudio2オブジェクトへのインターフェイス
-IXAudio2MasteringVoice *g_pMasteringVoice = NULL;			// マスターボイス
-IXAudio2SourceVoice *g_apSourceVoice[SOUND_LABEL_MAX] = {};	// ソースボイス
-BYTE *g_apDataAudio[SOUND_LABEL_MAX] = {};					// オーディオデータ
-DWORD g_aSizeAudio[SOUND_LABEL_MAX] = {};					// オーディオデータサイズ
+IXAudio2 *g_pXAudio2 = nullptr;								 
+IXAudio2MasteringVoice *g_pMasteringVoice = nullptr;			 
+IXAudio2SourceVoice *g_apSourceVoice[SOUND_LABEL_MAX] = {};	 
+BYTE *g_apDataAudio[SOUND_LABEL_MAX] = {};					 
+DWORD g_aSizeAudio[SOUND_LABEL_MAX] = {};					 
 
-// 各音素材のパラメータ
 SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 {
-	{ (char*)"data/BGM/xDeviruchi - Title Theme .wav", -1 },	// BGM0
-	{ (char*)"data/BGM/xDeviruchi - And The Journey Begins .wav", -1 },	// BGM1
-	{ (char*)"data/BGM/xDeviruchi - Take some rest and eat some food.wav", -1 },	// BGM2
-	{ (char*)"data/SE/bomb000.wav", 0 },		// 弾発射音
-	{ (char*)"data/SE/defend000.wav", 0 },		// 弾発射音
-	{ (char*)"data/SE/defend001.wav", 0 },		// 弾発射音
-	{ (char*)"data/SE/hit000.wav", 0 },			// 弾発射音
-	{ (char*)"data/SE/laser000.wav", 0 },		// 弾発射音
-	{ (char*)"data/SE/lockon000.wav", 0 },		// 弾発射音
-	{ (char*)"data/SE/shot000.wav", 0 },		// 弾発射音
-	{ (char*)"data/SE/shot001.wav", 0 },		// ヒット音
+	{ static_cast<char*>("data/BGM/xDeviruchi - Title Theme .wav"), -1 },	 
+	{ static_cast<char*>("data/BGM/xDeviruchi - And The Journey Begins .wav"), -1 },	 
+	{ static_cast<char*>("data/BGM/xDeviruchi - Take some rest and eat some food.wav"), -1 },	 
+	{ static_cast<char*>("data/SE/bomb000.wav"), 0 },		 
+	{ static_cast<char*>("data/SE/defend000.wav"), 0 },		 
+	{ static_cast<char*>("data/SE/defend001.wav"), 0 },		 
+	{ static_cast<char*>("data/SE/hit000.wav"), 0 },			 
+	{ static_cast<char*>("data/SE/laser000.wav"), 0 },		 
+	{ static_cast<char*>("data/SE/lockon000.wav"), 0 },		 
+	{ static_cast<char*>("data/SE/shot000.wav"), 0 },		 
+	{ static_cast<char*>("data/SE/shot001.wav"), 0 },		 
 };
 
-//=============================================================================
-// 初期化処理
-//=============================================================================
 BOOL InitSound(HWND hWnd)
 {
 	HRESULT hr;
 
-	// COMライブラリの初期化
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
-	// XAudio2オブジェクトの作成
 	hr = XAudio2Create(&g_pXAudio2, 0);
 	if(FAILED(hr))
 	{
 		MessageBox(hWnd, "XAudio2オブジェクトの作成に失敗！", "警告！", MB_ICONWARNING);
 
-		// COMライブラリの終了処理
 		CoUninitialize();
 
 		return FALSE;
 	}
 	
-	// マスターボイスの生成
 	hr = g_pXAudio2->CreateMasteringVoice(&g_pMasteringVoice);
 	if(FAILED(hr))
 	{
@@ -75,18 +53,15 @@ BOOL InitSound(HWND hWnd)
 
 		if(g_pXAudio2)
 		{
-			// XAudio2オブジェクトの開放
 			g_pXAudio2->Release();
-			g_pXAudio2 = NULL;
+			g_pXAudio2 = nullptr;
 		}
 
-		// COMライブラリの終了処理
 		CoUninitialize();
 
 		return FALSE;
 	}
 
-	// サウンドデータの初期化
 	for(int nCntSound = 0; nCntSound < SOUND_LABEL_MAX; nCntSound++)
 	{
 		HANDLE hFile;
@@ -96,24 +71,21 @@ BOOL InitSound(HWND hWnd)
 		WAVEFORMATEXTENSIBLE wfx;
 		XAUDIO2_BUFFER buffer;
 
-		// バッファのクリア
 		memset(&wfx, 0, sizeof(WAVEFORMATEXTENSIBLE));
 		memset(&buffer, 0, sizeof(XAUDIO2_BUFFER));
 
-		// サウンドデータファイルの生成
-		hFile = CreateFile(g_aParam[nCntSound].pFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+		hFile = CreateFile(g_aParam[nCntSound].pFilename, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
 		if(hFile == INVALID_HANDLE_VALUE)
 		{
 			MessageBox(hWnd, "サウンドデータファイルの生成に失敗！(1)", "警告！", MB_ICONWARNING);
 			return FALSE;
 		}
-		if(SetFilePointer(hFile, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
-		{// ファイルポインタを先頭に移動
+		if(SetFilePointer(hFile, 0, nullptr, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+		{ 
 			MessageBox(hWnd, "サウンドデータファイルの生成に失敗！(2)", "警告！", MB_ICONWARNING);
 			return FALSE;
 		}
 	
-		// WAVEファイルのチェック
 		hr = CheckChunk(hFile, 'FFIR', &dwChunkSize, &dwChunkPosition);
 		if(FAILED(hr))
 		{
@@ -132,7 +104,6 @@ BOOL InitSound(HWND hWnd)
 			return FALSE;
 		}
 	
-		// フォーマットチェック
 		hr = CheckChunk(hFile, ' tmf', &dwChunkSize, &dwChunkPosition);
 		if(FAILED(hr))
 		{
@@ -146,14 +117,13 @@ BOOL InitSound(HWND hWnd)
 			return FALSE;
 		}
 
-		// オーディオデータ読み込み
 		hr = CheckChunk(hFile, 'atad', &g_aSizeAudio[nCntSound], &dwChunkPosition);
 		if(FAILED(hr))
 		{
 			MessageBox(hWnd, "オーディオデータ読み込みに失敗！(1)", "警告！", MB_ICONWARNING);
 			return FALSE;
 		}
-		g_apDataAudio[nCntSound] = (BYTE*)malloc(g_aSizeAudio[nCntSound]);
+		g_apDataAudio[nCntSound] = static_cast<BYTE*>(malloc(g_aSizeAudio[nCntSound]));
 		hr = ReadChunkData(hFile, g_apDataAudio[nCntSound], g_aSizeAudio[nCntSound], dwChunkPosition);
 		if(FAILED(hr))
 		{
@@ -161,7 +131,6 @@ BOOL InitSound(HWND hWnd)
 			return FALSE;
 		}
 	
-		// ソースボイスの生成
 		hr = g_pXAudio2->CreateSourceVoice(&g_apSourceVoice[nCntSound], &(wfx.Format));
 		if(FAILED(hr))
 		{
@@ -169,130 +138,95 @@ BOOL InitSound(HWND hWnd)
 			return FALSE;
 		}
 
-		// バッファの値設定
 		memset(&buffer, 0, sizeof(XAUDIO2_BUFFER));
 		buffer.AudioBytes = g_aSizeAudio[nCntSound];
 		buffer.pAudioData = g_apDataAudio[nCntSound];
 		buffer.Flags      = XAUDIO2_END_OF_STREAM;
 		buffer.LoopCount  = g_aParam[nCntSound].nCntLoop;
 
-		// オーディオバッファの登録
 		g_apSourceVoice[nCntSound]->SubmitSourceBuffer(&buffer);
 	}
 
 	return TRUE;
 }
 
-//=============================================================================
-// 終了処理
-//=============================================================================
 void UninitSound(void)
 {
-	// 一時停止
 	for(int nCntSound = 0; nCntSound < SOUND_LABEL_MAX; nCntSound++)
 	{
 		if(g_apSourceVoice[nCntSound])
 		{
-			// 一時停止
 			g_apSourceVoice[nCntSound]->Stop(0);
 	
-			// ソースボイスの破棄
 			g_apSourceVoice[nCntSound]->DestroyVoice();
-			g_apSourceVoice[nCntSound] = NULL;
+			g_apSourceVoice[nCntSound] = nullptr;
 	
-			// オーディオデータの開放
 			free(g_apDataAudio[nCntSound]);
-			g_apDataAudio[nCntSound] = NULL;
+			g_apDataAudio[nCntSound] = nullptr;
 		}
 	}
 	
-	// マスターボイスの破棄
 	g_pMasteringVoice->DestroyVoice();
-	g_pMasteringVoice = NULL;
+	g_pMasteringVoice = nullptr;
 	
 	if(g_pXAudio2)
 	{
-		// XAudio2オブジェクトの開放
 		g_pXAudio2->Release();
-		g_pXAudio2 = NULL;
+		g_pXAudio2 = nullptr;
 	}
 	
-	// COMライブラリの終了処理
 	CoUninitialize();
 }
 
-//=============================================================================
-// セグメント再生(再生中なら停止)
-//=============================================================================
 void PlaySound(int label)
 {
 	XAUDIO2_VOICE_STATE xa2state;
 	XAUDIO2_BUFFER buffer;
 
-	// バッファの値設定
 	memset(&buffer, 0, sizeof(XAUDIO2_BUFFER));
 	buffer.AudioBytes = g_aSizeAudio[label];
 	buffer.pAudioData = g_apDataAudio[label];
 	buffer.Flags      = XAUDIO2_END_OF_STREAM;
 	buffer.LoopCount  = g_aParam[label].nCntLoop;
 
-	// 状態取得
 	g_apSourceVoice[label]->GetState(&xa2state);
 	if(xa2state.BuffersQueued != 0)
-	{// 再生中
-		// 一時停止
+	{ 
 		g_apSourceVoice[label]->Stop(0);
 
-		// オーディオバッファの削除
 		g_apSourceVoice[label]->FlushSourceBuffers();
 	}
 
-	// オーディオバッファの登録
 	g_apSourceVoice[label]->SubmitSourceBuffer(&buffer);
 
-	// 再生
 	g_apSourceVoice[label]->Start(0);
 
 }
 
-//=============================================================================
-// セグメント停止(ラベル指定)
-//=============================================================================
 void StopSound(int label)
 {
 	XAUDIO2_VOICE_STATE xa2state;
 
-	// 状態取得
 	g_apSourceVoice[label]->GetState(&xa2state);
 	if(xa2state.BuffersQueued != 0)
-	{// 再生中
-		// 一時停止
+	{ 
 		g_apSourceVoice[label]->Stop(0);
 
-		// オーディオバッファの削除
 		g_apSourceVoice[label]->FlushSourceBuffers();
 	}
 }
 
-//=============================================================================
-// セグメント停止(全て)
-//=============================================================================
 void StopSound(void)
 {
-	// 一時停止
 	for(int nCntSound = 0; nCntSound < SOUND_LABEL_MAX; nCntSound++)
 	{
 		if(g_apSourceVoice[nCntSound])
 		{
-			// 一時停止
 			g_apSourceVoice[nCntSound]->Stop(0);
 		}
 	}
 }
 
-//=============================================================================
-// チャンクのチェック
-//=============================================================================
 HRESULT CheckChunk(HANDLE hFile, DWORD format, DWORD *pChunkSize, DWORD *pChunkDataPosition)
 {
 	HRESULT hr = S_OK;
@@ -304,20 +238,20 @@ HRESULT CheckChunk(HANDLE hFile, DWORD format, DWORD *pChunkSize, DWORD *pChunkD
 	DWORD dwBytesRead = 0;
 	DWORD dwOffset = 0;
 	
-	if(SetFilePointer(hFile, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
-	{// ファイルポインタを先頭に移動
+	if(SetFilePointer(hFile, 0, nullptr, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+	{ 
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
 	
 	while(hr == S_OK)
 	{
-		if(ReadFile(hFile, &dwChunkType, sizeof(DWORD), &dwRead, NULL) == 0)
-		{// チャンクの読み込み
+		if(ReadFile(hFile, &dwChunkType, sizeof(DWORD), &dwRead, nullptr) == 0)
+		{ 
 			hr = HRESULT_FROM_WIN32(GetLastError());
 		}
 
-		if(ReadFile(hFile, &dwChunkDataSize, sizeof(DWORD), &dwRead, NULL) == 0)
-		{// チャンクデータの読み込み
+		if(ReadFile(hFile, &dwChunkDataSize, sizeof(DWORD), &dwRead, nullptr) == 0)
+		{ 
 			hr = HRESULT_FROM_WIN32(GetLastError());
 		}
 
@@ -326,15 +260,15 @@ HRESULT CheckChunk(HANDLE hFile, DWORD format, DWORD *pChunkSize, DWORD *pChunkD
 		case 'FFIR':
 			dwRIFFDataSize  = dwChunkDataSize;
 			dwChunkDataSize = 4;
-			if(ReadFile(hFile, &dwFileType, sizeof(DWORD), &dwRead, NULL) == 0)
-			{// ファイルタイプの読み込み
+			if(ReadFile(hFile, &dwFileType, sizeof(DWORD), &dwRead, nullptr) == 0)
+			{ 
 				hr = HRESULT_FROM_WIN32(GetLastError());
 			}
 			break;
 
 		default:
-			if(SetFilePointer(hFile, dwChunkDataSize, NULL, FILE_CURRENT) == INVALID_SET_FILE_POINTER)
-			{// ファイルポインタをチャンクデータ分移動
+			if(SetFilePointer(hFile, dwChunkDataSize, nullptr, FILE_CURRENT) == INVALID_SET_FILE_POINTER)
+			{ 
 				return HRESULT_FROM_WIN32(GetLastError());
 			}
 		}
@@ -358,20 +292,17 @@ HRESULT CheckChunk(HANDLE hFile, DWORD format, DWORD *pChunkSize, DWORD *pChunkD
 	return S_OK;
 }
 
-//=============================================================================
-// チャンクデータの読み込み
-//=============================================================================
 HRESULT ReadChunkData(HANDLE hFile, void *pBuffer, DWORD dwBuffersize, DWORD dwBufferoffset)
 {
 	DWORD dwRead;
 	
-	if(SetFilePointer(hFile, dwBufferoffset, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
-	{// ファイルポインタを指定位置まで移動
+	if(SetFilePointer(hFile, dwBufferoffset, nullptr, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+	{ 
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
 
-	if(ReadFile(hFile, pBuffer, dwBuffersize, &dwRead, NULL) == 0)
-	{// データの読み込み
+	if(ReadFile(hFile, pBuffer, dwBuffersize, &dwRead, nullptr) == 0)
+	{ 
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
 	

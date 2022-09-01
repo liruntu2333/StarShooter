@@ -1,29 +1,16 @@
-//=============================================================================
-//
-// モデルの処理 [model.h]
-// Author :
-//
-//=============================================================================
 #pragma once
 
 #include "main.h"
 #include "renderer.h"
 
-//*********************************************************
-// 構造体
-//*********************************************************
-
-// マテリアル構造体
-
-#define MODEL_MAX_MATERIAL		(16)		// １モデルのMaxマテリアル数
+#define MODEL_MAX_MATERIAL		(16)		 
 
 struct DX11_MODEL_MATERIAL
 {
 	MATERIAL					Material;
-	ID3D11ShaderResourceView	*Texture;
+	ID3D11ShaderResourceView* Texture;
 };
 
-// 描画サブセット構造体
 struct DX11_SUBSET
 {
 	unsigned short	StartIndex;
@@ -33,26 +20,17 @@ struct DX11_SUBSET
 
 struct DX11_MODEL
 {
-	ID3D11Buffer*	VertexBuffer;
-	ID3D11Buffer*	IndexBuffer;
+	ID3D11Buffer* VertexBuffer;
+	ID3D11Buffer* IndexBuffer;
 
-	DX11_SUBSET		*SubsetArray;
+	DX11_SUBSET* SubsetArray;
 	unsigned short	SubsetNum;
 };
 
+void LoadModel(char* FileName, DX11_MODEL* Model);
+void UnloadModel(DX11_MODEL* Model);
+void DrawModel(DX11_MODEL* Model);
 
+void GetModelDiffuse(DX11_MODEL* Model, XMFLOAT4* diffuse);
 
-//*****************************************************************************
-// プロトタイプ宣言
-//*****************************************************************************
-void LoadModel( char *FileName, DX11_MODEL *Model );
-void UnloadModel( DX11_MODEL *Model );
-void DrawModel( DX11_MODEL *Model );
-
-// モデルのマテリアルのディフューズを取得する。Max16個分にしてある
-void GetModelDiffuse(DX11_MODEL *Model, XMFLOAT4 *diffuse);
-
-// モデルの指定マテリアルのディフューズをセットする。
-void SetModelDiffuse(DX11_MODEL *Model, int mno, XMFLOAT4 diffuse);
-
-
+void SetModelDiffuse(DX11_MODEL* Model, int mno, XMFLOAT4 diffuse);

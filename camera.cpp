@@ -1,81 +1,52 @@
-//=============================================================================
-//
-// カメラ処理 [camera.cpp]
-// Author : 
-//
-//=============================================================================
 #include "main.h"
 #include "input.h"
 #include "camera.h"
 #include "debugproc.h"
 #include "MathHelper.h"
 
-//*****************************************************************************
-// マクロ定義
-//*****************************************************************************
-#define	POS_X_CAM_PLAYER			(0.0f)			// カメラの初期位置(X座標)	// プレーヤーの場合
-#define	POS_Y_CAM_PLAYER			(50.0f)			// カメラの初期位置(Y座標)
-#define	POS_Z_CAM_PLAYER			(-100.0f)		// カメラの初期位置(Z座標)
+#define	POS_X_CAM_PLAYER			(0.0f)			 	 
+#define	POS_Y_CAM_PLAYER			(50.0f)			 
+#define	POS_Z_CAM_PLAYER			(-100.0f)		 
 
-#define POS_X_CAM_MENU				(0.0f)			// カメラの位置(X座標)		// メニューの場合
-#define POS_Y_CAM_MENU				(30.0f)			// カメラの位置(Y座標)
-#define POS_Z_CAM_MENU				(-100.0f)		// カメラの位置(Z座標)
+#define POS_X_CAM_MENU				(0.0f)			 		 
+#define POS_Y_CAM_MENU				(30.0f)			 
+#define POS_Z_CAM_MENU				(-100.0f)		 
 
+#define	VIEW_NEAR_Z		(10.0f)											 
+#define	VIEW_FAR_Z		(10000.0f)										 
 
-#define	VIEW_NEAR_Z		(10.0f)											// ビュー平面のNearZ値
-#define	VIEW_FAR_Z		(10000.0f)										// ビュー平面のFarZ値
+#define	VALUE_MOVE_CAMERA	(2.0f)										 
+#define	VALUE_ROTATE_CAMERA	(XM_PI * 0.01f)								 
 
-#define	VALUE_MOVE_CAMERA	(2.0f)										// カメラの移動量
-#define	VALUE_ROTATE_CAMERA	(XM_PI * 0.01f)								// カメラの回転量
-
-//*****************************************************************************
-// グローバル変数
-//*****************************************************************************
-static CAMERA			g_Camera;		// カメラデータ
+static CAMERA			g_Camera;		 
 
 static float g_ViewAngle = XMConvertToRadians(45.0f);
-static float g_ViewAspect = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
+static float g_ViewAspect = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
 void ApplyThetaPhi();
 
-//=============================================================================
-// 初期化処理
-//=============================================================================
 void InitCamera(void)
 {
 	g_Camera.pos = { POS_X_CAM_PLAYER, POS_Y_CAM_PLAYER, POS_Z_CAM_PLAYER };
-	g_Camera.at  = { 0.0f, 0.0f, 0.0f };
-	g_Camera.up  = { 0.0f, 1.0f, 0.0f };
+	g_Camera.at = { 0.0f, 0.0f, 0.0f };
+	g_Camera.up = { 0.0f, 1.0f, 0.0f };
 	g_Camera.theta = 0.0f;
 	g_Camera.phi = 0.0f;
 
-	// 視点と注視点の距離を計算
-	// プレーヤーの場合
 	float vx_player, vz_player;
 	vx_player = POS_X_CAM_PLAYER - g_Camera.at.x;
 	vz_player = POS_Z_CAM_PLAYER - g_Camera.at.z;
 	g_Camera.lenPlayer = sqrtf(vx_player * vx_player + vz_player * vz_player);
-	// メニューの場合
 	float vx_menu, vz_menu;
 	vx_menu = POS_X_CAM_MENU - g_Camera.at.x;
 	vz_menu = POS_Z_CAM_MENU - g_Camera.at.z;
 	g_Camera.lenMenu = sqrtf(vx_menu * vx_menu + vz_menu * vz_menu);
-
 }
 
-
-//=============================================================================
-// カメラの終了処理
-//=============================================================================
 void UninitCamera(void)
 {
-
 }
 
-
-//=============================================================================
-// カメラの更新処理
-//=============================================================================
 void UpdateCamera(void)
 {
 	static long prevX = 0;
@@ -86,7 +57,6 @@ void UpdateCamera(void)
 
 	if (IsMouseRightPressed())
 	{
-
 		const float dx = XMConvertToRadians(0.25f * static_cast<float>(currX - prevX));
 		const float dy = XMConvertToRadians(0.25f * static_cast<float>(currY - prevY));
 
@@ -101,24 +71,15 @@ void UpdateCamera(void)
 
 #ifdef _DEBUG
 
-
-
 #endif
 
-
-
-#ifdef _DEBUG	// デバッグ情報を表示する
+#ifdef _DEBUG	 
 	PrintDebugProc("Camera:ZC QE TB YN UM R\n");
 #endif
 }
 
-
-//=============================================================================
-// カメラの更新
-//=============================================================================
-void SetCamera(void) 
+void SetCamera(void)
 {
-	// ビューマトリックス設定
 	XMMATRIX mtxView;
 	mtxView = XMMatrixLookAtLH(XMLoadFloat3(&g_Camera.pos), XMLoadFloat3(&g_Camera.at), XMLoadFloat3(&g_Camera.up));
 	SetViewMatrix(&mtxView);
@@ -128,8 +89,6 @@ void SetCamera(void)
 	mtxInvView = XMMatrixInverse(nullptr, mtxView);
 	XMStoreFloat4x4(&g_Camera.mtxInvView, mtxInvView);
 
-
-	// プロジェクションマトリックス設定
 	XMMATRIX mtxProjection;
 	mtxProjection = XMMatrixPerspectiveFovLH(g_ViewAngle, g_ViewAspect, VIEW_NEAR_Z, VIEW_FAR_Z);
 
@@ -139,11 +98,7 @@ void SetCamera(void)
 	SetShaderCamera(g_Camera.pos);
 }
 
-
-//=============================================================================
-// カメラの取得
-//=============================================================================
-CAMERA *GetCamera(void) 
+CAMERA* GetCamera(void)
 {
 	return &g_Camera;
 }
@@ -158,7 +113,6 @@ void LerpCameraPosition(XMFLOAT3 pos, float dir, float tPos)
 
 	g_Camera.at = pos;
 
-	//ApplyThetaPhi();
 }
 
 void LerpCameraPositionAt(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, float tPos, float tAt)

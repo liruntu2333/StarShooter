@@ -1,9 +1,3 @@
-//=============================================================================
-//
-// 建物モデル処理 [building.cpp]
-// Author : 
-//
-//=============================================================================
 #include "main.h"
 #include "renderer.h"
 #include "camera.h"
@@ -12,13 +6,9 @@
 #include "building.h"
 
 #include "light.h"
-#include "shadow.h"
 #include "meshfield.h"
 
-//*****************************************************************************
-// マクロ定義
-//*****************************************************************************
-#define	MODEL_BUILDING_LIGHTPOSTSINGLE			"data/MODEL/lightpostSingle.obj"			// 読み込むモデル名
+#define	MODEL_BUILDING_LIGHTPOSTSINGLE			"data/MODEL/lightpostSingle.obj"			 
 #define MODEL_BUILDING_LIGHTPOSTDOUBLE			"data/MODEL/lightpostDouble.obj"
 
 #define MODEL_BUILDING_HANGAR_LARGEA			"data/MODEL/hangar_largeA.obj"
@@ -38,18 +28,13 @@
 #define MODEL_BUILDING_STRUCTURE_DETAILED		"data/MODEL/structure_detailed.obj"
 #define MODEL_BUILDING_STRUCTURE_DIAGONAL		"data/MODEL/structure_diagonal.obj"
 
-#define	VALUE_ROTATE			(XM_PI * 0.02f)				// 回転量
+#define	VALUE_ROTATE			(XM_PI * 0.02f)				 
 
-#define BUILDING_SHADOW_SIZE	(0.4f)						// 影の大きさ
-#define BUILDING_OFFSET_Y		(0.0f)						// BUILDINGの足元をあわせる
+#define BUILDING_SHADOW_SIZE	(0.4f)						 
+#define BUILDING_OFFSET_Y		(0.0f)						 
 
-
-//*****************************************************************************
-// プロトタイプ宣言
-//*****************************************************************************
 enum BuildingType : int
 {
-	
 };
 
 void GetYOffset(XMFLOAT3& pos)
@@ -63,56 +48,41 @@ void SetStreetLight(const BUILDING& building, int lightIdx)
 	XMFLOAT3 lightPos{ building.pos };
 	lightPos.y += 20.0f;
 
-	light->Position    = lightPos;
+	light->Position = lightPos;
 	light->Diffuse = { 0.721568644f, 0.525490224f, 0.043137256f, 1.000000000f };
-	//light->Ambient     = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	light->Attenuation = 500.0f;
-	light->Type        = LIGHT_TYPE_POINT;
-	light->Enable      = TRUE;
+	light->Type = LIGHT_TYPE_POINT;
+	light->Enable = TRUE;
 	SetLightData(lightIdx, light);
 }
 
-//*****************************************************************************
-// グローバル変数
-//*****************************************************************************
-static BUILDING			g_Building[MAX_BUILDING];		
+static BUILDING			g_Building[MAX_BUILDING];
 
 static BOOL				g_Load = FALSE;
 
-
-
-//=============================================================================
-// 初期化処理
-//=============================================================================
 HRESULT InitBuilding(void)
 {
-
-	for (int i = 0; i < MAX_BUILDING; i++)
+	for (auto& i : g_Building)
 	{
-		g_Building[i].load = FALSE;
+		i.load = FALSE;
 
-		g_Building[i].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Building[i].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		g_Building[i].scl = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		i.pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		i.rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		i.scl = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-
-		// モデルのディフューズを保存しておく。色変え対応の為。
 		GetModelDiffuse(&g_Building[0].model, &g_Building[0].diffuse[0]);
 
-		XMFLOAT3 pos = g_Building[i].pos;
+		XMFLOAT3 pos = i.pos;
 		pos.y -= (BUILDING_OFFSET_Y - 0.1f);
-		g_Building[i].shadowIdx = CreateShadow(pos, BUILDING_SHADOW_SIZE, BUILDING_SHADOW_SIZE);
 
-		g_Building[i].move_time = 0.0f;
+		i.move_time = 0.0f;
 
-		g_Building[i].tbl_adr = NULL;
-		g_Building[i].tbl_size = 0;
+		i.tbl_adr = nullptr;
+		i.tbl_size = 0;
 
-		g_Building[i].use = TRUE;
-
+		i.use = TRUE;
 	}
 
-	// lightspot
 	LoadModel(MODEL_BUILDING_LIGHTPOSTSINGLE, &g_Building[0].model);
 	g_Building[0].load = TRUE;
 	g_Building[0].pos = XMFLOAT3(40.0f, 0.0f, 300.0f);
@@ -180,7 +150,6 @@ HRESULT InitBuilding(void)
 	g_Building[6].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	g_Building[6].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
-
 	LoadModel(MODEL_BUILDING_STRUCTURE, &g_Building[7].model);
 	g_Building[7].load = TRUE;
 	g_Building[7].pos = XMFLOAT3(-100.0f, 0.0f, -100.0f);
@@ -188,7 +157,6 @@ HRESULT InitBuilding(void)
 	g_Building[7].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
 	g_Building[7].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
-	
 	LoadModel(MODEL_BUILDING_TURRET_SINGLE, &g_Building[8].model);
 	g_Building[8].load = TRUE;
 	g_Building[8].pos = XMFLOAT3(-200.0f, 0.0f, -150.0f);
@@ -203,7 +171,6 @@ HRESULT InitBuilding(void)
 	g_Building[9].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
 	g_Building[9].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
-	
 	LoadModel(MODEL_BUILDING_STRUCTURE_DIAGONAL, &g_Building[10].model);
 	g_Building[10].load = TRUE;
 	g_Building[10].pos = XMFLOAT3(100.0f, 0.0f, 400.0f);
@@ -231,89 +198,58 @@ HRESULT InitBuilding(void)
 	GetYOffset(g_Building[13].pos);
 	g_Building[13].rot = XMFLOAT3(0.0f, XM_PIDIV4, 0.0f);
 	g_Building[13].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
-	
 
 	g_Load = TRUE;
 	return S_OK;
 }
 
-//=============================================================================
-// 終了処理
-//=============================================================================
 void UninitBuilding(void)
 {
 	if (g_Load == FALSE) return;
 
-	for (int i = 0; i < MAX_BUILDING; i++)
+	for (auto& i : g_Building)
 	{
-		if (g_Building[i].load)
+		if (i.load)
 		{
-			UnloadModel(&g_Building[i].model);
-			g_Building[i].load = FALSE;
+			UnloadModel(&i.model);
+			i.load = FALSE;
 		}
 	}
 	g_Load = FALSE;
 }
 
-//=============================================================================
-// 更新処理
-//=============================================================================
 void UpdateBuilding(void)
 {
-
-	
 }
 
-//=============================================================================
-// 描画処理
-//=============================================================================
 void DrawBuilding(void)
 {
 	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
 
-	// カリング無効
-	//SetCullingMode(CULL_MODE_NONE);
-
-	for (int i = 0; i < MAX_BUILDING; i++)
+	for (auto& i : g_Building)
 	{
-		if (g_Building[i].use == FALSE) continue;
+		if (i.use == FALSE) continue;
 
-		// ワールドマトリックスの初期化
 		mtxWorld = XMMatrixIdentity();
 
-		// スケールを反映
-		mtxScl = XMMatrixScaling(g_Building[i].scl.x, g_Building[i].scl.y, g_Building[i].scl.z);
+		mtxScl = XMMatrixScaling(i.scl.x, i.scl.y, i.scl.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-		// 回転を反映
-		mtxRot = XMMatrixRotationRollPitchYaw(g_Building[i].rot.x, g_Building[i].rot.y + XM_PI, g_Building[i].rot.z);
+		mtxRot = XMMatrixRotationRollPitchYaw(i.rot.x, i.rot.y + XM_PI, i.rot.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-		// 移動を反映
-		mtxTranslate = XMMatrixTranslation(g_Building[i].pos.x, g_Building[i].pos.y, g_Building[i].pos.z);
+		mtxTranslate = XMMatrixTranslation(i.pos.x, i.pos.y, i.pos.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
-		// ワールドマトリックスの設定
 		SetWorldMatrix(&mtxWorld);
 
-		XMStoreFloat4x4(&g_Building[i].mtxWorld, mtxWorld);
+		XMStoreFloat4x4(&i.mtxWorld, mtxWorld);
 
-		// モデル描画
-		DrawModel(&g_Building[i].model);
-
-
+		DrawModel(&i.model);
 	}
 
-
-
-
-	// カリング設定を戻す
-	//SetCullingMode(CULL_MODE_BACK);
 }
 
-//=============================================================================
-// エネミーの取得
-//=============================================================================
 BUILDING* GetBuilding()
 {
 	return &g_Building[0];

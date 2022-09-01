@@ -7,21 +7,20 @@
 #include "main.h"
 #include "renderer.h"
 
-#include <iostream>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
 
 #include "wrl/client.h"
 #include <comdef.h>
+#include <iostream>
 
 //デバッグ用画面テキスト出力を有効にする
 #define DEBUG_DISP_TEXTOUT
 //シェーダーデバッグ設定を有効にする
 //#define DEBUG_SHADER
 
-static const std::string g_SkyBoxPath = "data/TEXTURE/planets.dds";
+static const std::string g_SkyBoxPath = "data/TEXTURE/polluted.dds";
 
 //*********************************************************
 // 構造体

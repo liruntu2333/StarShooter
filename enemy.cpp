@@ -240,8 +240,8 @@ void UpdateEnemy(void)
 			if (enemy.type == Flyable)
 			{
 				enemy.pos = GetRandomPosition();
-				float amp = VALUE_AMP * (float)rand() / RAND_MAX;
-				float phase = XM_2PI * (float)rand() / RAND_MAX;
+				float amp = VALUE_AMP * MathHelper::RandF();
+				float phase = XM_2PI * MathHelper::RandF();
 				enemy.velocity = { phase, amp, phase };
 			}
 		}

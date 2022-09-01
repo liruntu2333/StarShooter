@@ -36,5 +36,5 @@ float GetFieldProgress(float x, float z, float dir);
 int IsAtConjunction(float x, float z, float dir);
 
 XMFLOAT3 GetRandomValidPosition();
-XMFLOAT3 GetRandomValidPositionOnRoad();
+// in a range of [-0.8, 0.8] ^ 2
 XMFLOAT3 GetRandomPosition();

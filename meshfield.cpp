@@ -9,6 +9,7 @@
 #include "meshfield.h"
 #include "renderer.h"
 #include "collision.h"
+#include "MathHelper.h"
 
 //*****************************************************************************
 // É}ÉNÉçíËã`
@@ -507,51 +508,17 @@ int IsAtConjunction(const float x, const float z, const float dir)
 
 XMFLOAT3 GetRandomValidPosition()
 {
-	const float rectArea = (g_FieldSizeX + g_FieldSizeZ) * ROAD_WIDTH * 2.0f;
-	constexpr float midArea = ROAD_WIDTH * ROAD_WIDTH;
-	const float area = rectArea + midArea;
-
-	float x = 0.0, z = 0.0;
-	int randRes = rand();
-	if (randRes % (int)area < midArea)
-	{
-		x = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
-		z = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
-	}
-	else
-	{
-		randRes -= (int)midArea;
-		if ((float)randRes < rectArea * 2.0f)
-		{
-			x = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
-			z = rand() % (int)g_FieldSizeZ - g_FieldHalfDepth;
-		}
-		else
-		{
-			x = rand() % (int)g_FieldSizeX - g_FieldHalfWidth;
-			z = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
-		}
-	}
-
-	float y = GetFieldHeight(x, z);
-	
-	return {x, y, z};
-}
-
-
-XMFLOAT3 GetRandomValidPositionOnRoad()
-{
 	float x = 0.0, z = 0.0;
 
 	if (rand() % 2)
 	{
-		x = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
-		z = rand() % (int)g_FieldSizeZ - g_FieldHalfDepth;
+		x = MathHelper::RandF() * ROAD_WIDTH - ROAD_HALF_WIDTH;
+		z = MathHelper::RandF() * g_FieldSizeZ - g_FieldHalfDepth;
 	}
 	else
 	{
-		x = rand() % (int)g_FieldSizeX - g_FieldHalfWidth;
-		z = rand() % (int)ROAD_WIDTH - ROAD_HALF_WIDTH;
+		x = MathHelper::RandF() * g_FieldSizeX - g_FieldHalfWidth;
+		z = MathHelper::RandF() * ROAD_WIDTH - ROAD_HALF_WIDTH;
 	}
 	float y = GetFieldHeight(x, z);
 	return { x, y, z };
@@ -559,9 +526,9 @@ XMFLOAT3 GetRandomValidPositionOnRoad()
 
 XMFLOAT3 GetRandomPosition()
 {
-	const auto x = static_cast<float>(rand() % (int)g_FieldSizeX - g_FieldHalfWidth);
-	const auto z = static_cast<float>(rand() % (int)g_FieldSizeZ - g_FieldHalfDepth);
-	const auto y = static_cast<float>(rand() % 20 + 40);
+	const float x = (MathHelper::RandF() * g_FieldSizeX - g_FieldHalfWidth) * 0.9f;
+	const float z = (MathHelper::RandF() * g_FieldSizeZ - g_FieldHalfDepth) * 0.9f;
+	const float y = MathHelper::RandF() * 20.0f + 40.0f;
 
 	return { x, y, z };
 }

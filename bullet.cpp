@@ -22,7 +22,7 @@
 #define	MODEL_BULLET				"data/MODEL/bullet_star.obj"			// 読み込むモデル名
 
 #define	BULLET_SPEED				(5.0f)									// 弾の移動スピード
-#define PARTICLE_GENERATION_FRAME	1	
+#define PARTICLE_GENERATION_FRAME	2	
 
 //*****************************************************************************
 // 構造体定義

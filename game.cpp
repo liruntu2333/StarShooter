@@ -59,6 +59,9 @@ static int g_gameMode = GAMEMODE_START;
 //=============================================================================
 HRESULT InitGame(void)
 {
+	unsigned seed = time(0);
+	srand(seed);
+
 	// フィールドの初期化
 	InitMeshField(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 100, 100, 13.0f, 13.0f);
 
@@ -316,6 +319,11 @@ int GetFocusMode()
 	return g_focusMode;
 }
 
+void SetFocusMode(int mode)
+{
+	g_focusMode = mode;
+}
+
 
 //=============================================================================
 // 当たり判定処理
@@ -446,26 +454,30 @@ void SetCameraFocus()
 	XMFLOAT3 playerPos = GetPlayer()->pos;
 	const float playerDir = GetPlayer()->dir;
 	playerPos.y += 35.f; // set whatever the y offset you want
-	float tCamera = 0.0f;
+	float tPos;
+	bool playerRampaging = IsPlayerRampage();
 	
 	const auto target = GetPlayerLockedTarget();
 
 	switch (g_focusMode)
 	{
 	case FOCUS_PLAYER:
-		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
-		LerpCameraViewAngle(XM_PI / 4.0f, 0.5f);
-		LerpCameraPosition(playerPos, playerDir, tCamera);
+		tPos = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
+		if (playerRampaging) LerpCameraViewAngle(XM_PIDIV2 * 0.8f, 0.5f);
+		else LerpCameraViewAngle(XM_PIDIV4, 0.5f);
+		LerpCameraPosition(playerPos, playerDir, tPos);
 		SetCamera();
 		break;
 
 	case FOCUS_ENEMY:
-		tCamera = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
-		LerpCameraViewAngle(XM_PI / 6.0f, 0.5f);
+		tPos = IsPlayerOutOfBoarder() ? 1.0f : 0.5f;
+		if (playerRampaging) LerpCameraViewAngle(XM_PIDIV2 * 0.8f, 0.5f);
+		else LerpCameraViewAngle(XM_PI / 6.0f, 0.5f);
+		
 		if (target != nullptr) 
-			LerpCameraPositionAt(playerPos, target->pos, playerDir, tCamera, 0.2f);
+			LerpCameraPositionAt(playerPos, target->pos, playerDir, tPos, 0.4f);
 		else 
-			LerpCameraPosition(playerPos, playerDir, tCamera);
+			LerpCameraPosition(playerPos, playerDir, tPos);
 
 		SetCamera();
 		break;

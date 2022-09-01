@@ -24,7 +24,8 @@ struct CAMERA
 	XMFLOAT3			pos;			// カメラの視点(位置)
 	XMFLOAT3			at;				// カメラの注視点
 	XMFLOAT3			up;				// カメラの上方向ベクトル
-	XMFLOAT3			rot;			// カメラの回転
+	float				theta;
+	float				phi;
 	
 	float				lenPlayer;			// カメラの視点と注視点の距離(プレーヤーの場合)
 	float				lenMenu;			// カメラの視点と注視点の距離(メニューの場合)

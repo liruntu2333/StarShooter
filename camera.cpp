@@ -36,6 +36,8 @@ static CAMERA			g_Camera;		// カメラデータ
 static float g_ViewAngle = XMConvertToRadians(45.0f);
 static float g_ViewAspect = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
 
+void ApplyThetaPhi();
+
 //=============================================================================
 // 初期化処理
 //=============================================================================
@@ -44,7 +46,8 @@ void InitCamera(void)
 	g_Camera.pos = { POS_X_CAM_PLAYER, POS_Y_CAM_PLAYER, POS_Z_CAM_PLAYER };
 	g_Camera.at  = { 0.0f, 0.0f, 0.0f };
 	g_Camera.up  = { 0.0f, 1.0f, 0.0f };
-	g_Camera.rot = { 0.0f, 0.0f, 0.0f };
+	g_Camera.theta = 0.0f;
+	g_Camera.phi = 0.0f;
 
 	// 視点と注視点の距離を計算
 	// プレーヤーの場合
@@ -75,97 +78,30 @@ void UninitCamera(void)
 //=============================================================================
 void UpdateCamera(void)
 {
+	static long prevX = 0;
+	static long prevY = 0;
+
+	const long currX = GetMouseX();
+	const long currY = GetMouseY();
+
+	if (IsMouseRightPressed())
+	{
+
+		const float dx = XMConvertToRadians(0.25f * static_cast<float>(currX - prevX));
+		const float dy = XMConvertToRadians(0.25f * static_cast<float>(currY - prevY));
+
+		g_Camera.theta += dx;
+		g_Camera.phi += dy;
+
+		g_Camera.phi = MathHelper::Clamp(g_Camera.phi, 0.1f, XM_PI - 0.1f);
+	}
+
+	prevX = currX;
+	prevY = currY;
 
 #ifdef _DEBUG
 
-	if (GetKeyboardPress(DIK_Z))
-	{// 視点旋回「左」
-		g_Camera.rot.y += VALUE_ROTATE_CAMERA;
-		if (g_Camera.rot.y > XM_PI)
-		{
-			g_Camera.rot.y -= XM_PI * 2.0f;
-		}
 
-		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
-		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
-	}
-
-	if (GetKeyboardPress(DIK_C))
-	{// 視点旋回「右」
-		g_Camera.rot.y -= VALUE_ROTATE_CAMERA;
-		if (g_Camera.rot.y < -XM_PI)
-		{
-			g_Camera.rot.y += XM_PI * 2.0f;
-		}
-
-		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
-		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
-	}
-
-	if (GetKeyboardPress(DIK_Y))
-	{// 視点移動「上」
-		g_Camera.pos.y += VALUE_MOVE_CAMERA;
-	}
-
-	if (GetKeyboardPress(DIK_N))
-	{// 視点移動「下」
-		g_Camera.pos.y -= VALUE_MOVE_CAMERA;
-	}
-
-	if (GetKeyboardPress(DIK_Q))
-	{// 注視点旋回「左」
-		g_Camera.rot.y -= VALUE_ROTATE_CAMERA;
-		if (g_Camera.rot.y < -XM_PI)
-		{
-			g_Camera.rot.y += XM_PI * 2.0f;
-		}
-
-		g_Camera.at.x = g_Camera.pos.x + sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
-		g_Camera.at.z = g_Camera.pos.z + cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
-	}
-
-	if (GetKeyboardPress(DIK_E))
-	{// 注視点旋回「右」
-		g_Camera.rot.y += VALUE_ROTATE_CAMERA;
-		if (g_Camera.rot.y > XM_PI)
-		{
-			g_Camera.rot.y -= XM_PI * 2.0f;
-		}
-
-		g_Camera.at.x = g_Camera.pos.x + sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
-		g_Camera.at.z = g_Camera.pos.z + cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
-	}
-
-	if (GetKeyboardPress(DIK_T))
-	{// 注視点移動「上」
-		g_Camera.at.y += VALUE_MOVE_CAMERA;
-	}
-
-	if (GetKeyboardPress(DIK_B))
-	{// 注視点移動「下」
-		g_Camera.at.y -= VALUE_MOVE_CAMERA;
-	}
-
-	if (GetKeyboardPress(DIK_U))
-	{// 近づく
-		g_Camera.lenPlayer -= VALUE_MOVE_CAMERA;
-		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
-		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
-	}
-
-	if (GetKeyboardPress(DIK_M))
-	{// 離れる
-		g_Camera.lenPlayer += VALUE_MOVE_CAMERA;
-		g_Camera.pos.x = g_Camera.at.x - sinf(g_Camera.rot.y) * g_Camera.lenPlayer;
-		g_Camera.pos.z = g_Camera.at.z - cosf(g_Camera.rot.y) * g_Camera.lenPlayer;
-	}
-
-	// カメラを初期に戻す
-	if (GetKeyboardPress(DIK_R))
-	{
-		UninitCamera();
-		InitCamera();
-	}
 
 #endif
 
@@ -216,14 +152,13 @@ void LerpCameraPosition(XMFLOAT3 pos, float dir, float tPos)
 {
 	const XMVECTOR pPos = XMLoadFloat3(&pos);
 	const XMVECTOR vDir = XMVector3Normalize({ sinf(dir), 0.0f, cosf(dir), 0.0f });
-
-	{
-		const XMVECTOR target = pPos - vDir * g_Camera.lenPlayer;
-		const XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), target, tPos);
-		XMStoreFloat3(&g_Camera.pos, result);
-	}
+	const XMVECTOR target = pPos - vDir * g_Camera.lenPlayer;
+	const XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), target, tPos);
+	XMStoreFloat3(&g_Camera.pos, result);
 
 	g_Camera.at = pos;
+
+	//ApplyThetaPhi();
 }
 
 void LerpCameraPositionAt(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, float tPos, float tAt)
@@ -231,20 +166,23 @@ void LerpCameraPositionAt(XMFLOAT3 playerPos, XMFLOAT3 enemyPos, float dir, floa
 	const XMVECTOR pPos = XMLoadFloat3(&playerPos);
 	const XMVECTOR ePos = XMLoadFloat3(&enemyPos);
 	const XMVECTOR vDir = XMVector3Normalize(ePos - pPos);
+	const XMVECTOR target = pPos - vDir * g_Camera.lenPlayer;
+	const XMVECTOR pLerp = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), target, tPos);
+	XMStoreFloat3(&g_Camera.pos, pLerp);
 
-	{
-		const XMVECTOR target = pPos - vDir * g_Camera.lenPlayer;
-		const XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.pos), target, tPos);
-		XMStoreFloat3(&g_Camera.pos, result);
-	}
-
-	{
-		const XMVECTOR result = MathHelper::Lerp(XMLoadFloat3(&g_Camera.at), XMLoadFloat3(&enemyPos), tAt);
-		XMStoreFloat3(&g_Camera.at, result);
-	}
+	const XMVECTOR aLerp = MathHelper::Lerp(XMLoadFloat3(&g_Camera.at), XMLoadFloat3(&enemyPos), tAt);
+	XMStoreFloat3(&g_Camera.at, aLerp);
 }
 
 void LerpCameraViewAngle(float angle, float t = 1.0f)
 {
 	g_ViewAngle = MathHelper::Lerp(g_ViewAngle, angle, t);
+}
+
+void ApplyThetaPhi()
+{
+	auto& camera = g_Camera;
+	camera.pos.x += camera.at.x + camera.lenPlayer * sinf(camera.phi) * cosf(camera.theta);
+	camera.pos.z += camera.at.z + camera.lenPlayer * sinf(camera.phi) * sinf(camera.theta);
+	camera.pos.y += camera.at.y + camera.lenPlayer * cosf(camera.phi);
 }

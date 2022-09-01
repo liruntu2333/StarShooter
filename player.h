@@ -81,3 +81,4 @@ int IsPlayerOutOfBoarder();
 float GetPlayerFieldProgress();
 
 ENEMY* GetPlayerLockedTarget();
+bool IsPlayerRampage();

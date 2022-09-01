@@ -8,6 +8,7 @@
 #pragma once
 
 #include <array>
+#include <ctime>
 #include <DirectXMath.h>
 #include <vector>
 
@@ -38,6 +39,11 @@ public:
 		return x < low ? low : (x > high ? high : x);
 	}
 
+	static float RandF()
+	{
+		return static_cast<float>(rand()) / RAND_MAX;
+	}
+
 	//static DirectX::XMVECTOR XM_CALLCONV ToXMVECTOR(const DirectX::XMFLOAT3& vec)
 	//{
 	//	return XMLoadFloat3(&vec);
@@ -62,6 +68,7 @@ public:
 	virtual DirectX::XMFLOAT3 GetPosition(float t) = 0;
 	virtual DirectX::XMFLOAT3 GetDerivative(float t) = 0;
 	virtual DirectX::XMFLOAT3 GetNormalizedDerivative(float t) = 0;
+	virtual void SetControlPoint2(DirectX::XMFLOAT3 target) = 0;
 };
 
 //class BezierCurveLinear : BezierCurve
@@ -96,7 +103,7 @@ public:
 	DirectX::XMFLOAT3 GetPosition(float t) override;
 	DirectX::XMFLOAT3 GetDerivative(float t) override;
 	DirectX::XMFLOAT3 GetNormalizedDerivative(float t) override;
-	void SetControlPoint2(DirectX::XMFLOAT3 target);
+	void SetControlPoint2(DirectX::XMFLOAT3 target) override;
 
 private:
 	std::array<DirectX::XMFLOAT3, 3> MControlPoints{};

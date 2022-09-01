@@ -82,68 +82,58 @@ cbuffer CameraBuffer : register(b7)
 	float4 Camera;
 }
 
-
-
-//=============================================================================
-// 頂点シェーダ
-//=============================================================================
-void VertexShaderPolygon( in  float4 inPosition		: POSITION0,
-						  in  float4 inNormal		: NORMAL0,
-						  in  float4 inDiffuse		: COLOR0,
-						  in  float2 inTexCoord		: TEXCOORD0,
-
-						  out float4 outPosition	: SV_POSITION,
-						  out float4 outNormal		: NORMAL0,
-						  out float2 outTexCoord	: TEXCOORD0,
-						  out float4 outDiffuse		: COLOR0,
-						  out float4 outWorldPos    : POSITION0)
+struct VertexIn
 {
+    float4 Position : POSITION0;
+	float4 Normal   : NORMAL0;
+	float4 Diffuse  : COLOR0;
+	float2 TexCoord : TEXCOORD0;
+};
+
+struct VertexOut
+{
+    float4 Position : SV_POSITION;
+	float4 Normal   : NORMAL0;
+	float2 TexCoord : TEXCOORD0;
+	float4 Diffuse  : COLOR0;
+	float4 WorldPos : POSITION0;
+};
+
+VertexOut VertexShaderPolygon(VertexIn vin)
+{
+    VertexOut vout = (VertexOut) 0;
+
 	matrix wvp;
 	wvp = mul(World, View);
 	wvp = mul(wvp, Projection);
-	outPosition = mul(inPosition, wvp);
 
-	outNormal = normalize(mul(float4(inNormal.xyz, 0.0f), World));
+    vout.Position = mul(vin.Position, wvp);
+    vout.Normal   = normalize(mul(float4(vin.Normal.xyz, 0.0f), World));
+    vout.TexCoord = vin.TexCoord;
+    vout.WorldPos = mul(vin.Position, World);
+    vout.Diffuse  = vin.Diffuse;
 
-	outTexCoord = inTexCoord;
-
-	outWorldPos = mul(inPosition, World);
-
-	outDiffuse = inDiffuse;
+    return vout;
 }
 
-
-
-//*****************************************************************************
-// グローバル変数
-//*****************************************************************************
 Texture2D		g_Texture : register( t0 );
 TextureCube		g_SkyBoxTexture : register(t1);
 SamplerState	g_SamplerState : register( s0 );
 
 
-//=============================================================================
-// ピクセルシェーダ
-//=============================================================================
-void PixelShaderPolygon( in  float4 inPosition		: SV_POSITION,
-						 in  float4 inNormal		: NORMAL0,
-						 in  float2 inTexCoord		: TEXCOORD0,
-						 in  float4 inDiffuse		: COLOR0,
-						 in  float4 inWorldPos      : POSITION0,
-
-						 out float4 outDiffuse		: SV_Target )
+float4 PixelShaderPolygon(VertexOut pin) : SV_Target
 {
-	float4 color;
+    float4 color = (float4) 0;
 
 	if (Material.noTexSampling == 0)
 	{
-		color = g_Texture.Sample(g_SamplerState, inTexCoord);
+		color = g_Texture.Sample(g_SamplerState, pin.TexCoord);
 
-		color *= inDiffuse;
+		color *= pin.Diffuse;
 	}
 	else
 	{
-		color = inDiffuse;
+		color = pin.Diffuse;
 	}
 
 	if (Light.Enable == 0)
@@ -154,112 +144,105 @@ void PixelShaderPolygon( in  float4 inPosition		: SV_POSITION,
 	{
 		float4 tempColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
 		float4 outColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+		
+        float3 view_dir = normalize(Camera.xyz - pin.WorldPos.xyz);
 
-        float3 view_dir = normalize(Camera.xyz - inWorldPos.xyz);
+        outColor += 0.1f * Material.Ambient;	// Ambient
 
-		for (int i = 0; i < 5; i++)
-		{
-			float3 lightDir = 0;
-			float light = 0.2f; // Ambient
+        for (int i = 0; i < 5; i++)
+        {
+            float3 lightDir = 0;
+            float light = 0; // Ambient
 
-			if (Light.Flags[i].y == 1)
-			{
-
-				if (Light.Flags[i].x == 1)
-				{
-					lightDir = normalize(-Light.Direction[i].xyz);
-                    light = max(dot(lightDir, inNormal.xyz), 0.0f);
-                    float3 half_vec = normalize(lightDir + view_dir);
-                    float4 specular = Material.Specular *
-						pow(max(.0f, dot(normalize(inNormal.xyz), half_vec)), 150.f);
+            //if (Light.Flags[i].y == 1)
+            {
+//                if (Light.Flags[i].x == 1)
+//                {
+//                    lightDir = normalize(-Light.Direction[i].xyz);
+//                    light = max(dot(lightDir, pin.Normal.xyz), 0.0f);
+//                    float3 half_vec = normalize(lightDir + view_dir);
+//                    float4 specular = Material.Specular *
+//						pow(max(.0f, dot(normalize(pin.Normal.xyz), half_vec)), 150.f);
 					
-#ifdef TOON_SHADING
-                    light = light <= 0.0f ? 0.0f : light <= 0.3f ? 0.3f : light <= 0.5f ? 0.5f : light <= 0.7f ? 0.7f : 0.8f;
-#endif
-					//light = 0.5 - 0.5 * light;
-					tempColor += color * Material.Diffuse * light * Light.Diffuse[i];
-                    tempColor += color * Material.Specular * specular * light;
+//#ifdef TOON_SHADING
+//                    light = light < 0.0f ? 0.1f : light < 0.3f ? 0.4f : light < 0.5f ? 0.6f : light < 0.7f ? 0.8f : 0.9f;
+//#endif
+//					//light = 0.5 - 0.5 * light;
+//                    tempColor += color * Material.Diffuse * light * Light.Diffuse[i];
+//                    tempColor += color * Material.Specular * specular * light;
 
-                }
-				else if (Light.Flags[i].x == 2)
-				{
-					lightDir = normalize(Light.Position[i].xyz - inWorldPos.xyz);
-                    light = max(dot(lightDir, inNormal.xyz), 0.2f);
+//                }
+//                else if (Light.Flags[i].x == 2)
+                {
+                    lightDir = normalize(Light.Position[i].xyz - pin.WorldPos.xyz);
+                    light = max(dot(lightDir, pin.Normal.xyz), 0.2f);
                     float3 half_vec = normalize(lightDir + view_dir);
                     float4 specular = Material.Specular *
-						pow(max(.0f, dot(normalize(inNormal.xyz), half_vec)), 150.f);
+						pow(max(.0f, dot(normalize(pin.Normal.xyz), half_vec)), 150.f);
 
 #ifdef TOON_SHADING
-                    light = light <= 0.0f ? 0.2f : light <= 0.3f ? 0.5f : light <= 0.5f ? 0.7f : light <= 0.7f ? 0.9f : 1.0f;
+                    light = light < 0.0f ? 0.1f : light < 0.3f ? 0.4f : light < 0.5f ? 0.6f : light < 0.7f ? 0.8f : 0.9f;
 #endif
                     tempColor += color * Material.Diffuse * light * Light.Diffuse[i];
                     tempColor += color * Material.Specular * specular * light;
 
-					float distance = length(inWorldPos - Light.Position[i]);
+                    float distance = length(pin.WorldPos - Light.Position[i]);
+                    float att = saturate((Light.Attenuation[i].x - distance) / Light.Attenuation[i].x);
+                    tempColor *= att;
+                }
+                //else
+                //{
+                //    tempColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+                //}
 
-					float att = saturate((Light.Attenuation[i].x - distance) / Light.Attenuation[i].x);
-					tempColor *= att;
-				}
-				else
-				{
-					tempColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
-				}
+                outColor += tempColor;
+            }
+        }
 
-				outColor += tempColor;
-			}
-		}
 
 		// reflection
 		{
-            float3 incident = -view_dir;
-            float3 reflectionVec = reflect(incident, inNormal.xyz);
+            float3 incident = view_dir;
+            float3 reflectionVec = reflect(incident, pin.Normal.xyz);
             float4 reflCol = g_SkyBoxTexture.Sample(g_SamplerState, reflectionVec);
 
             outColor += Material.Specular * reflCol;
         }
 
 		color = outColor;
-		color.a = inDiffuse.a * Material.Diffuse.a;
+		color.a = pin.Diffuse.a * Material.Diffuse.a;
 	}
 
-	//フォグ
-	//if (Fog.Enable == 1)
-	//{
-	//	float z = inPosition.z*inPosition.w;
-	//	float f = (Fog.Distance.y - z) / (Fog.Distance.y - Fog.Distance.x);
-	//	f = saturate(f);
-	//	outDiffuse = f * color + (1 - f)*Fog.FogColor;
-	//	outDiffuse.a = color.a;
-	//}
-	//else
-	{
-		outDiffuse = color;
-	}
-
-	//縁取り
 	if (fuchi == 1)
 	{
-		float angle = dot(normalize(inWorldPos.xyz - Camera.xyz), normalize(inNormal));
+		float angle = dot(normalize(pin.WorldPos.xyz - Camera.xyz), normalize(pin.Normal.xyz));
 		//if ((angle < 0.5f)&&(angle > -0.5f))
 		if (angle > -0.3f)
 		{
-			outDiffuse.rb  = 1.0f;
-			outDiffuse.g = 0.0f;			
+			pin.Diffuse.rb  = 1.0f;
+			pin.Diffuse.g = 0.0f;			
 		}
 	}
+
+    return color;
 }
+
+struct SkyBoxVSIn
+{
+    float4 Position : POSITION0;
+    float4 Normal : NORMAL0;
+    float4 Diffuse : COLOR0;
+    float2 TexCoord : TEXCOORD0;
+};
 
 struct SkyBoxVSOut    //output structure for skymap vertex shader
 {
-    float4 Pos : SV_POSITION;
-    float3 texCoord : TEXCOORD;
+    float4 Position : SV_POSITION;
+    float3 TexCoord : TEXCOORD;
 };
 
 
-SkyBoxVSOut SkyBoxVS(in float4 inPosition : POSITION0,
-						  in float4 inNormal : NORMAL0,
-						  in float4 inDiffuse : COLOR0,
-						  in float2 inTexCoord : TEXCOORD0)
+SkyBoxVSOut SkyBoxVS(SkyBoxVSIn vin)
 {
     SkyBoxVSOut vout = (SkyBoxVSOut) 0;
 
@@ -268,14 +251,14 @@ SkyBoxVSOut SkyBoxVS(in float4 inPosition : POSITION0,
     wvp = mul(World, View);
     wvp = mul(wvp, Projection);
 
-    inPosition.w = 1.0f;
-    vout.Pos = mul(inPosition, wvp).xyww;
-    vout.texCoord = inPosition;
+    vin.Position.w = 1.0f;
+    vout.Position = mul(vin.Position, wvp).xyww;
+    vout.TexCoord = vin.Position.xyz;
 
     return vout;
 }
 
 float4 SkyBoxPS(SkyBoxVSOut pin) : SV_Target
 {
-    return g_SkyBoxTexture.Sample(g_SamplerState, pin.texCoord);
+    return g_SkyBoxTexture.Sample(g_SamplerState, pin.TexCoord);
 }

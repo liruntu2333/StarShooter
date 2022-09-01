@@ -33,3 +33,4 @@ void UninitGame(void);
 void UpdateGame(void);
 void DrawGame(void);
 int GetFocusMode();
+void SetFocusMode(int mode);

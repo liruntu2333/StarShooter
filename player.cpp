@@ -83,6 +83,7 @@ static int			g_BoarderSignal = EndOfNone;
 static bool			g_AtConjunction = false;
 static bool			g_MadeDecision = false;
 static float		g_FieldProgress = 0.0f;
+static bool			g_Rampaging = false;
 
 static ENEMY*		g_LockedTarget = nullptr;
 
@@ -301,8 +302,13 @@ void UpdatePlayer(void)
 	g_AtConjunction = IsAtConjunction(g_Player.pos.x, g_Player.pos.z, dir);
 	g_FieldProgress = GetFieldProgress(g_Player.pos.x, g_Player.pos.z, dir);
 	bool cameraAtPlayer = GetFocusMode() == FOCUS_PLAYER;
+	g_Rampaging = GetKeyboardPress(DIK_G) ? true : false;
 
-	if (!g_AtConjunction)
+	if (g_Rampaging)
+	{
+		g_Player.spd = VALUE_MOVE * 2.0f;
+	}
+	else if (!g_AtConjunction)
 	{
 		g_MadeDecision = false;
 		g_Player.spd = VALUE_MOVE;
@@ -320,7 +326,6 @@ void UpdatePlayer(void)
 		//return;
 	}
 
-
 	if (!cameraAtPlayer && g_LockedTarget && g_Player.MP > 0)
 	{
 		g_Player.spd = VALUE_MOVE * 0.1f;
@@ -329,6 +334,10 @@ void UpdatePlayer(void)
 		{
 			g_Player.MP--;
 			t = 0;
+		}
+		if (g_Player.MP == 0)
+		{
+			SetFocusMode(FOCUS_PLAYER);
 		}
 	}
 	else
@@ -344,8 +353,6 @@ void UpdatePlayer(void)
 		}
 		
 	}
-
-
 
 	// x pass
 	if (!g_AtConjunction || g_MadeDecision)
@@ -421,48 +428,24 @@ void UpdatePlayer(void)
 	pos.y -= (PLAYER_OFFSET_Y - 0.1f);
 	SetPositionShadow(g_Player.shadowIdx, pos);
 	XMFLOAT3 wandPos = GetWeapon()->pos;
-	wandPos.y += 20.0f;
+	wandPos.y += 25.0f;
 
 	XMVECTOR front = { sinf(dir), 0.0f, cosf(dir) };
 	XMVECTOR up = { 0.0f, 1.0f, 0.0f };
 	XMVECTOR right = XMVector3Cross(front, up);
 
 	// auto shooting mode
-	//if (GetKeyboardTrigger(DIK_J))
-	//{
-	//	for (int i = 0; i < MAX_ENEMY; ++i)
-	//	{
-	//		ENEMY& enemy = *(pEnemy + i);
-	//		XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);
-	//		XMVECTOR enemyDir = XMVector3Normalize(enemyPos - XMLoadFloat3(&wandPos));
-	//		float enemyDis = (enemyDir / enemyPos).m128_f32[0];
-
-	//		static const float cos45 = cosf(XM_PIDIV4);
-
-	//		if (enemy.use && 
-	//			XMVector3Dot(enemyDir, front).m128_f32[0] > cos45)
-	//		{
-	//			// generate control point p1 on +y semi-circle, with a range of 20.0f
-	//			float theta = XM_PI * (float)rand() / (float)RAND_MAX;
-	//			XMFLOAT3 p1{};
-	//			XMVECTOR target = XMLoadFloat3(&g_Player.pos);
-
-	//			target += front * CONTROL_POINT_Z_BIAS;
-	//			target += right * cosf(theta) * CONTROL_POINT_XY_RANGE;
-	//			target += up * sinf(theta) * CONTROL_POINT_XY_RANGE;
-	//			XMStoreFloat3(&p1, target);
-	//			std::array<XMFLOAT3, 3> points =
-	//			{
-	//				wandPos,
-	//				p1,
-	//				enemy.pos
-	//			};
-	//			SetBullet(points, HIT_TIME, &enemy);
-	//			//SetBullet(g_Player.pos, g_Player.rot);
-	//			break;
-	//		}
-	//	}
-	//}
+	if (g_Rampaging)
+	{
+		static unsigned timer = 0;
+		int i = rand() % MAX_ENEMY;
+		ENEMY& enemy = *(GetEnemy() + i);
+		if (++timer == 10)
+		{
+			ShootBullets(3, enemy, wandPos, enemy.pos, front, right, up);
+			timer = 0;
+		}
+	}
 
 	CommandCode cmd =
 		GetKeyboardTrigger(DIK_UP) ? Up :
@@ -692,6 +675,11 @@ ENEMY* GetPlayerLockedTarget()
 	return g_LockedTarget;
 }
 
+bool IsPlayerRampage()
+{
+	return g_Rampaging;
+}
+
 void ReleaseMoveTable()
 {
 	g_Player.tbl_adr = nullptr;
@@ -699,7 +687,6 @@ void ReleaseMoveTable()
 	{
 		part.tbl_adr = nullptr;
 	}
-
 }
 
 void BuildMoveTableIdle()
@@ -768,7 +755,7 @@ void UpdateLockedTarget()
 	for (int i = 0; i < MAX_ENEMY; ++i)
 	{
 		ENEMY& enemy = *(pEnemies + i);
-		if (enemy.use == FALSE || enemy.compare_index == enemy.codes.size()) 
+		if (enemy.use == FALSE)//|| enemy.compare_index == enemy.codes.size()) 
 			continue;
 
 		const XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);

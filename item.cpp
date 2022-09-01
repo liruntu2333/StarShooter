@@ -133,7 +133,7 @@ void UpdateItem(void)
 		{
 			//item.type = static_cast<itemBehaviorType>(rand() % 3);
 			item.use = true;
-			item.pos = GetRandomValidPositionOnRoad();
+			item.pos = GetRandomValidPosition();
 			item.pos.y += ITEM_OFFSET_Y;
 
 

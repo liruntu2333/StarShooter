@@ -50,7 +50,7 @@ void SetStreetLight(const BUILDING& building, int lightIdx)
 
 	light->Position = lightPos;
 	light->Diffuse = { 0.721568644f, 0.525490224f, 0.043137256f, 1.000000000f };
-	light->Attenuation = 500.0f;
+	light->Attenuation = 750.0f;
 	light->Type = LIGHT_TYPE_POINT;
 	light->Enable = TRUE;
 	SetLightData(lightIdx, light);

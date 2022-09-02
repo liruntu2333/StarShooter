@@ -10,7 +10,6 @@
 #include <iostream>
 
 #define DEBUG_DISP_TEXTOUT
-static const std::string g_SkyBoxPath = "data/TEXTURE/polluted.dds";
 
 struct MATERIAL_CBUFFER
 {
@@ -23,7 +22,7 @@ struct MATERIAL_CBUFFER
 	float		Dummy[2];				 
 };
 
-struct LIGHTFLAGS
+struct LIGHT_FLAGS
 {
 	int			Type;		 
 	int         OnOff;		
@@ -37,7 +36,7 @@ struct LIGHT_CBUFFER
 	XMFLOAT4	Diffuse[LIGHT_MAX];		 
 	XMFLOAT4	Ambient[LIGHT_MAX];		 
 	XMFLOAT4	Attenuation[LIGHT_MAX];	 
-	LIGHTFLAGS	Flags[LIGHT_MAX];		 
+	LIGHT_FLAGS	Flags[LIGHT_MAX];		 
 	int			Enable;					 
 	int			Dummy[3];				 
 };
@@ -60,55 +59,59 @@ static void SetLightBuffer(void);
 void InitSkyBox();
 void CreateSphere(int LatLines, int LongLines);
 
-static D3D_FEATURE_LEVEL       g_FeatureLevel = D3D_FEATURE_LEVEL_11_0;
+namespace 
+{
+	const std::string g_SkyBoxPath = "data/TEXTURE/polluted.dds";
+	D3D_FEATURE_LEVEL       g_FeatureLevel = D3D_FEATURE_LEVEL_11_0;
 
-static ID3D11Device* g_D3DDevice = nullptr;
-static ID3D11DeviceContext* g_ImmediateContext = nullptr;
-static IDXGISwapChain* g_SwapChain = nullptr;
-static ID3D11RenderTargetView* g_RenderTargetView = nullptr;
-static ID3D11DepthStencilView* g_DepthStencilView = nullptr;
+	ID3D11Device* g_D3DDevice = nullptr;
+	ID3D11DeviceContext* g_ImmediateContext = nullptr;
+	IDXGISwapChain* g_SwapChain = nullptr;
+	ID3D11RenderTargetView* g_RenderTargetView = nullptr;
+	ID3D11DepthStencilView* g_DepthStencilView = nullptr;
 
-static ID3D11VertexShader* g_VertexShader = nullptr;
-static ID3D11PixelShader* g_PixelShader = nullptr;
-static ID3D11InputLayout* g_VertexLayout = nullptr;
-static ID3D11Buffer* g_WorldBuffer = nullptr;
-static ID3D11Buffer* g_ViewBuffer = nullptr;
-static ID3D11Buffer* g_ProjectionBuffer = nullptr;
-static ID3D11Buffer* g_MaterialBuffer = nullptr;
-static ID3D11Buffer* g_LightBuffer = nullptr;
-static ID3D11Buffer* g_FogBuffer = nullptr;
-static ID3D11Buffer* g_FuchiBuffer = nullptr;
-static ID3D11Buffer* g_CameraBuffer = nullptr;
+	ID3D11VertexShader* g_VertexShader = nullptr;
+	ID3D11PixelShader* g_PixelShader = nullptr;
+	ID3D11InputLayout* g_VertexLayout = nullptr;
+	ID3D11Buffer* g_WorldBuffer = nullptr;
+	ID3D11Buffer* g_ViewBuffer = nullptr;
+	ID3D11Buffer* g_ProjectionBuffer = nullptr;
+	ID3D11Buffer* g_MaterialBuffer = nullptr;
+	ID3D11Buffer* g_LightBuffer = nullptr;
+	ID3D11Buffer* g_FogBuffer = nullptr;
+	ID3D11Buffer* g_FuchiBuffer = nullptr;
+	ID3D11Buffer* g_CameraBuffer = nullptr;
 
-static ID3D11DepthStencilState* g_DepthStateEnable;
-static ID3D11DepthStencilState* g_DepthStateDisable;
+	ID3D11DepthStencilState* g_DepthStateEnable;
+	ID3D11DepthStencilState* g_DepthStateDisable;
 
-static ID3D11BlendState* g_BlendStateNone;
-static ID3D11BlendState* g_BlendStateAlphaBlend;
-static ID3D11BlendState* g_BlendStateAdd;
-static ID3D11BlendState* g_BlendStateSubtract;
-static BLEND_MODE				g_BlendStateParam;
+	ID3D11BlendState* g_BlendStateNone;
+	ID3D11BlendState* g_BlendStateAlphaBlend;
+	ID3D11BlendState* g_BlendStateAdd;
+	ID3D11BlendState* g_BlendStateSubtract;
+	BLEND_MODE				g_BlendStateParam;
 
-static ID3D11RasterizerState* g_RasterStateCullOff;
-static ID3D11RasterizerState* g_RasterStateCullCW;
-static ID3D11RasterizerState* g_RasterStateCullCCW;
+	ID3D11RasterizerState* g_RasterStateCullOff;
+	ID3D11RasterizerState* g_RasterStateCullCW;
+	ID3D11RasterizerState* g_RasterStateCullCCW;
 
-static MATERIAL_CBUFFER	g_Material;
-static LIGHT_CBUFFER	g_Light;
-static FOG_CBUFFER		g_Fog;
+	MATERIAL_CBUFFER	g_Material;
+	LIGHT_CBUFFER	g_Light;
+	FOG_CBUFFER		g_Fog;
 
-static FUCHI			g_Fuchi;
+	FUCHI			g_Fuchi;
 
-Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxVB;
-Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxIB;
-Microsoft::WRL::ComPtr<ID3D11VertexShader>       g_SkyBoxVS;
-Microsoft::WRL::ComPtr<ID3D11PixelShader>        g_SkyBoxPS;
-Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> g_SkyBoxSrv;
-Microsoft::WRL::ComPtr<ID3D11Texture2D>          g_SkyBoxTex;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxVB;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxIB;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader>       g_SkyBoxVS;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>        g_SkyBoxPS;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> g_SkyBoxSrv;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D>          g_SkyBoxTex;
 
-static int g_NumSphereVertices;
-static int g_NumSphereFaces;
-static XMMATRIX g_SphereWorld = XMMatrixIdentity();
+	int g_NumSphereVertices;
+	int g_NumSphereFaces;
+	XMMATRIX g_SphereWorld = XMMatrixIdentity();
+}
 
 ID3D11Device* GetDevice(void)
 {

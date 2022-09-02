@@ -196,4 +196,9 @@
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shadow.hlsl">
+      <Filter>Shader</Filter>
+    </None>
+  </ItemGroup>
 </Project>

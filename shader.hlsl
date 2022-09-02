@@ -71,8 +71,8 @@ cbuffer CameraBuffer : register(b7)
 
 struct VertexIn
 {
-    float4 Position : POSITION0;
-	float4 Normal   : NORMAL0;
+    float4 PositionL : POSITION0;
+	float4 NormalL   : NORMAL0;
 	float4 Albedo  : COLOR0;
 	float2 TexCoord : TEXCOORD0;
 };
@@ -93,10 +93,10 @@ VertexOut VertexShaderPolygon(VertexIn vin)
     matrix wvp = mul(World, View);
 	wvp = mul(wvp, Projection);
 
-    vout.PositionH = mul(vin.Position, wvp);
-    vout.Normal   = normalize(mul(float4(vin.Normal.xyz, 0.0f), World));
+    vout.PositionH = mul(vin.PositionL, wvp);
+    vout.Normal   = normalize(mul(float4(vin.NormalL.xyz, 0.0f), World));
     vout.TexCoord = vin.TexCoord;
-    vout.PositionW = mul(vin.Position, World);
+    vout.PositionW = mul(vin.PositionL, World);
     vout.Albedo  = vin.Albedo;
 
     return vout;
@@ -110,15 +110,16 @@ void ComputePointLight(uint iLight, const float3 posW, const float3 normW, const
 						out float4 diffuse, out float4 specular)
 {
     const float3 lightDir = normalize(Light.Position[iLight].xyz - posW);
+    const float lightDis = length(posW - Light.Position[iLight].xyz);
+    if (lightDis > Light.Attenuation[iLight].x) return;
+
     const float3 halfVec = normalize(lightDir + eyeDir);
     float cosTheta = max(dot(lightDir, normW), 0.0f);
     
 #ifdef TOON_SHADING
     cosTheta = cosTheta < 0.1f ? 0.2f : cosTheta < 0.3f ? 0.4f : cosTheta < 0.5f ? 0.6f : cosTheta < 0.7f ? 0.8f : 0.9f;
 #endif
-
-    const float distance = length(posW - Light.Position[iLight].xyz);
-    const float att = saturate((Light.Attenuation[iLight].x - distance) / Light.Attenuation[iLight].x);
+    const float att = saturate((Light.Attenuation[iLight].x - lightDis) / Light.Attenuation[iLight].x);
 
     diffuse = diffuseAlbedo * Material.Diffuse * cosTheta * Light.Intensity[iLight] * att;
     specular = Material.Specular * pow(max(.0f, dot(normW, halfVec)), 150.f) * Light.Intensity[iLight] * att;
@@ -126,7 +127,7 @@ void ComputePointLight(uint iLight, const float3 posW, const float3 normW, const
 
 float4 PixelShaderPolygon(VertexOut pin) : SV_Target
 {
-    float4 vout = (float4) 0;
+    float4 vout = 0;
 
     const float4 diffuseAlbedo = Material.noTexSampling == 0 ? 
 	                          g_Texture.Sample(g_SamplerState, pin.TexCoord) * pin.Albedo : pin.Albedo;
@@ -144,8 +145,8 @@ float4 PixelShaderPolygon(VertexOut pin) : SV_Target
 		[unroll]   // avoid branching
         for (uint i = 0; i < 5; i++)	// the scene is lightened with 5 point lights 
         {
-            float4 diffuse = (float4) 0;
-            float4 specular = (float4) 0;
+            float4 diffuse = 0;
+            float4 specular = 0;
 
             ComputePointLight(i, pin.PositionW.xyz, pin.Normal.xyz, eyeDir, diffuseAlbedo,
 								diffuse, specular);

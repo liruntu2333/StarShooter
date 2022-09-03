@@ -46,6 +46,7 @@ void SetStreetLight(const BUILDING& building, int lightIdx)
 {
 	LIGHT* light = GetLightData(lightIdx);
 	XMFLOAT3 lightPos{ building.pos };
+
 	lightPos.y += 80.0f;
 
 	light->Position = lightPos;

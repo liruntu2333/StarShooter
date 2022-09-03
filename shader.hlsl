@@ -133,8 +133,7 @@ float SampleShadowMap(const int iLight, const float3 posW)
 	// normalize
     vPosDp /= fLength;
 
-    float smDepth;
-    float depth;
+	float depth;
     const float fNear = 0.1f;
     const float fFar = Light.Attenuation[iLight].x;
 
@@ -149,10 +148,12 @@ float SampleShadowMap(const int iLight, const float3 posW)
         float2(-dx, +dx), float2(0.0f, +dx), float2(dx, +dx)
     };
 
+    uint smIdx = iLight * 2;
+
+    [branch]
     if (vPosDp.z >= 0.0f)
     {
         float2 vTexFront;
-        uint smIdx = iLight * 2;
         vTexFront.x = (vPosDp.x / (1.0f + vPosDp.z)) * 0.5f + 0.5f;
         vTexFront.y = 1.0f - ((vPosDp.y / (1.0f + vPosDp.z)) * 0.5f + 0.5f);
 		
@@ -171,7 +172,7 @@ float SampleShadowMap(const int iLight, const float3 posW)
     {
 		 // for the back the z has to be inverted		
         float2 vTexBack;
-        uint smIdx = iLight * 2 + 1;
+        smIdx += 1;
         vTexBack.x = (vPosDp.x / (1.0f - vPosDp.z)) * 0.5f + 0.5f;
         vTexBack.y = 1.0f - ((vPosDp.y / (1.0f - vPosDp.z)) * 0.5f + 0.5f);
 		

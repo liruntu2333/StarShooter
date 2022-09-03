@@ -139,6 +139,7 @@ void ReturnToMainPass()
 	g_ImmediateContext->OMSetRenderTargets(1, &g_RenderTargetView, g_DepthStencilView);
 	g_ImmediateContext->VSSetShader(g_VertexShader, nullptr, 0);
 	g_ImmediateContext->PSSetShader(g_PixelShader, nullptr, 0);
+	SetCullingMode(CULL_MODE_BACK);
 }
 
 void SetDepthEnable(BOOL Enable)

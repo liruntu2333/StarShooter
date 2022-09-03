@@ -179,6 +179,7 @@ void UpdateGame(void)
 	UpdateScore();
 }
 
+// shadow pass
 void DrawDepthTextures()
 {
 	ID3D11DeviceContext* pDeviceContext = GetDeviceContext();
@@ -241,7 +242,6 @@ void DrawDepthTextures()
 			DrawWeaponToDepthTex();
 		}
 	}
-	SetCullingMode(CULL_MODE_BACK);
 
 	pDeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 

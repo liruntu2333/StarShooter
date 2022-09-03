@@ -43,6 +43,7 @@ HRESULT InitPlayer(void);
 void UninitPlayer(void);
 void UpdatePlayer(void);
 void DrawPlayer(void);
+void DrawPlayerToDepthTex(void);
 
 PLAYER* GetPlayer(void);
 

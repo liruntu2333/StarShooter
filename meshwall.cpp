@@ -39,8 +39,6 @@ static BOOL							g_Load = FALSE;
 HRESULT InitMeshWall(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT4 col,
 	int nNumBlockX, int nNumBlockY, float fBlockSizeX, float fBlockSizeZ)
 {
-	MESH_WALL* pMesh;
-
 	if (g_nNumMeshWall >= MAX_MESH_WALL)
 	{
 		return E_FAIL;
@@ -61,7 +59,7 @@ HRESULT InitMeshWall(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT4 col,
 
 	g_TexNo = 0;
 
-	pMesh = &g_aMeshWall[g_nNumMeshWall];
+	MESH_WALL* pMesh = &g_aMeshWall[g_nNumMeshWall];
 
 	g_nNumMeshWall++;
 
@@ -175,14 +173,11 @@ HRESULT InitMeshWall(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT4 col,
 
 void UninitMeshWall(void)
 {
-	MESH_WALL* pMesh;
-	int nCntMeshField;
-
 	if (g_Load == FALSE) return;
 
-	for (nCntMeshField = 0; nCntMeshField < g_nNumMeshWall; nCntMeshField++)
+	for (int nCntMeshField = 0; nCntMeshField < g_nNumMeshWall; nCntMeshField++)
 	{
-		pMesh = &g_aMeshWall[nCntMeshField];
+		MESH_WALL* pMesh = &g_aMeshWall[nCntMeshField];
 
 		if (pMesh->vertexBuffer)
 		{ 
@@ -217,12 +212,9 @@ void UpdateMeshWall(void)
 
 void DrawMeshWall(void)
 {
-	MESH_WALL* pMesh;
-	int nCntMeshField;
-
-	for (nCntMeshField = 0; nCntMeshField < g_nNumMeshWall; nCntMeshField++)
+	for (int nCntMeshField = 0; nCntMeshField < g_nNumMeshWall; nCntMeshField++)
 	{
-		pMesh = &g_aMeshWall[nCntMeshField];
+		MESH_WALL* pMesh = &g_aMeshWall[nCntMeshField];
 
 		UINT stride = sizeof(VERTEX_3D);
 		UINT offset = 0;
@@ -236,7 +228,7 @@ void DrawMeshWall(void)
 
 		GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_TexNo]);
 
-		XMMATRIX mtxRot, mtxTranslate, mtxWorld;
+		XMMATRIX mtxRot{}, mtxTranslate{}, mtxWorld{};
 
 		mtxWorld = XMMatrixIdentity();
 

@@ -37,8 +37,8 @@ struct LIGHT_CBUFFER
 	XMFLOAT4	Ambient[LIGHT_MAX];		 
 	XMFLOAT4	Attenuation[LIGHT_MAX];	 
 	LIGHT_FLAGS	Flags[LIGHT_MAX];		 
-	int			Enable;					 
-	int			Dummy[3];				 
+	int			Enable;
+	int			Dummy[3];
 };
 
 struct FOG_CBUFFER
@@ -53,6 +53,11 @@ struct FUCHI
 {
 	int			fuchi;
 	int			fill[3];
+};
+
+struct LightViewsBuffer
+{
+	XMMATRIX Views[5];
 };
 
 static void SetLightBuffer(void);
@@ -71,16 +76,17 @@ namespace
 	ID3D11DepthStencilView* g_DepthStencilView = nullptr;
 
 	ID3D11VertexShader* g_VertexShader = nullptr;
-	ID3D11PixelShader* g_PixelShader = nullptr;
-	ID3D11InputLayout* g_VertexLayout = nullptr;
-	ID3D11Buffer* g_WorldBuffer = nullptr;
-	ID3D11Buffer* g_ViewBuffer = nullptr;
-	ID3D11Buffer* g_ProjectionBuffer = nullptr;
-	ID3D11Buffer* g_MaterialBuffer = nullptr;
-	ID3D11Buffer* g_LightBuffer = nullptr;
-	ID3D11Buffer* g_FogBuffer = nullptr;
-	ID3D11Buffer* g_FuchiBuffer = nullptr;
-	ID3D11Buffer* g_CameraBuffer = nullptr;
+	ID3D11PixelShader* g_PixelShader   = nullptr;
+	ID3D11InputLayout* g_VertexLayout  = nullptr;
+	ID3D11Buffer* g_WorldBuffer        = nullptr;
+	ID3D11Buffer* g_ViewBuffer         = nullptr;
+	ID3D11Buffer* g_ProjectionBuffer   = nullptr;
+	ID3D11Buffer* g_MaterialBuffer     = nullptr;
+	ID3D11Buffer* g_LightBuffer        = nullptr;
+	ID3D11Buffer* g_FogBuffer          = nullptr;
+	ID3D11Buffer* g_FuchiBuffer        = nullptr;
+	ID3D11Buffer* g_CameraBuffer       = nullptr;
+	ID3D11Buffer* g_LightViewBuffer	   = nullptr;
 
 	ID3D11DepthStencilState* g_DepthStateEnable;
 	ID3D11DepthStencilState* g_DepthStateDisable;
@@ -94,12 +100,14 @@ namespace
 	ID3D11RasterizerState* g_RasterStateCullOff;
 	ID3D11RasterizerState* g_RasterStateCullCW;
 	ID3D11RasterizerState* g_RasterStateCullCCW;
+	ID3D11RasterizerState* g_RasterStateSingleSample;
 
 	MATERIAL_CBUFFER	g_Material;
 	LIGHT_CBUFFER	g_Light;
 	FOG_CBUFFER		g_Fog;
 
 	FUCHI			g_Fuchi;
+	LightViewsBuffer g_LightViews;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxVB;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxIB;
@@ -111,6 +119,8 @@ namespace
 	int g_NumSphereVertices;
 	int g_NumSphereFaces;
 	XMMATRIX g_SphereWorld = XMMatrixIdentity();
+
+	D3D11_VIEWPORT g_ViewPort;
 }
 
 ID3D11Device* GetDevice(void)
@@ -121,6 +131,15 @@ ID3D11Device* GetDevice(void)
 ID3D11DeviceContext* GetDeviceContext(void)
 {
 	return g_ImmediateContext;
+}
+
+void ReturnToMainPass()
+{
+	g_ImmediateContext->RSSetViewports(1, &g_ViewPort);
+	//g_ImmediateContext->RSSetScissorRects(1, )
+	g_ImmediateContext->OMSetRenderTargets(1, &g_RenderTargetView, g_DepthStencilView);
+	g_ImmediateContext->VSSetShader(g_VertexShader, nullptr, 0);
+	g_ImmediateContext->PSSetShader(g_PixelShader, nullptr, 0);
 }
 
 void SetDepthEnable(BOOL Enable)
@@ -166,6 +185,10 @@ void SetCullingMode(CULL_MODE cm)
 		break;
 	case CULL_MODE_BACK:
 		g_ImmediateContext->RSSetState(g_RasterStateCullCCW);
+		break;
+
+	default:
+			g_ImmediateContext->RSSetState(g_RasterStateSingleSample);
 		break;
 	}
 }
@@ -234,24 +257,22 @@ void SetAlphaTestEnable(BOOL flag)
 
 void SetWorldViewProjection2D(void)
 {
-	XMMATRIX world;
+	XMMATRIX world{};
 	world = XMMatrixTranspose(XMMatrixIdentity());
 	GetDeviceContext()->UpdateSubresource(g_WorldBuffer, 0, nullptr, &world, 0, 0);
 
-	XMMATRIX view;
+	XMMATRIX view{};
 	view = XMMatrixTranspose(XMMatrixIdentity());
 	GetDeviceContext()->UpdateSubresource(g_ViewBuffer, 0, nullptr, &view, 0, 0);
 
-	XMMATRIX worldViewProjection;
-	worldViewProjection = XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f);
+	XMMATRIX worldViewProjection = XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f);
 	worldViewProjection = XMMatrixTranspose(worldViewProjection);
 	GetDeviceContext()->UpdateSubresource(g_ProjectionBuffer, 0, nullptr, &worldViewProjection, 0, 0);
 }
 
 void SetWorldMatrix(XMMATRIX* WorldMatrix)
 {
-	XMMATRIX world;
-	world = *WorldMatrix;
+	XMMATRIX world = *WorldMatrix;
 	world = XMMatrixTranspose(world);
 
 	GetDeviceContext()->UpdateSubresource(g_WorldBuffer, 0, nullptr, &world, 0, 0);
@@ -259,8 +280,7 @@ void SetWorldMatrix(XMMATRIX* WorldMatrix)
 
 void SetViewMatrix(XMMATRIX* ViewMatrix)
 {
-	XMMATRIX view;
-	view = *ViewMatrix;
+	XMMATRIX view = *ViewMatrix;
 	view = XMMatrixTranspose(view);
 
 	GetDeviceContext()->UpdateSubresource(g_ViewBuffer, 0, nullptr, &view, 0, 0);
@@ -268,8 +288,7 @@ void SetViewMatrix(XMMATRIX* ViewMatrix)
 
 void SetProjectionMatrix(XMMATRIX* ProjectionMatrix)
 {
-	XMMATRIX projection;
-	projection = *ProjectionMatrix;
+	XMMATRIX projection = *ProjectionMatrix;
 	projection = XMMatrixTranspose(projection);
 
 	GetDeviceContext()->UpdateSubresource(g_ProjectionBuffer, 0, nullptr, &projection, 0, 0);
@@ -337,6 +356,16 @@ void SetFuchi(int flag)
 {
 	g_Fuchi.fuchi = flag;
 	GetDeviceContext()->UpdateSubresource(g_FuchiBuffer, 0, nullptr, &g_Fuchi, 0, 0);
+}
+
+void SetLightViews(std::vector<XMMATRIX> views)
+{
+	assert(views.size() == 5);
+	for (auto & view : views)
+	{
+		view = XMMatrixTranspose(view);
+	}
+	GetDeviceContext()->UpdateSubresource(g_LightViewBuffer, 0, nullptr, views.data(), 0, 0);
 }
 
 void SetShaderCamera(XMFLOAT3 pos)
@@ -468,6 +497,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	g_ImmediateContext->RSSetViewports(1, &vp);
+	g_ViewPort = vp;
 
 	D3D11_RASTERIZER_DESC rd;
 	ZeroMemory(&rd, sizeof(rd));
@@ -482,6 +512,9 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 	rd.CullMode = D3D11_CULL_BACK;
 	g_D3DDevice->CreateRasterizerState(&rd, &g_RasterStateCullCCW);
+
+	rd.MultisampleEnable = FALSE;
+	g_D3DDevice->CreateRasterizerState(&rd, &g_RasterStateSingleSample);
 
 	SetCullingMode(CULL_MODE_BACK);
 
@@ -566,7 +599,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	shFlag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "VertexShaderPolygon", "vs_4_0", shFlag, 0, nullptr, &pVSBlob, &pErrorBlob, nullptr);
+	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "VertexShaderPolygon", "vs_5_0", shFlag, 0, nullptr, &pVSBlob, &pErrorBlob, nullptr);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), "VS", MB_OK | MB_ICONERROR);
@@ -592,10 +625,13 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	pVSBlob->Release();
 
 	ID3DBlob* pPSBlob = nullptr;
-	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "PixelShaderPolygon", "ps_4_0", shFlag, 0, nullptr, &pPSBlob, &pErrorBlob, nullptr);
+	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, 
+		"PixelShaderPolygon", "ps_5_0", shFlag, 0, nullptr, 
+		&pPSBlob, &pErrorBlob, nullptr);
 	if (FAILED(hr))
 	{
-		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), "PS", MB_OK | MB_ICONERROR);
+		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), 
+			"PS", MB_OK | MB_ICONERROR);
 	}
 
 	g_D3DDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_PixelShader);
@@ -647,6 +683,11 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	g_ImmediateContext->VSSetConstantBuffers(7, 1, &g_CameraBuffer);
 	g_ImmediateContext->PSSetConstantBuffers(7, 1, &g_CameraBuffer);
 
+	hBufferDesc.ByteWidth = sizeof(LightViewsBuffer);
+	hr = g_D3DDevice->CreateBuffer(&hBufferDesc, nullptr, &g_LightViewBuffer);
+	g_ImmediateContext->VSSetConstantBuffers(8, 1, &g_LightViewBuffer);
+	g_ImmediateContext->PSSetConstantBuffers(8, 1, &g_LightViewBuffer);
+
 	g_ImmediateContext->IASetInputLayout(g_VertexLayout);
 
 	g_ImmediateContext->VSSetShader(g_VertexShader, nullptr, 0);
@@ -659,7 +700,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	g_Light.Flags[0].Type = LIGHT_TYPE_DIRECTIONAL;
 	SetLightBuffer();
 
-	MATERIAL material;
+	MATERIAL material{};
 	ZeroMemory(&material, sizeof(material));
 	material.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	material.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -692,15 +733,16 @@ void InitSkyBox()
 #if defined(_DEBUG) && defined(DEBUG_SHADER)
 	shFlag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "SkyBoxVS", "vs_4_0", shFlag, 0, nullptr,
+	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "SkyBoxVS", "vs_5_0", shFlag, 0, nullptr,
 		&pVsBlob, &pErrorBlob, nullptr);
 	if (FAILED(hr))
 		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), "VS", MB_OK | MB_ICONERROR);
 
 	g_D3DDevice->CreateVertexShader(pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), nullptr, &g_SkyBoxVS);
+	pVsBlob->Release();
 
 	ID3DBlob* pPsBlob = nullptr;
-	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "SkyBoxPS", "ps_4_0", shFlag, 0, nullptr, &pPsBlob, &pErrorBlob, nullptr);
+	hr = D3DX11CompileFromFile("shader.hlsl", nullptr, nullptr, "SkyBoxPS", "ps_5_0", shFlag, 0, nullptr, &pPsBlob, &pErrorBlob, nullptr);
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), "PS", MB_OK | MB_ICONERROR);
@@ -731,6 +773,7 @@ void UninitRenderer(void)
 	if (g_MaterialBuffer)		g_MaterialBuffer->Release();
 	if (g_LightBuffer)			g_LightBuffer->Release();
 	if (g_FogBuffer)			g_FogBuffer->Release();
+	if (g_LightViewBuffer)		g_LightViewBuffer->Release();
 
 	if (g_VertexLayout)			g_VertexLayout->Release();
 	if (g_VertexShader)			g_VertexShader->Release();
@@ -741,6 +784,7 @@ void UninitRenderer(void)
 	if (g_SwapChain)			g_SwapChain->Release();
 	if (g_ImmediateContext)		g_ImmediateContext->Release();
 	if (g_D3DDevice)			g_D3DDevice->Release();
+
 }
 
 void Clear(void)
@@ -760,12 +804,7 @@ void CreateSphere(int LatLines, int LongLines)
 	g_NumSphereVertices = ((LatLines - 2) * LongLines) + 2;
 	g_NumSphereFaces = ((LatLines - 3) * (LongLines) * 2) + (LongLines * 2);
 
-	float sphereYaw = 0.0f;
-	float spherePitch = 0.0f;
-
 	std::vector<VERTEX_3D> vertices(g_NumSphereVertices);
-
-	XMVECTOR currVertPos = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 
 	vertices[0].Position.x = 0.0f;
 	vertices[0].Position.y = 0.0f;
@@ -773,13 +812,13 @@ void CreateSphere(int LatLines, int LongLines)
 
 	for (DWORD i = 0; i < LatLines - 2; ++i)
 	{
-		spherePitch = (i + 1) * (3.14 / (LatLines - 1));
+		float spherePitch = (i + 1) * (3.14 / (LatLines - 1));
 		XMMATRIX Rotationx = XMMatrixRotationX(spherePitch);
 		for (DWORD j = 0; j < LongLines; ++j)
 		{
-			sphereYaw = j * (6.28 / (LongLines));
+			float sphereYaw = j * (6.28 / (LongLines));
 			const XMMATRIX Rotationy = XMMatrixRotationZ(sphereYaw);
-			currVertPos = XMVector3TransformNormal(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), (Rotationx * Rotationy));
+			XMVECTOR currVertPos = XMVector3TransformNormal(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), (Rotationx * Rotationy));
 			currVertPos = XMVector3Normalize(currVertPos);
 			vertices[i * LongLines + j + 1].Position.x = XMVectorGetX(currVertPos);
 			vertices[i * LongLines + j + 1].Position.y = XMVectorGetY(currVertPos);
@@ -878,10 +917,9 @@ void CreateSphere(int LatLines, int LongLines)
 void DebugTextOut(char* text, int x, int y)
 {
 #if defined(_DEBUG) && defined(DEBUG_DISP_TEXTOUT)
-	HRESULT hr;
 
 	IDXGISurface1* pBackSurface = NULL;
-	hr = g_SwapChain->GetBuffer(0, __uuidof(IDXGISurface1), (void**)&pBackSurface);
+	HRESULT hr = g_SwapChain->GetBuffer(0, __uuidof(IDXGISurface1), (void**)&pBackSurface);
 
 	if (SUCCEEDED(hr))
 	{

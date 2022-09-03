@@ -33,13 +33,11 @@ void InitCamera(void)
 	g_Camera.theta = 0.0f;
 	g_Camera.phi = 0.0f;
 
-	float vx_player, vz_player;
-	vx_player = POS_X_CAM_PLAYER - g_Camera.at.x;
-	vz_player = POS_Z_CAM_PLAYER - g_Camera.at.z;
+	float vx_player = POS_X_CAM_PLAYER - g_Camera.at.x;
+	float vz_player = POS_Z_CAM_PLAYER - g_Camera.at.z;
 	g_Camera.lenPlayer = sqrtf(vx_player * vx_player + vz_player * vz_player);
-	float vx_menu, vz_menu;
-	vx_menu = POS_X_CAM_MENU - g_Camera.at.x;
-	vz_menu = POS_Z_CAM_MENU - g_Camera.at.z;
+	float vx_menu = POS_X_CAM_MENU - g_Camera.at.x;
+	float vz_menu = POS_Z_CAM_MENU - g_Camera.at.z;
 	g_Camera.lenMenu = sqrtf(vx_menu * vx_menu + vz_menu * vz_menu);
 }
 
@@ -80,16 +78,15 @@ void UpdateCamera(void)
 
 void SetCamera(void)
 {
-	XMMATRIX mtxView;
+	XMMATRIX mtxView{};
 	mtxView = XMMatrixLookAtLH(XMLoadFloat3(&g_Camera.pos), XMLoadFloat3(&g_Camera.at), XMLoadFloat3(&g_Camera.up));
 	SetViewMatrix(&mtxView);
 	XMStoreFloat4x4(&g_Camera.mtxView, mtxView);
 
-	XMMATRIX mtxInvView;
-	mtxInvView = XMMatrixInverse(nullptr, mtxView);
+	XMMATRIX mtxInvView = XMMatrixInverse(nullptr, mtxView);
 	XMStoreFloat4x4(&g_Camera.mtxInvView, mtxInvView);
 
-	XMMATRIX mtxProjection;
+	XMMATRIX mtxProjection{};
 	mtxProjection = XMMatrixPerspectiveFovLH(g_ViewAngle, g_ViewAspect, VIEW_NEAR_Z, VIEW_FAR_Z);
 
 	SetProjectionMatrix(&mtxProjection);

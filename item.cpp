@@ -113,7 +113,7 @@ void UpdateItem(void)
 
 void DrawItem(void)
 {
-	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
+	XMMATRIX mtxScl{}, mtxRot{}, mtxTranslate{}, mtxWorld{};
 
 	for (auto& i : g_Item)
 	{

@@ -1,6 +1,7 @@
 #pragma once
 
 #define LIGHT_MAX		(5)
+#include <vector>
 
 enum LIGHT_TYPE
 {
@@ -55,7 +56,7 @@ struct LIGHT {
 	XMFLOAT4	Ambient;	 
 	float		Attenuation; 
 	int			Type;		 
-	int			Enable;		 
+	int			Enable;
 };
 
 struct FOG {
@@ -73,6 +74,7 @@ void Present(void);
 ID3D11Device* GetDevice(void);
 ID3D11DeviceContext* GetDeviceContext(void);
 
+void ReturnToMainPass();
 void SetDepthEnable(BOOL Enable);
 void SetBlendState(BLEND_MODE bm);
 void SetCullingMode(CULL_MODE cm);
@@ -94,6 +96,7 @@ void SetFog(FOG* fog);
 void DebugTextOut(char* text, int x, int y);
 
 void SetFuchi(int flag);
+void SetLightViews(std::vector<XMMATRIX> views);
 void SetShaderCamera(XMFLOAT3 pos);
 
 void DrawSkyBox();

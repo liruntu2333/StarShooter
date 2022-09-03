@@ -101,6 +101,9 @@
     <ClInclude Include="building.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="DPSM.h">
+      <Filter>Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="input.cpp">
@@ -190,6 +193,9 @@
     <ClCompile Include="building.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="DPSM.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader.hlsl">
@@ -197,7 +203,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shadow.hlsl">
+    <None Include="dpsm.hlsl">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

@@ -167,7 +167,7 @@ void UpdateParticle(void)
 
 void DrawParticle(void)
 {
-	XMMATRIX mtxScl, mtxTranslate, mtxWorld, mtxView;
+	XMMATRIX mtxScl{}, mtxTranslate{}, mtxWorld{};
 	const CAMERA* cam = GetCamera();
 
 	SetLightEnable(FALSE);
@@ -192,7 +192,7 @@ void DrawParticle(void)
 		{
 			mtxWorld = XMMatrixIdentity();
 
-			mtxView = XMLoadFloat4x4(&cam->mtxView);
+			XMMATRIX mtxView = XMLoadFloat4x4(&cam->mtxView);
 
 			mtxWorld.r[0].m128_f32[0] = mtxView.r[0].m128_f32[0];
 			mtxWorld.r[0].m128_f32[1] = mtxView.r[1].m128_f32[0];

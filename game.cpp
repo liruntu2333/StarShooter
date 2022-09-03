@@ -22,15 +22,21 @@
 #include "particle.h"
 #include "collision.h"
 #include "debugproc.h"
+#include "DPSM.h"
+#include "light.h"
 
 void CheckHit(void);
 void SetCameraFocus();
 
-static BOOL	g_bPause = TRUE;	 
+namespace 
+{
+	BOOL	g_bPause = TRUE;
+	int g_focusMode = FocusMode::FOCUS_PLAYER;
+	int g_gameMode = GAMEMODE_START;
 
-static int g_focusMode = FocusMode::FOCUS_PLAYER;
+	std::vector<std::unique_ptr<DPSM>> g_DPSMs;
+}
 
-static int g_gameMode = GAMEMODE_START;
 
 HRESULT InitGame(void)
 {
@@ -78,11 +84,24 @@ HRESULT InitGame(void)
 
 	InitParticle();
 
+	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
+		1024, 1024, 0));
+	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
+		1024, 1024, 1));
+	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
+		1024, 1024, 2));
+	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
+		1024, 1024, 3));
+	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
+		1024, 1024, 4));
+
 	return S_OK;
 }
 
 void UninitGame(void)
 {
+	g_DPSMs.clear();
+
 	UninitParticle();
 
 	UninitGameUI();
@@ -154,8 +173,91 @@ void UpdateGame(void)
 	UpdateScore();
 }
 
+void DrawDepthTextures()
+{
+	ID3D11DeviceContext* pDeviceContext = GetDeviceContext();
+	pDeviceContext->VSSetShader(DPSM::sVs.Get(), nullptr, 0);
+	pDeviceContext->PSSetShader(DPSM::sPs.Get(), nullptr, 0);
+
+	{
+		ID3D11ShaderResourceView* nullViews[] = 
+		{
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+		};
+		pDeviceContext->PSSetShaderResources(2, _countof(nullViews), nullViews);
+	}
+	SetCullingMode(CULL_MODE_NUM);
+	for (const auto & dpsm : g_DPSMs)
+	{
+		const int lightIdx = dpsm->GetLightIndex();
+
+		const LIGHT* light = GetLightData(lightIdx);
+		const XMVECTOR lightPos = XMLoadFloat3(&light->Position);
+		const XMVECTOR lightUp = { 0.0f, 0.0f, 1.0f };
+		const XMVECTOR lightDir = XMLoadFloat3(&light->Direction);
+		XMMATRIX view = XMMatrixLookToLH(lightPos, lightDir, lightUp);
+		SetViewMatrix(&view);
+		dpsm->SetView(view);
+		dpsm->SetViewPort();
+
+		ID3D11DepthStencilView* dsvFront = dpsm->GetFrontDsv();
+		pDeviceContext->ClearDepthStencilView(dsvFront, D3D11_CLEAR_DEPTH, 1.0f, 0);
+		pDeviceContext->OMSetRenderTargets(0, nullptr, dsvFront);
+
+		SetFuchi(lightIdx + 1);
+		{
+			//DrawMeshFieldToDepthTex();
+			DrawPlayerToDepthTex();
+			DrawBuildingToDepthTex();
+			DrawEnemyToDepthTex();
+			DrawWeaponToDepthTex();
+		}
+
+		ID3D11DepthStencilView* dsvBack = dpsm->GetBackDsv();
+		pDeviceContext->ClearDepthStencilView(dsvBack, D3D11_CLEAR_DEPTH, 1.0f, 0);
+		pDeviceContext->OMSetRenderTargets(0, nullptr, dsvBack);
+
+		SetFuchi(- (lightIdx + 1));
+		{
+			//DrawMeshFieldToDepthTex();
+			DrawPlayerToDepthTex();
+			DrawBuildingToDepthTex();
+			DrawEnemyToDepthTex();
+			DrawWeaponToDepthTex();
+		}
+	}
+	SetCullingMode(CULL_MODE_BACK);
+
+	pDeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+
+	std::vector<ID3D11ShaderResourceView*> srvs;
+	std::vector<XMMATRIX> viewMtx(5);
+
+	for (const auto & dpsm : g_DPSMs)
+	{
+		srvs.push_back(dpsm->GetFrontSrv());
+		srvs.push_back(dpsm->GetBackSrv());
+		viewMtx[dpsm->GetLightIndex()] = dpsm->GetView();
+	}
+
+	SetLightViews(viewMtx);
+	pDeviceContext->PSSetShaderResources(2, srvs.size(), srvs.data());
+	ReturnToMainPass();
+}
+
 void DrawGame(void)
 {
+	DrawDepthTextures();
+
 	SetCameraFocus();
 
 	UpdateSkyBox(GetCamera()->pos);

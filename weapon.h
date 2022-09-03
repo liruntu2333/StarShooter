@@ -28,5 +28,6 @@ HRESULT InitWeapon(void);
 void UninitWeapon(void);
 void UpdateWeapon(void);
 void DrawWeapon(void);
+void DrawWeaponToDepthTex(void);
 
 WEAPON* GetWeapon(void);

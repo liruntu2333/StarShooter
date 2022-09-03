@@ -109,9 +109,9 @@ void UpdateBullet(void)
 
 void DrawBullet(void)
 {
-	SetCullingMode(CULL_MODE_NONE);
 
-	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
+
+	XMMATRIX mtxScl{}, mtxRot{}, mtxTranslate{}, mtxWorld{};
 
 	for (auto& i : g_Bullet)
 	{
@@ -135,9 +135,6 @@ void DrawBullet(void)
 			DrawModel(&i.model);
 		}
 	}
-
-	SetCullingMode(CULL_MODE_BACK);
-
 }
 
 int SetBullet(const std::array<XMFLOAT3, 3>& controlPoints, float tHit, ENEMY* target)

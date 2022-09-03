@@ -264,35 +264,46 @@ void DrawMeshField(void)
 
 	GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	MATERIAL material;
-	ZeroMemory(&material, sizeof(material));
+	MATERIAL material{};
 	material.Diffuse = { 0.7f, 0.7f, 0.7f, 1.0f };
 	SetMaterial(material);
 
 	GetDeviceContext()->PSSetShaderResources(0, 1, &g_Texture[g_TexNo]);
 
-	for (int x = 0; x < 3; ++x)
-	{
-		for (int z = 0; z < 3; ++z)
-		{
-			XMMATRIX mtxRot, mtxTranslate, mtxWorld;
+	XMMATRIX mtxWorld = XMMatrixTranslation(0, 0, 0);
 
-			mtxWorld = XMMatrixTranslation(
-				static_cast<float>(x - 1) * g_FieldSizeX,
-				0.0f,
-				static_cast<float>(z - 1) * g_FieldSizeZ);
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_rotField.x, g_rotField.y, g_rotField.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-			mtxRot = XMMatrixRotationRollPitchYaw(g_rotField.x, g_rotField.y, g_rotField.z);
-			mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+	XMMATRIX mtxTranslate = XMMatrixTranslation(g_posField.x, g_posField.y, g_posField.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
-			mtxTranslate = XMMatrixTranslation(g_posField.x, g_posField.y, g_posField.z);
-			mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+	SetWorldMatrix(&mtxWorld);
 
-			SetWorldMatrix(&mtxWorld);
+	GetDeviceContext()->DrawIndexed(g_nNumVertexIndexField, 0, 0);
+}
 
-			GetDeviceContext()->DrawIndexed(g_nNumVertexIndexField, 0, 0);
-		}
-	}
+void DrawMeshFieldToDepthTex()
+{
+	constexpr UINT stride = sizeof(VERTEX_3D);
+	constexpr UINT offset = 0;
+	GetDeviceContext()->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+
+	GetDeviceContext()->IASetIndexBuffer(g_IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	XMMATRIX mtxWorld = XMMatrixIdentity();
+
+	const XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_rotField.x, g_rotField.y, g_rotField.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+	const XMMATRIX mtxTranslate = XMMatrixTranslation(g_posField.x, g_posField.y, g_posField.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+	SetWorldMatrix(&mtxWorld);
+
+	GetDeviceContext()->DrawIndexed(g_nNumVertexIndexField, 0, 0);
 }
 
 BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3* HitPosition, XMFLOAT3* Normal)
@@ -308,8 +319,6 @@ BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3* HitPosition, XMFLOAT3* Normal)
 	const float fx = (g_nNumBlockZField / 2.0f) * g_fBlockSizeZField;
 	int sz = static_cast<int>((-start.z + fz) / g_fBlockSizeZField);
 	int sx = static_cast<int>((start.x + fx) / g_fBlockSizeXField);
-	int ez = sz + 1;
-	int ex = sx + 1;
 
 	if ((sz < 0) || (sz > g_nNumBlockZField - 1) ||
 		(sx < 0) || (sx > g_nNumBlockXField - 1))
@@ -320,8 +329,8 @@ BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3* HitPosition, XMFLOAT3* Normal)
 
 	sz = 0;
 	sx = 0;
-	ez = g_nNumBlockZField;
-	ex = g_nNumBlockXField;
+	int ez = g_nNumBlockZField;
+	int ex = g_nNumBlockXField;
 
 	for (int z = sz; z < ez; z++)
 	{

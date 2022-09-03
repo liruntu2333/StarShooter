@@ -35,5 +35,6 @@ HRESULT InitBuilding(void);
 void UninitBuilding(void);
 void UpdateBuilding(void);
 void DrawBuilding(void);
+void DrawBuildingToDepthTex();
 
 BUILDING* GetBuilding(void);

@@ -441,19 +441,15 @@ void UpdatePlayer(void)
 
 void DrawPlayer(void)
 {
-	SetCullingMode(CULL_MODE_BACK);
+	XMMATRIX mtxWorld = XMMatrixIdentity();
 
-	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
-
-	mtxWorld = XMMatrixIdentity();
-
-	mtxScl = XMMatrixScaling(g_Player.scl.x, g_Player.scl.y, g_Player.scl.z);
+	XMMATRIX mtxScl = XMMatrixScaling(g_Player.scl.x, g_Player.scl.y, g_Player.scl.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-	mtxRot = XMMatrixRotationRollPitchYaw(g_Player.rot.x, g_Player.rot.y + XM_PI, g_Player.rot.z);
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_Player.rot.x, g_Player.rot.y + XM_PI, g_Player.rot.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-	mtxTranslate = XMMatrixTranslation(g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
+	XMMATRIX mtxTranslate = XMMatrixTranslation(g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 	SetWorldMatrix(&mtxWorld);
@@ -488,8 +484,53 @@ void DrawPlayer(void)
 
 		DrawModel(&g_Player_Part.model);
 	}
+}
 
-	SetCullingMode(CULL_MODE_BACK);
+void DrawPlayerToDepthTex(void)
+{
+	XMMATRIX mtxWorld = XMMatrixIdentity();
+
+	XMMATRIX mtxScl = XMMatrixScaling(g_Player.scl.x, g_Player.scl.y, g_Player.scl.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
+
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_Player.rot.x, g_Player.rot.y + XM_PI, g_Player.rot.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+	XMMATRIX mtxTranslate = XMMatrixTranslation(g_Player.pos.x, g_Player.pos.y, g_Player.pos.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+	SetWorldMatrix(&mtxWorld);
+
+	XMStoreFloat4x4(&g_Player.mtxWorld, mtxWorld);
+
+	DrawModelWithoutMat(&g_Player.model);
+
+	for (auto& g_Player_Part : g_Player_Parts)
+	{
+		mtxWorld = XMMatrixIdentity();
+
+		mtxScl = XMMatrixScaling(g_Player_Part.scl.x, g_Player_Part.scl.y, g_Player_Part.scl.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
+
+		mtxRot = XMMatrixRotationRollPitchYaw(g_Player_Part.rot.x, g_Player_Part.rot.y, g_Player_Part.rot.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+		mtxTranslate = XMMatrixTranslation(g_Player_Part.pos.x, g_Player_Part.pos.y, g_Player_Part.pos.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+		if (g_Player_Part.parent != nullptr)
+		{
+			mtxWorld = XMMatrixMultiply(mtxWorld, XMLoadFloat4x4(&g_Player_Part.parent->mtxWorld));
+		}
+
+		XMStoreFloat4x4(&g_Player_Part.mtxWorld, mtxWorld);
+
+		if (g_Player_Part.use == FALSE) continue;
+
+		SetWorldMatrix(&mtxWorld);
+
+		DrawModelWithoutMat(&g_Player_Part.model);
+	}
 }
 
 PLAYER* GetPlayer(void)

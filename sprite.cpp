@@ -9,9 +9,8 @@ void SetSprite(ID3D11Buffer* buf, float X, float Y, float Width, float Height, f
 
 	const auto vertex = static_cast<VERTEX_3D*>(msr.pData);
 
-	float hw, hh;
-	hw = Width * 0.5f;		 
-	hh = Height * 0.5f;		 
+	float hw = Width * 0.5f;		 
+	float hh = Height * 0.5f;		 
 
 	vertex[0].Position = XMFLOAT3(X - hw, Y - hh, 0.0f);
 	vertex[0].Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -67,9 +66,8 @@ void SetSpriteColor(ID3D11Buffer* buf, float X, float Y, float Width, float Heig
 
 	const auto vertex = static_cast<VERTEX_3D*>(msr.pData);
 
-	float hw, hh;
-	hw = Width * 0.5f;		 
-	hh = Height * 0.5f;		 
+	float hw = Width * 0.5f;		 
+	float hh = Height * 0.5f;		 
 
 	vertex[0].Position = XMFLOAT3(X - hw, Y - hh, 0.0f);
 	vertex[0].Diffuse = color;
@@ -125,9 +123,8 @@ void SetSpriteColorRotation(ID3D11Buffer* buf, float X, float Y, float Width, fl
 
 	const auto vertex = static_cast<VERTEX_3D*>(msr.pData);
 
-	float hw, hh;
-	hw = Width * 0.5f;		 
-	hh = Height * 0.5f;		 
+	float hw = Width * 0.5f;		 
+	float hh = Height * 0.5f;		 
 
 	const float BaseAngle = atan2f(hh, hw);			 
 	XMVECTOR temp = { hw, hh, 0.0f, 0.0f };

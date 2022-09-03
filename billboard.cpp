@@ -100,19 +100,18 @@ void DrawBillboard(const CommandCode code, const XMFLOAT3 position, const XMFLOA
 
 	SetLightEnable(FALSE);
 
-	XMMATRIX mtxScl{}, mtxTranslate{}, mtxWorld{}, mtxView{};
 	const CAMERA* cam = GetCamera();
 
-	const UINT stride = sizeof(VERTEX_3D);
-	const UINT offset = 0;
+	constexpr UINT stride = sizeof(VERTEX_3D);
+	constexpr UINT offset = 0;
 	GetDeviceContext()->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
 
 	GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	{
-		mtxWorld = XMMatrixIdentity();
+		XMMATRIX mtxWorld = XMMatrixIdentity();
 
-		mtxView = XMLoadFloat4x4(&cam->mtxView);
+		XMMATRIX mtxView = XMLoadFloat4x4(&cam->mtxView);
 
 		mtxWorld.r[0].m128_f32[0] = mtxView.r[0].m128_f32[0];
 		mtxWorld.r[0].m128_f32[1] = mtxView.r[1].m128_f32[0];
@@ -126,10 +125,10 @@ void DrawBillboard(const CommandCode code, const XMFLOAT3 position, const XMFLOA
 		mtxWorld.r[2].m128_f32[1] = mtxView.r[1].m128_f32[2];
 		mtxWorld.r[2].m128_f32[2] = mtxView.r[2].m128_f32[2];
 
-		mtxScl = XMMatrixScaling(scale.x, scale.y, scale.z);
+		XMMATRIX mtxScl = XMMatrixScaling(scale.x, scale.y, scale.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-		mtxTranslate = XMMatrixTranslation(position.x, position.y, position.z);
+		XMMATRIX mtxTranslate = XMMatrixTranslation(position.x, position.y, position.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 		SetWorldMatrix(&mtxWorld);

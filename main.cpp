@@ -44,11 +44,9 @@ int	g_Mode = MODE_TITLE;
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);	 
-	UNREFERENCED_PARAMETER(lpCmdLine);		 
+	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	DWORD dwExecLastTime;
 	DWORD dwFPSLastTime;
-	DWORD dwCurrentTime;
 	DWORD dwFrameCount;
 
 	const WNDCLASSEX	wcex = {
@@ -65,22 +63,21 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		CLASS_NAME,
 		nullptr
 	};
-	HWND		hWnd;
 	MSG			msg;
 
 	RegisterClassEx(&wcex);
 
-	hWnd = CreateWindow(CLASS_NAME,
-		WINDOW_NAME,
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT,																		 
-		CW_USEDEFAULT,																		 
-		SCREEN_WIDTH + GetSystemMetrics(SM_CXDLGFRAME) * 2,									 
-		SCREEN_HEIGHT + GetSystemMetrics(SM_CXDLGFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION),	 
-		NULL,
-		NULL,
-		hInstance,
-		NULL);
+	HWND hWnd = CreateWindow(CLASS_NAME,
+	                         WINDOW_NAME,
+	                         WS_OVERLAPPEDWINDOW,
+	                         CW_USEDEFAULT,
+	                         CW_USEDEFAULT,
+	                         SCREEN_WIDTH + GetSystemMetrics(SM_CXDLGFRAME) * 2,
+	                         SCREEN_HEIGHT + GetSystemMetrics(SM_CXDLGFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION),
+	                         NULL,
+	                         NULL,
+	                         hInstance,
+	                         NULL);
 
 	if (FAILED(Init(hInstance, hWnd, TRUE)))
 	{
@@ -88,8 +85,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 
 	timeBeginPeriod(1);	 
-	dwExecLastTime = dwFPSLastTime = timeGetTime();	 
-	dwCurrentTime = dwFrameCount = 0;
+	DWORD dwExecLastTime = dwFPSLastTime = timeGetTime();	 
+	DWORD dwCurrentTime = dwFrameCount = 0;
 
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);

@@ -237,16 +237,15 @@ void UpdateWeapon(void)
 	}
 
 	{	 
-		LIGHT* light = GetLightData(1);
-		auto obj = XMLoadFloat3(&g_Weapon[0].pos);
+		LIGHT* light = GetLightData(0);
 
 		XMFLOAT3 lightPos{ g_Weapon[0].pos };
-		lightPos.y += 20.0f;
+		lightPos.y += 40.0f;
 
 		light->Position = lightPos;
-		light->Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+		light->Diffuse = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
 		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-		light->Attenuation = 200.0f;
+		light->Attenuation = 400.0f;
 		light->Type = LIGHT_TYPE_POINT;
 		light->Enable = TRUE;
 		SetLightData(0, light);
@@ -259,19 +258,15 @@ void UpdateWeapon(void)
 
 void DrawWeapon(void)
 {
-	SetCullingMode(CULL_MODE_NONE);
+	XMMATRIX mtxWorld = XMMatrixIdentity();
 
-	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
-
-	mtxWorld = XMMatrixIdentity();
-
-	mtxScl = XMMatrixScaling(g_Weapon[0].scl.x, g_Weapon[0].scl.y, g_Weapon[0].scl.z);
+	XMMATRIX mtxScl = XMMatrixScaling(g_Weapon[0].scl.x, g_Weapon[0].scl.y, g_Weapon[0].scl.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-	mtxRot = XMMatrixRotationRollPitchYaw(g_Weapon[0].rot.x, g_Weapon[0].rot.y + XM_PI, g_Weapon[0].rot.z);
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_Weapon[0].rot.x, g_Weapon[0].rot.y + XM_PI, g_Weapon[0].rot.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-	mtxTranslate = XMMatrixTranslation(g_Weapon[0].pos.x, g_Weapon[0].pos.y, g_Weapon[0].pos.z);
+	XMMATRIX mtxTranslate = XMMatrixTranslation(g_Weapon[0].pos.x, g_Weapon[0].pos.y, g_Weapon[0].pos.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 	SetWorldMatrix(&mtxWorld);
@@ -306,8 +301,53 @@ void DrawWeapon(void)
 
 		DrawModel(&g_Weapon_1_Part.model);
 	}
+}
 
-	SetCullingMode(CULL_MODE_BACK);
+void DrawWeaponToDepthTex(void)
+{
+	XMMATRIX mtxWorld = XMMatrixIdentity();
+
+	XMMATRIX mtxScl = XMMatrixScaling(g_Weapon[0].scl.x, g_Weapon[0].scl.y, g_Weapon[0].scl.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
+
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_Weapon[0].rot.x, g_Weapon[0].rot.y + XM_PI, g_Weapon[0].rot.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+	XMMATRIX mtxTranslate = XMMatrixTranslation(g_Weapon[0].pos.x, g_Weapon[0].pos.y, g_Weapon[0].pos.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+	SetWorldMatrix(&mtxWorld);
+
+	XMStoreFloat4x4(&g_Weapon[0].mtxWorld, mtxWorld);
+
+	DrawModelWithoutMat(&g_Weapon[0].model);
+
+	for (auto& g_Weapon_1_Part : g_Weapon_1_Parts)
+	{
+		mtxWorld = XMMatrixIdentity();
+
+		mtxScl = XMMatrixScaling(g_Weapon_1_Part.scl.x, g_Weapon_1_Part.scl.y, g_Weapon_1_Part.scl.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
+
+		mtxRot = XMMatrixRotationRollPitchYaw(g_Weapon_1_Part.rot.x, g_Weapon_1_Part.rot.y, g_Weapon_1_Part.rot.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+		mtxTranslate = XMMatrixTranslation(g_Weapon_1_Part.pos.x, g_Weapon_1_Part.pos.y, g_Weapon_1_Part.pos.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+		if (g_Weapon_1_Part.parent != nullptr)
+		{
+			mtxWorld = XMMatrixMultiply(mtxWorld, XMLoadFloat4x4(&g_Weapon_1_Part.parent->mtxWorld));
+		}
+
+		XMStoreFloat4x4(&g_Weapon_1_Part.mtxWorld, mtxWorld);
+
+		if (g_Weapon_1_Part.use == FALSE) continue;
+
+		SetWorldMatrix(&mtxWorld);
+
+		DrawModelWithoutMat(&g_Weapon_1_Part.model);
+	}
 }
 
 WEAPON* GetWeapon(void)

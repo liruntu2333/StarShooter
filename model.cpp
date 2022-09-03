@@ -38,7 +38,7 @@ void LoadMaterial(char* FileName, MODEL_MATERIAL** MaterialArray, unsigned short
 
 void LoadModel(char* FileName, DX11_MODEL* Model)
 {
-	MODEL model;
+	MODEL model{};
 
 	LoadObj(FileName, &model);
 
@@ -127,12 +127,25 @@ void DrawModel(DX11_MODEL* Model)
 	}
 }
 
+void DrawModelWithoutMat(DX11_MODEL* Model)
+{
+	constexpr UINT stride = sizeof(VERTEX_3D);
+	constexpr UINT offset = 0;
+	GetDeviceContext()->IASetVertexBuffers(0, 1, &Model->VertexBuffer, &stride, &offset);
+
+	GetDeviceContext()->IASetIndexBuffer(Model->IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	for (unsigned short i = 0; i < Model->SubsetNum; i++)
+	{
+		GetDeviceContext()->DrawIndexed(Model->SubsetArray[i].IndexNum, Model->SubsetArray[i].StartIndex, 0);
+	}
+}
+
+
 void LoadObj(char* FileName, MODEL* Model)
 {
-	XMFLOAT3* positionArray;
-	XMFLOAT3* normalArray;
-	XMFLOAT2* texcoordArray;
-
 	unsigned short	positionNum = 0;
 	unsigned short	normalNum = 0;
 	unsigned short	texcoordNum = 0;
@@ -145,11 +158,9 @@ void LoadObj(char* FileName, MODEL* Model)
 	unsigned short	materialNum = 0;
 
 	char str[256];
-	char* s;
 	char c;
 
-	FILE* file;
-	file = fopen(FileName, "rt");
+	FILE* file = fopen(FileName, "rt");
 	if (file == nullptr)
 	{
 		printf("エラー:LoadModel %s \n", FileName);
@@ -198,9 +209,9 @@ void LoadObj(char* FileName, MODEL* Model)
 		}
 	}
 
-	positionArray = new XMFLOAT3[positionNum];
-	normalArray = new XMFLOAT3[normalNum];
-	texcoordArray = new XMFLOAT2[texcoordNum];
+	XMFLOAT3* positionArray = new XMFLOAT3[positionNum];
+	XMFLOAT3* normalArray = new XMFLOAT3[normalNum];
+	XMFLOAT2* texcoordArray = new XMFLOAT2[texcoordNum];
 
 	Model->VertexArray = new VERTEX_3D[vertexNum];
 	Model->VertexNum = vertexNum;
@@ -297,7 +308,7 @@ void LoadObj(char* FileName, MODEL* Model)
 			{
 				fscanf(file, "%s", str);
 
-				s = strtok(str, "/");
+				char* s = strtok(str, "/");
 				Model->VertexArray[vc].Position = positionArray[atoi(s) - 1];
 				if (s[strlen(s) + 1] != '/')
 				{
@@ -342,15 +353,13 @@ void LoadMaterial(char* FileName, MODEL_MATERIAL** MaterialArray, unsigned short
 {
 	char str[256];
 
-	FILE* file;
-	file = fopen(FileName, "rt");
+	FILE* file = fopen(FileName, "rt");
 	if (file == nullptr)
 	{
 		printf("エラー:LoadMaterial %s \n", FileName);
 		return;
 	}
 
-	MODEL_MATERIAL* materialArray;
 	unsigned short materialNum = 0;
 
 	while (TRUE)
@@ -366,7 +375,7 @@ void LoadMaterial(char* FileName, MODEL_MATERIAL** MaterialArray, unsigned short
 		}
 	}
 
-	materialArray = new MODEL_MATERIAL[materialNum];
+	MODEL_MATERIAL* materialArray = new MODEL_MATERIAL[materialNum];
 	ZeroMemory(materialArray, sizeof(MODEL_MATERIAL) * materialNum);
 
 	int mc = -1;

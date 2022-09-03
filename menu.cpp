@@ -142,19 +142,15 @@ void UpdateMenu(void)
 
 void DrawMenu(void)
 {
-	SetCullingMode(CULL_MODE_NONE);
+	XMMATRIX mtxWorld = XMMatrixIdentity();
 
-	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
-
-	mtxWorld = XMMatrixIdentity();
-
-	mtxScl = XMMatrixScaling(g_Menu[0].scl.x, g_Menu[0].scl.y, g_Menu[0].scl.z);
+	XMMATRIX mtxScl = XMMatrixScaling(g_Menu[0].scl.x, g_Menu[0].scl.y, g_Menu[0].scl.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-	mtxRot = XMMatrixRotationRollPitchYaw(g_Menu[0].rot.x, g_Menu[0].rot.y + XM_PI, g_Menu[0].rot.z);
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_Menu[0].rot.x, g_Menu[0].rot.y + XM_PI, g_Menu[0].rot.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-	mtxTranslate = XMMatrixTranslation(g_Menu[0].pos.x, g_Menu[0].pos.y, g_Menu[0].pos.z);
+	XMMATRIX mtxTranslate = XMMatrixTranslation(g_Menu[0].pos.x, g_Menu[0].pos.y, g_Menu[0].pos.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 	SetWorldMatrix(&mtxWorld);
@@ -192,8 +188,6 @@ void DrawMenu(void)
 			DrawModel(&g_Menu_Part.model);
 		}
 	}
-
-	SetCullingMode(CULL_MODE_BACK);
 }
 
 MENU* GetMenu(void)

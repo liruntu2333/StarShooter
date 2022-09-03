@@ -283,21 +283,19 @@ void UpdateEnemy(void)
 
 void DrawEnemy(void)
 {
-	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
-
 	for (int i = 0; i < MAX_ENEMY; i++)
 	{
 		if (g_Enemy[i].use == FALSE) continue;
 
-		mtxWorld = XMMatrixIdentity();
+		XMMATRIX mtxWorld = XMMatrixIdentity();
 
-		mtxScl = XMMatrixScaling(g_Enemy[i].scl.x, g_Enemy[i].scl.y, g_Enemy[i].scl.z);
+		XMMATRIX mtxScl = XMMatrixScaling(g_Enemy[i].scl.x, g_Enemy[i].scl.y, g_Enemy[i].scl.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-		mtxRot = XMMatrixRotationRollPitchYaw(g_Enemy[i].rot.x, g_Enemy[i].rot.y + XM_PI, g_Enemy[i].rot.z);
+		XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_Enemy[i].rot.x, g_Enemy[i].rot.y + XM_PI, g_Enemy[i].rot.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-		mtxTranslate = XMMatrixTranslation(g_Enemy[i].pos.x, g_Enemy[i].pos.y, g_Enemy[i].pos.z);
+		XMMATRIX mtxTranslate = XMMatrixTranslation(g_Enemy[i].pos.x, g_Enemy[i].pos.y, g_Enemy[i].pos.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 		SetWorldMatrix(&mtxWorld);
@@ -370,6 +368,58 @@ void DrawEnemy(void)
 			XMStoreFloat3(&pos, vPos);
 			DrawBillboard(static_cast<CommandCode>(enemy.codes[cmdIdx]), pos, scl, false);
 			vPos += increase;
+		}
+	}
+}
+
+void DrawEnemyToDepthTex()
+{
+	for (int i = 0; i < MAX_ENEMY; i++)
+	{
+		if (g_Enemy[i].use == FALSE) continue;
+
+		XMMATRIX mtxWorld = XMMatrixIdentity();
+
+		XMMATRIX mtxScl = XMMatrixScaling(g_Enemy[i].scl.x, g_Enemy[i].scl.y, g_Enemy[i].scl.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
+
+		XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(g_Enemy[i].rot.x, g_Enemy[i].rot.y + XM_PI, g_Enemy[i].rot.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+		XMMATRIX mtxTranslate = XMMatrixTranslation(g_Enemy[i].pos.x, g_Enemy[i].pos.y, g_Enemy[i].pos.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+		SetWorldMatrix(&mtxWorld);
+
+		XMStoreFloat4x4(&g_Enemy[i].mtxWorld, mtxWorld);
+
+		DrawModelWithoutMat(&g_Enemy[i].model);
+
+		for (int j = 0; j < ENEMY_PARTS_MAX; j++)
+		{
+			mtxWorld = XMMatrixIdentity();
+
+			mtxScl = XMMatrixScaling(g_Enemy_Parts[i][j].scl.x, g_Enemy_Parts[i][j].scl.y, g_Enemy_Parts[i][j].scl.z);
+			mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
+
+			mtxRot = XMMatrixRotationRollPitchYaw(g_Enemy_Parts[i][j].rot.x, g_Enemy_Parts[i][j].rot.y, g_Enemy_Parts[i][j].rot.z);
+			mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+			mtxTranslate = XMMatrixTranslation(g_Enemy_Parts[i][j].pos.x, g_Enemy_Parts[i][j].pos.y, g_Enemy_Parts[i][j].pos.z);
+			mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+			if (g_Enemy_Parts[i][j].parent != nullptr)
+			{
+				mtxWorld = XMMatrixMultiply(mtxWorld, XMLoadFloat4x4(&g_Enemy_Parts[i][j].parent->mtxWorld));
+			}
+
+			XMStoreFloat4x4(&g_Enemy_Parts[i][j].mtxWorld, mtxWorld);
+
+			if (g_Enemy_Parts[i][j].use == FALSE) continue;
+
+			SetWorldMatrix(&mtxWorld);
+
+			DrawModelWithoutMat(&g_Enemy_Parts[i][j].model);
 		}
 	}
 }

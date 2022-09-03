@@ -14,6 +14,7 @@ HRESULT InitMeshField(XMFLOAT3 pos, XMFLOAT3 rot,
 void UninitMeshField(void);
 void UpdateMeshField(void);
 void DrawMeshField(void);
+void DrawMeshFieldToDepthTex();
 
 BOOL RayHitField(XMFLOAT3 pos, XMFLOAT3* HitPosition, XMFLOAT3* Normal);
 

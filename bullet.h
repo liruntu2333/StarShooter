@@ -13,29 +13,29 @@ struct ENEMY;
 
 struct BULLET
 {
-	XMFLOAT3			pos;			 
-	XMFLOAT3			rot;			 
-	XMFLOAT3			scl;			 
+	XMFLOAT3			pos{};			 
+	XMFLOAT3			rot{};			 
+	XMFLOAT3			scl{};			 
 
-	XMFLOAT4X4			mtxWorld;		 
+	XMFLOAT4X4			mtxWorld{};		 
 
-	BOOL				load;
-	DX11_MODEL			model;			 
+	BOOL				load{};
+	DX11_MODEL			model{};			 
 
-	INTERPOLATION_DATA* tbl_adr;		 
-	int					tbl_size;		 
-	float				move_time;		 
+	INTERPOLATION_DATA* tbl_adr{};		 
+	int					tbl_size{};		 
+	float				move_time{};		 
 
-	BULLET* parent;			 
+	BULLET* parent{};			 
 
-	float				spd;			 
-	float				attackSize;		 
-	BOOL				use;			 
+	float				spd{};			 
+	float				attackSize{};		 
+	BOOL				use{};			 
 
 	std::unique_ptr<BezierCurveQuadratic> curve = nullptr;
-	float				flyingTime;
-	float				hitTime;
-	ENEMY* target;
+	float				flyingTime{};
+	float				hitTime{};
+	ENEMY* target{};
 };
 
 HRESULT InitBullet(void);

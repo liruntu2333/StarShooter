@@ -1,3 +1,6 @@
+#ifndef SHADER_HLSL
+#define SHADER_HLSL
+
 #define TOON_SHADING
 
 cbuffer WorldBuffer : register( b0 )
@@ -39,6 +42,7 @@ struct LIGHT
 	float4		Attenuation[5];
 	int4		Flags[5];
 	int			Enable;
+    int         Dummy[3];
 };
 
 cbuffer LightBuffer : register( b4 )
@@ -67,6 +71,11 @@ cbuffer Fuchi : register(b6)
 cbuffer CameraBuffer : register(b7)
 {
 	float4 Camera;
+}
+
+cbuffer LightViewBuffer : register(b8)
+{
+    matrix LightViews[5];
 }
 
 struct VertexIn
@@ -104,25 +113,84 @@ VertexOut VertexShaderPolygon(VertexIn vin)
 
 Texture2D		g_Texture : register( t0 );
 TextureCube		g_SkyBoxTexture : register(t1);
+Texture2D       g_ShadowMaps[10] : register(t2);
+
 SamplerState	g_SamplerState : register( s0 );
 
-void ComputePointLight(uint iLight, const float3 posW, const float3 normW, const float3 eyeDir, const float4 diffuseAlbedo,
+#define SHADOW_EPSILON 0.01f
+
+float SampleShadowMap(const int iLight, const float3 posW)
+{
+	// texcoord-calculation is the same calculation as in the Depth-VS,
+	// but texcoords have to be in range [0, 1]
+	
+	// transform into lightspace
+    float3 vPosDp = mul(float4(posW, 1.0f), LightViews[iLight]);
+    const float fLength = length(vPosDp);
+	// normalize
+    vPosDp /= fLength;
+
+    float smDepth;
+    float depth;
+    const float fNear = 0.1f;
+    const float fFar = Light.Attenuation[iLight].x;
+
+    if (vPosDp.z >= 0.0f)
+    {
+        float2 vTexFront;
+        uint smIdx = iLight * 2;
+        vTexFront.x = (vPosDp.x / (1.0f + vPosDp.z)) * 0.5f + 0.5f;
+        vTexFront.y = 1.0f - ((vPosDp.y / (1.0f + vPosDp.z)) * 0.5f + 0.5f);
+		
+        depth = (fLength - fNear) / (fFar - fNear);
+        smDepth = g_ShadowMaps[smIdx].GatherRed(g_SamplerState, vTexFront);
+    }
+    else
+    {
+		 // for the back the z has to be inverted		
+        float2 vTexBack;
+        uint smIdx = iLight * 2 + 1;
+        vTexBack.x = (vPosDp.x / (1.0f - vPosDp.z)) * 0.5f + 0.5f;
+        vTexBack.y = 1.0f - ((vPosDp.y / (1.0f - vPosDp.z)) * 0.5f + 0.5f);
+		
+        depth = (fLength - fNear) / (fFar - fNear);
+        smDepth = g_ShadowMaps[smIdx].GatherRed(g_SamplerState, vTexBack);
+    }
+
+    float G = 1.0f;
+    if ((smDepth + SHADOW_EPSILON) < depth)
+    {
+        G = 0.0f;
+    }
+
+    return G;
+}
+
+void ComputePointLight(int iLight, const float3 posW, const float3 normW, const float3 eyeDir, const float4 diffuseAlbedo,
 						out float4 diffuse, out float4 specular)
 {
     const float3 lightDir = normalize(Light.Position[iLight].xyz - posW);
     const float lightDis = length(posW - Light.Position[iLight].xyz);
-    if (lightDis > Light.Attenuation[iLight].x) return;
 
-    const float3 halfVec = normalize(lightDir + eyeDir);
-    float cosTheta = max(dot(lightDir, normW), 0.0f);
+    [branch]
+    if (lightDis > Light.Attenuation[iLight].x || SampleShadowMap(iLight, posW) < 0.1f)
+    {
+        diffuse = 0.0f;
+        specular = 0.0f;
+    }
+    else
+    {
+        const float3 halfVec = normalize(lightDir + eyeDir);
+        float cosTheta = max(dot(lightDir, normW), 0.0f);
     
 #ifdef TOON_SHADING
     cosTheta = cosTheta < 0.1f ? 0.2f : cosTheta < 0.3f ? 0.4f : cosTheta < 0.5f ? 0.6f : cosTheta < 0.7f ? 0.8f : 0.9f;
 #endif
-    const float att = saturate((Light.Attenuation[iLight].x - lightDis) / Light.Attenuation[iLight].x);
+        const float att = saturate((Light.Attenuation[iLight].x - lightDis) / Light.Attenuation[iLight].x);
 
-    diffuse = diffuseAlbedo * Material.Diffuse * cosTheta * Light.Intensity[iLight] * att;
-    specular = Material.Specular * pow(max(.0f, dot(normW, halfVec)), 150.f) * Light.Intensity[iLight] * att;
+        diffuse = diffuseAlbedo * Material.Diffuse * cosTheta * Light.Intensity[iLight] * att;
+        specular = Material.Specular * pow(max(.0f, dot(normW, halfVec)), 150.f) * Light.Intensity[iLight] * att;
+    }
 }
 
 float4 PixelShaderPolygon(VertexOut pin) : SV_Target
@@ -143,7 +211,7 @@ float4 PixelShaderPolygon(VertexOut pin) : SV_Target
         vout += 0.1f * Material.Ambient; // Ambient
 
 		[unroll]   // avoid branching
-        for (uint i = 0; i < 5; i++)	// the scene is lightened with 5 point lights 
+        for (int i = 0; i < 5; i++)	// the scene is lightened with 5 point lights 
         {
             float4 diffuse = 0;
             float4 specular = 0;
@@ -201,3 +269,5 @@ float4 SkyBoxPS(SkyBoxVsOut pin) : SV_Target
 {
     return g_SkyBoxTexture.Sample(g_SamplerState, pin.TexCoord);
 }
+
+#endif

@@ -40,12 +40,10 @@ static int		padCount = 0;
 
 HRESULT InitInput(HINSTANCE hInst, HWND hWnd)
 {
-	HRESULT hr;
-
 	if (!g_pDInput)
 	{
-		hr = DirectInput8Create(hInst, DIRECTINPUT_VERSION,
-			IID_IDirectInput8, (void**)&g_pDInput, nullptr);
+		HRESULT hr = DirectInput8Create(hInst, DIRECTINPUT_VERSION,
+		                                IID_IDirectInput8, (void**)&g_pDInput, nullptr);
 	}
 
 	InitKeyboard(hInst, hWnd);
@@ -83,9 +81,7 @@ void UpdateInput(void)
 
 HRESULT InitKeyboard(HINSTANCE hInst, HWND hWnd)
 {
-	HRESULT hr;
-
-	hr = g_pDInput->CreateDevice(GUID_SysKeyboard, &g_pDIDevKeyboard, nullptr);
+	HRESULT hr = g_pDInput->CreateDevice(GUID_SysKeyboard, &g_pDIDevKeyboard, nullptr);
 	if (FAILED(hr) || g_pDIDevKeyboard == nullptr)
 	{
 		MessageBox(hWnd, "キーボードがねぇ！", "警告！", MB_ICONWARNING);
@@ -122,12 +118,11 @@ void UninitKeyboard(void)
 
 HRESULT UpdateKeyboard(void)
 {
-	HRESULT hr;
 	BYTE keyStateOld[256];
 
 	memcpy(keyStateOld, g_keyState, NUM_KEY_MAX);
 
-	hr = g_pDIDevKeyboard->GetDeviceState(sizeof(g_keyState), g_keyState);
+	HRESULT hr = g_pDIDevKeyboard->GetDeviceState(sizeof(g_keyState), g_keyState);
 	if (SUCCEEDED(hr))
 	{
 		for (int cnt = 0; cnt < NUM_KEY_MAX; cnt++)
@@ -181,8 +176,7 @@ BOOL GetKeyboardRelease(int key)
 
 HRESULT InitializeMouse(HINSTANCE hInst, HWND hWindow)
 {
-	HRESULT result;
-	result = g_pDInput->CreateDevice(GUID_SysMouse, &pMouse, nullptr);
+	HRESULT result = g_pDInput->CreateDevice(GUID_SysMouse, &pMouse, nullptr);
 	if (FAILED(result) || pMouse == nullptr)
 	{
 		MessageBox(hWindow, "No mouse", "Warning", MB_OK | MB_ICONWARNING);
@@ -230,9 +224,8 @@ void UninitMouse()
 }
 HRESULT UpdateMouse()
 {
-	HRESULT result;
 	const DIMOUSESTATE2 lastMouseState = mouseState;
-	result = pMouse->GetDeviceState(sizeof(mouseState), &mouseState);
+	HRESULT result = pMouse->GetDeviceState(sizeof(mouseState), &mouseState);
 	if (SUCCEEDED(result))
 	{
 		mouseTrigger.lX = mouseState.lX;
@@ -289,20 +282,15 @@ long GetMouseZ(void)
 }
 BOOL CALLBACK SearchGamePadCallback(LPDIDEVICEINSTANCE lpddi, LPVOID)
 {
-	HRESULT result;
-
-	result = g_pDInput->CreateDevice(lpddi->guidInstance, &pGamePad[padCount++], nullptr);
+	HRESULT result = g_pDInput->CreateDevice(lpddi->guidInstance, &pGamePad[padCount++], nullptr);
 	return DIENUM_CONTINUE;	 
 }
 HRESULT InitializePad(void)			 
 {
-	HRESULT		result;
-	int			i;
-
 	padCount = 0;
 	g_pDInput->EnumDevices(DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACK)SearchGamePadCallback, nullptr, DIEDFL_ATTACHEDONLY);
-	for (i = 0; i < padCount; i++) {
-		result = pGamePad[i]->SetDataFormat(&c_dfDIJoystick);
+	for (int i = 0; i < padCount; i++) {
+		HRESULT result = pGamePad[i]->SetDataFormat(&c_dfDIJoystick);
 		if (FAILED(result))
 			return FALSE;  
 
@@ -347,17 +335,14 @@ void UninitPad(void)
 
 void UpdatePad(void)
 {
-	HRESULT			result;
 	DIJOYSTATE2		dijs;
-	int				i;
 
-	for (i = 0; i < padCount; i++)
+	for (int i = 0; i < padCount; i++)
 	{
-		DWORD lastPadState;
-		lastPadState = padState[i];
+		DWORD lastPadState = padState[i];
 		padState[i] = 0x00000000l;	 
 
-		result = pGamePad[i]->Poll();	 
+		HRESULT result = pGamePad[i]->Poll();	 
 		if (FAILED(result)) {
 			result = pGamePad[i]->Acquire();
 			while (result == DIERR_INPUTLOST)

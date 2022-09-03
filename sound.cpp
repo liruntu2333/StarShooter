@@ -32,11 +32,9 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 
 BOOL InitSound(HWND hWnd)
 {
-	HRESULT hr;
-
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
-	hr = XAudio2Create(&g_pXAudio2, 0);
+	HRESULT hr = XAudio2Create(&g_pXAudio2, 0);
 	if(FAILED(hr))
 	{
 		MessageBox(hWnd, "XAudio2オブジェクトの作成に失敗！", "警告！", MB_ICONWARNING);
@@ -64,7 +62,6 @@ BOOL InitSound(HWND hWnd)
 
 	for(int nCntSound = 0; nCntSound < SOUND_LABEL_MAX; nCntSound++)
 	{
-		HANDLE hFile;
 		DWORD dwChunkSize = 0;
 		DWORD dwChunkPosition = 0;
 		DWORD dwFiletype;
@@ -74,7 +71,8 @@ BOOL InitSound(HWND hWnd)
 		memset(&wfx, 0, sizeof(WAVEFORMATEXTENSIBLE));
 		memset(&buffer, 0, sizeof(XAUDIO2_BUFFER));
 
-		hFile = CreateFile(g_aParam[nCntSound].pFilename, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+		HANDLE hFile = CreateFile(g_aParam[nCntSound].pFilename, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0,
+		                          nullptr);
 		if(hFile == INVALID_HANDLE_VALUE)
 		{
 			MessageBox(hWnd, "サウンドデータファイルの生成に失敗！(1)", "警告！", MB_ICONWARNING);

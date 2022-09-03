@@ -46,13 +46,14 @@ void SetStreetLight(const BUILDING& building, int lightIdx)
 {
 	LIGHT* light = GetLightData(lightIdx);
 	XMFLOAT3 lightPos{ building.pos };
-	lightPos.y += 20.0f;
+	lightPos.y += 80.0f;
 
 	light->Position = lightPos;
 	light->Diffuse = { 0.721568644f, 0.525490224f, 0.043137256f, 1.000000000f };
-	light->Attenuation = 750.0f;
+	light->Attenuation = 500.0f;
 	light->Type = LIGHT_TYPE_POINT;
 	light->Enable = TRUE;
+
 	SetLightData(lightIdx, light);
 }
 
@@ -224,21 +225,19 @@ void UpdateBuilding(void)
 
 void DrawBuilding(void)
 {
-	XMMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
-
 	for (auto& i : g_Building)
 	{
 		if (i.use == FALSE) continue;
 
-		mtxWorld = XMMatrixIdentity();
+		XMMATRIX mtxWorld = XMMatrixIdentity();
 
-		mtxScl = XMMatrixScaling(i.scl.x, i.scl.y, i.scl.z);
+		XMMATRIX mtxScl = XMMatrixScaling(i.scl.x, i.scl.y, i.scl.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
 
-		mtxRot = XMMatrixRotationRollPitchYaw(i.rot.x, i.rot.y + XM_PI, i.rot.z);
+		XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(i.rot.x, i.rot.y + XM_PI, i.rot.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-		mtxTranslate = XMMatrixTranslation(i.pos.x, i.pos.y, i.pos.z);
+		XMMATRIX mtxTranslate = XMMatrixTranslation(i.pos.x, i.pos.y, i.pos.z);
 		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 		SetWorldMatrix(&mtxWorld);
@@ -248,6 +247,31 @@ void DrawBuilding(void)
 		DrawModel(&i.model);
 	}
 
+}
+
+void DrawBuildingToDepthTex()
+{
+	for (auto& building : g_Building)
+	{
+		if (building.use == FALSE) continue;
+
+		XMMATRIX mtxWorld = XMMatrixIdentity();
+
+		XMMATRIX mtxScl = XMMatrixScaling(building.scl.x, building.scl.y, building.scl.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxScl);
+
+		XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(building.rot.x, building.rot.y + XM_PI, building.rot.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+		XMMATRIX mtxTranslate = XMMatrixTranslation(building.pos.x, building.pos.y, building.pos.z);
+		mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+		SetWorldMatrix(&mtxWorld);
+
+		XMStoreFloat4x4(&building.mtxWorld, mtxWorld);
+
+		DrawModelWithoutMat(&building.model);
+	}
 }
 
 BUILDING* GetBuilding()

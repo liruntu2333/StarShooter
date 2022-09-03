@@ -24,14 +24,13 @@ void PrintDebugProc(char* fmt, ...)
 		pParam[5], pParam[6], pParam[7], pParam[8],
 		pParam[9], pParam[10], pParam[11], pParam[12]);
 #else
-	va_list list;			 
-	char* pCur;
+	va_list list;
 	char aBuf[256] = { "\0" };
 	char aWk[32];
 
 	va_start(list, fmt);
 
-	pCur = fmt;
+	char* pCur = fmt;
 	for (; *pCur; ++pCur)
 	{
 		if (*pCur != '%')

@@ -107,7 +107,6 @@ namespace
 	FOG_CBUFFER		g_Fog;
 
 	FUCHI			g_Fuchi;
-	LightViewsBuffer g_LightViews;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxVB;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxIB;
@@ -577,6 +576,7 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 	D3D11_SAMPLER_DESC samplerDesc;
 	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -588,8 +588,24 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 	ID3D11SamplerState* samplerState = nullptr;
 	g_D3DDevice->CreateSamplerState(&samplerDesc, &samplerState);
-
 	g_ImmediateContext->PSSetSamplers(0, 1, &samplerState);
+
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	samplerState = nullptr;
+	g_D3DDevice->CreateSamplerState(&samplerDesc, &samplerState);
+	g_ImmediateContext->PSSetSamplers(1, 1, &samplerState);
+
+	samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	float boarderCol[4] = { 1.0f, 1.0f, 1.0f, 1.0f};
+	memcpy(&samplerDesc.BorderColor, &boarderCol, sizeof(float) * 4);
+
+	samplerState = nullptr;
+	g_D3DDevice->CreateSamplerState(&samplerDesc, &samplerState);
+	g_ImmediateContext->PSSetSamplers(2, 1, &samplerState);
 
 	ID3DBlob* pErrorBlob;
 	ID3DBlob* pVSBlob = nullptr;

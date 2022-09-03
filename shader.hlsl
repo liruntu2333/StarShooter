@@ -115,9 +115,12 @@ Texture2D		g_Texture : register( t0 );
 TextureCube		g_SkyBoxTexture : register(t1);
 Texture2D       g_ShadowMaps[10] : register(t2);
 
-SamplerState	g_SamplerState : register( s0 );
+SamplerState	g_SamAnisotropicWrap : register( s0 );
+SamplerState    g_SamPointWrap : register(s1);
+SamplerComparisonState    g_SamShadow : register(s2);
 
 #define SHADOW_EPSILON 0.01f
+#define SHADOW_MAP_RESOLUTION 1024.0f
 
 float SampleShadowMap(const int iLight, const float3 posW)
 {
@@ -135,6 +138,17 @@ float SampleShadowMap(const int iLight, const float3 posW)
     const float fNear = 0.1f;
     const float fFar = Light.Attenuation[iLight].x;
 
+    // sample kernel
+    const float dx = 1.0f / SHADOW_MAP_RESOLUTION;
+
+    float percentLit = 0.0f;
+    const float2 offsets[9] =
+    {
+        float2(-dx, -dx), float2(0.0f, -dx), float2(dx, -dx),
+        float2(-dx, 0.0f), float2(0.0f, 0.0f), float2(dx, 0.0f),
+        float2(-dx, +dx), float2(0.0f, +dx), float2(dx, +dx)
+    };
+
     if (vPosDp.z >= 0.0f)
     {
         float2 vTexFront;
@@ -143,7 +157,15 @@ float SampleShadowMap(const int iLight, const float3 posW)
         vTexFront.y = 1.0f - ((vPosDp.y / (1.0f + vPosDp.z)) * 0.5f + 0.5f);
 		
         depth = (fLength - fNear) / (fFar - fNear);
-        smDepth = g_ShadowMaps[smIdx].GatherRed(g_SamplerState, vTexFront);
+
+        [unroll]
+        for (int i = 0; i < 9; ++i)
+        {
+            percentLit += g_ShadowMaps[smIdx].SampleCmpLevelZero(g_SamShadow,
+            vTexFront + offsets[i], depth).r;
+        }
+
+        //smDepth = g_ShadowMaps[smIdx].GatherRed(g_SamShadow, vTexFront);
     }
     else
     {
@@ -154,16 +176,18 @@ float SampleShadowMap(const int iLight, const float3 posW)
         vTexBack.y = 1.0f - ((vPosDp.y / (1.0f - vPosDp.z)) * 0.5f + 0.5f);
 		
         depth = (fLength - fNear) / (fFar - fNear);
-        smDepth = g_ShadowMaps[smIdx].GatherRed(g_SamplerState, vTexBack);
+
+    	[unroll]
+        for (int i = 0; i < 9; ++i)
+        {
+            percentLit += g_ShadowMaps[smIdx].SampleCmpLevelZero(g_SamShadow,
+            vTexBack + offsets[i], depth).r;
+        }
+
+        //smDepth = g_ShadowMaps[smIdx].GatherRed(g_SamShadow, vTexBack);
     }
 
-    float G = 1.0f;
-    if ((smDepth + SHADOW_EPSILON) < depth)
-    {
-        G = 0.0f;
-    }
-
-    return G;
+    return percentLit / 9.0f;
 }
 
 void ComputePointLight(int iLight, const float3 posW, const float3 normW, const float3 eyeDir, const float4 diffuseAlbedo,
@@ -171,9 +195,9 @@ void ComputePointLight(int iLight, const float3 posW, const float3 normW, const 
 {
     const float3 lightDir = normalize(Light.Position[iLight].xyz - posW);
     const float lightDis = length(posW - Light.Position[iLight].xyz);
-
+    const float G = SampleShadowMap(iLight, posW);
     [branch]
-    if (lightDis > Light.Attenuation[iLight].x || SampleShadowMap(iLight, posW) < 0.1f)
+    if (lightDis > Light.Attenuation[iLight].x || G < 0.1f)
     {
         diffuse = 0.0f;
         specular = 0.0f;
@@ -188,8 +212,8 @@ void ComputePointLight(int iLight, const float3 posW, const float3 normW, const 
 #endif
         const float att = saturate((Light.Attenuation[iLight].x - lightDis) / Light.Attenuation[iLight].x);
 
-        diffuse = diffuseAlbedo * Material.Diffuse * cosTheta * Light.Intensity[iLight] * att;
-        specular = Material.Specular * pow(max(.0f, dot(normW, halfVec)), 150.f) * Light.Intensity[iLight] * att;
+        diffuse = diffuseAlbedo * Material.Diffuse * cosTheta * Light.Intensity[iLight] * att * G;
+        specular = Material.Specular * pow(max(.0f, dot(normW, halfVec)), 150.f) * Light.Intensity[iLight] * att * G;
     }
 }
 
@@ -197,8 +221,11 @@ float4 PixelShaderPolygon(VertexOut pin) : SV_Target
 {
     float4 vout = 0;
 
-    const float4 diffuseAlbedo = Material.noTexSampling == 0 ? 
-	                          g_Texture.Sample(g_SamplerState, pin.TexCoord) * pin.Albedo : pin.Albedo;
+    const float4 diffuseAlbedo = Material.noTexSampling == 0 ?
+		Light.Enable == 0 ? g_Texture.Sample(g_SamPointWrap, pin.TexCoord) * pin.Albedo :
+		g_Texture.Sample(g_SamAnisotropicWrap, pin.TexCoord) * pin.Albedo :
+		pin.Albedo;
+
     [branch]
     if (Light.Enable == 0)
     {
@@ -225,7 +252,7 @@ float4 PixelShaderPolygon(VertexOut pin) : SV_Target
 		// reflection of the sky box
 		{
 			const float3 reflDir = reflect(eyeDir, pin.Normal.xyz);
-            const float4 reflCol = g_SkyBoxTexture.Sample(g_SamplerState, reflDir);
+            const float4 reflCol = g_SkyBoxTexture.Sample(g_SamAnisotropicWrap, reflDir);
 
             vout += Material.Specular * reflCol;
         }
@@ -267,7 +294,7 @@ SkyBoxVsOut SkyBoxVS(SkyBoxVsIn vin)
 
 float4 SkyBoxPS(SkyBoxVsOut pin) : SV_Target
 {
-    return g_SkyBoxTexture.Sample(g_SamplerState, pin.TexCoord);
+    return g_SkyBoxTexture.Sample(g_SamAnisotropicWrap, pin.TexCoord);
 }
 
 #endif

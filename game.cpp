@@ -84,16 +84,22 @@ HRESULT InitGame(void)
 
 	InitParticle();
 
+#define SHADOW_MAP_RESOLUTION 1024
+#define SUB_LIGHT_SHADOW_MAP
+
 	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
-		1024, 1024, 0));
+		SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, 0));
+
+#ifdef SUB_LIGHT_SHADOW_MAP
 	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
-		1024, 1024, 1));
+		SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, 1));
 	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
-		1024, 1024, 2));
+		SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, 2));
 	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
-		1024, 1024, 3));
+		SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, 3));
 	g_DPSMs.emplace_back(std::make_unique<DPSM>(GetDevice(), GetDeviceContext(),
-		1024, 1024, 4));
+		SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION, 4));
+#endif
 
 	return S_OK;
 }

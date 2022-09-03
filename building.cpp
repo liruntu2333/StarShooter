@@ -86,7 +86,7 @@ HRESULT InitBuilding(void)
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTSINGLE, &g_Building[0].model);
 	g_Building[0].load = TRUE;
-	g_Building[0].pos = XMFLOAT3(40.0f, 0.0f, 300.0f);
+	g_Building[0].pos = XMFLOAT3(35.0f, 0.0f, 300.0f);
 	GetYOffset(g_Building[0].pos);
 	g_Building[0].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
 	g_Building[0].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
@@ -94,7 +94,7 @@ HRESULT InitBuilding(void)
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTSINGLE, &g_Building[1].model);
 	g_Building[1].load = TRUE;
-	g_Building[1].pos = XMFLOAT3(-40.0f, 0.0f, -300.0f);
+	g_Building[1].pos = XMFLOAT3(-35.0f, 0.0f, -300.0f);
 	GetYOffset(g_Building[1].pos);
 	g_Building[1].rot = XMFLOAT3(0.0f, -XM_PIDIV2, 0.0f);
 	g_Building[1].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
@@ -102,7 +102,7 @@ HRESULT InitBuilding(void)
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTDOUBLE, &g_Building[2].model);
 	g_Building[2].load = TRUE;
-	g_Building[2].pos = XMFLOAT3(300.0f, 0.0f, -40.0f);
+	g_Building[2].pos = XMFLOAT3(300.0f, 0.0f, -35.0f);
 	GetYOffset(g_Building[2].pos);
 	g_Building[2].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
 	g_Building[2].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
@@ -110,7 +110,7 @@ HRESULT InitBuilding(void)
 
 	LoadModel(MODEL_BUILDING_LIGHTPOSTDOUBLE, &g_Building[14].model);
 	g_Building[14].load = TRUE;
-	g_Building[14].pos = XMFLOAT3(-300.0f, 0.0f, 40.0f);
+	g_Building[14].pos = XMFLOAT3(-300.0f, 0.0f, 35.0f);
 	GetYOffset(g_Building[2].pos);
 	g_Building[14].rot = XMFLOAT3(0.0f, XM_PIDIV2, 0.0f);
 	g_Building[14].scl = XMFLOAT3(5.0f, 5.0f, 5.0f);
@@ -118,35 +118,35 @@ HRESULT InitBuilding(void)
 
 	LoadModel(MODEL_BUILDING_HANGAR_LARGEB, &g_Building[3].model);
 	g_Building[3].load = TRUE;
-	g_Building[3].pos = XMFLOAT3(300.0f, 0.0f, -300.0f);
+	g_Building[3].pos = XMFLOAT3(200.0f, 0.0f, -300.0f);
 	GetYOffset(g_Building[3].pos);
 	g_Building[3].rot = XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f);
 	g_Building[3].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
 	LoadModel(MODEL_BUILDING_HANGAR_LARGEB, &g_Building[5].model);
 	g_Building[5].load = TRUE;
-	g_Building[5].pos = XMFLOAT3(-300.0f, 0.0f, 300.0f);
+	g_Building[5].pos = XMFLOAT3(-200.0f, 0.0f, 300.0f);
 	GetYOffset(g_Building[5].pos);
 	g_Building[5].rot = XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f);
 	g_Building[5].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
 	LoadModel(MODEL_BUILDING_HANGAR_ROUNDA, &g_Building[4].model);
 	g_Building[4].load = TRUE;
-	g_Building[4].pos = XMFLOAT3(200.0f, 0.0f, -400.0f);
+	g_Building[4].pos = XMFLOAT3(200.0f, 0.0f, -300.0f);
 	GetYOffset(g_Building[4].pos);
 	g_Building[4].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	g_Building[4].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
 	LoadModel(MODEL_BUILDING_HANGAR_ROUNDB, &g_Building[5].model);
 	g_Building[5].load = TRUE;
-	g_Building[5].pos = XMFLOAT3(-200.0f, 0.0f, -300.0f);
+	g_Building[5].pos = XMFLOAT3(-200.0f, 0.0f, -200.0f);
 	GetYOffset(g_Building[5].pos);
 	g_Building[5].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	g_Building[5].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);
 
 	LoadModel(MODEL_BUILDING_HANGAR_LARGEA, &g_Building[6].model);
 	g_Building[6].load = TRUE;
-	g_Building[6].pos = XMFLOAT3(-400.0f, 0.0f, -500.0f);
+	g_Building[6].pos = XMFLOAT3(-300.0f, 0.0f, -400.0f);
 	GetYOffset(g_Building[6].pos);
 	g_Building[6].rot = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	g_Building[6].scl = XMFLOAT3(3.0f, 3.0f, 3.0f);

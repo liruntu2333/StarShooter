@@ -192,14 +192,10 @@ void UpdateWeapon(void)
 		{
 			weapon.pos = GetWrapPosition(weapon.pos, boarderFlag);
 		}
-		auto target = XMLoadFloat3(&player->pos) + XMVECTOR{ 20.0f, 0.0f, -10.0f };
+		auto target = XMLoadFloat3(&player->pos) + XMVECTOR{ 20.0f, 0.0f, -20.0f };
 		XMVECTOR lerp = MathHelper::Lerp(XMLoadFloat3(&weapon.pos), target, 0.1f);
 		weapon.rot = player->rot;
 		XMStoreFloat3(&weapon.pos, lerp);
-	}
-
-	if (GetKeyboardTrigger(DIK_SPACE))
-	{
 	}
 
 	for (auto& g_Weapon_1_Part : g_Weapon_1_Parts)
@@ -236,14 +232,14 @@ void UpdateWeapon(void)
 		}
 	}
 
-	{	 
+	{
 		LIGHT* light = GetLightData(0);
 
 		XMFLOAT3 lightPos{ g_Weapon[0].pos };
-		lightPos.y += 40.0f;
+		lightPos.y += 39.0f;
 
 		light->Position = lightPos;
-		light->Diffuse = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+		light->Diffuse = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 		light->Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 		light->Attenuation = 400.0f;
 		light->Type = LIGHT_TYPE_POINT;

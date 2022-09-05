@@ -52,7 +52,7 @@ public:
 	virtual DirectX::XMFLOAT3 GetPosition(float t) = 0;
 	virtual DirectX::XMFLOAT3 GetDerivative(float t) = 0;
 	virtual DirectX::XMFLOAT3 GetNormalizedDerivative(float t) = 0;
-	virtual void SetControlPoint2(DirectX::XMFLOAT3 target) = 0;
+	virtual void SetControlPointsBack(DirectX::XMFLOAT3 target) = 0;
 };
 
 class BezierCurveQuadratic : BezierCurve
@@ -69,7 +69,7 @@ public:
 	DirectX::XMFLOAT3 GetPosition(float t) override;
 	DirectX::XMFLOAT3 GetDerivative(float t) override;
 	DirectX::XMFLOAT3 GetNormalizedDerivative(float t) override;
-	void SetControlPoint2(DirectX::XMFLOAT3 target) override;
+	void SetControlPointsBack(DirectX::XMFLOAT3 target) override;
 
 private:
 	std::array<DirectX::XMFLOAT3, 3> MControlPoints{};

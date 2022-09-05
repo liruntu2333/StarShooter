@@ -95,7 +95,7 @@ void SetFog(FOG* fog);
 
 void DebugTextOut(char* text, int x, int y);
 
-void SetFuchi(int flag);
+void SetLightIndexBuff(int flag);
 void SetLightViews(std::vector<XMMATRIX> views);
 void SetShaderCamera(XMFLOAT3 pos);
 

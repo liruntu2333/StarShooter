@@ -42,7 +42,7 @@ XMFLOAT3 BezierCurveQuadratic::GetDerivative(float t)
 	return ret;
 }
 
-void BezierCurveQuadratic::SetControlPoint2(DirectX::XMFLOAT3 target)
+void BezierCurveQuadratic::SetControlPointsBack(DirectX::XMFLOAT3 target)
 {
 	MControlPoints[2] = target;
 }

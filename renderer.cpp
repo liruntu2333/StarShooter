@@ -84,7 +84,7 @@ namespace
 	ID3D11Buffer* g_MaterialBuffer     = nullptr;
 	ID3D11Buffer* g_LightBuffer        = nullptr;
 	ID3D11Buffer* g_FogBuffer          = nullptr;
-	ID3D11Buffer* g_FuchiBuffer        = nullptr;
+	ID3D11Buffer* g_LightIndexBuffer        = nullptr;
 	ID3D11Buffer* g_CameraBuffer       = nullptr;
 	ID3D11Buffer* g_LightViewBuffer	   = nullptr;
 
@@ -108,16 +108,19 @@ namespace
 
 	FUCHI			g_Fuchi;
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxVB;
-	Microsoft::WRL::ComPtr<ID3D11Buffer>             g_SkyBoxIB;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader>       g_SkyBoxVS;
-	Microsoft::WRL::ComPtr<ID3D11PixelShader>        g_SkyBoxPS;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> g_SkyBoxSrv;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>          g_SkyBoxTex;
+	namespace SkyBox
+	{
+		Microsoft::WRL::ComPtr<ID3D11Buffer>             g_VertBuff;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>             g_IdxBuff;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>       g_VertexShader;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader>        g_PixelShader;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> g_ShaderResourceView;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D>          g_SkyBoxTex;
 
-	int g_NumSphereVertices;
-	int g_NumSphereFaces;
-	XMMATRIX g_SphereWorld = XMMatrixIdentity();
+		int g_NumSphereVertices;
+		int g_NumSphereFaces;
+		XMMATRIX g_SphereWorld = XMMatrixIdentity();
+	}
 
 	D3D11_VIEWPORT g_ViewPort;
 }
@@ -352,10 +355,10 @@ void SetFog(FOG* pFog)
 	SetFogBuffer();
 }
 
-void SetFuchi(int flag)
+void SetLightIndexBuff(int flag)
 {
 	g_Fuchi.fuchi = flag;
-	GetDeviceContext()->UpdateSubresource(g_FuchiBuffer, 0, nullptr, &g_Fuchi, 0, 0);
+	GetDeviceContext()->UpdateSubresource(g_LightIndexBuffer, 0, nullptr, &g_Fuchi, 0, 0);
 }
 
 void SetLightViews(std::vector<XMMATRIX> views)
@@ -377,20 +380,20 @@ void SetShaderCamera(XMFLOAT3 pos)
 
 void DrawSkyBox()
 {
-	SetWorldMatrix(&g_SphereWorld);
+	SetWorldMatrix(&SkyBox::g_SphereWorld);
 	SetCullingMode(CULL_MODE_NONE);
 	SetLightEnable(FALSE);
 
-	g_ImmediateContext->IASetIndexBuffer(g_SkyBoxIB.Get(), DXGI_FORMAT_R32_UINT, 0);
+	g_ImmediateContext->IASetIndexBuffer(SkyBox::g_IdxBuff.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	constexpr UINT stride = sizeof(VERTEX_3D);
 	constexpr UINT offset = 0;
-	g_ImmediateContext->IASetVertexBuffers(0, 1, g_SkyBoxVB.GetAddressOf(), &stride, &offset);
-	g_ImmediateContext->VSSetShader(g_SkyBoxVS.Get(), nullptr, 0);
-	g_ImmediateContext->PSSetShader(g_SkyBoxPS.Get(), nullptr, 0);
-	g_ImmediateContext->PSSetShaderResources(1, 1, g_SkyBoxSrv.GetAddressOf());
+	g_ImmediateContext->IASetVertexBuffers(0, 1, SkyBox::g_VertBuff.GetAddressOf(), &stride, &offset);
+	g_ImmediateContext->VSSetShader(SkyBox::g_VertexShader.Get(), nullptr, 0);
+	g_ImmediateContext->PSSetShader(SkyBox::g_PixelShader.Get(), nullptr, 0);
+	g_ImmediateContext->PSSetShaderResources(1, 1, SkyBox::g_ShaderResourceView.GetAddressOf());
 
-	g_ImmediateContext->DrawIndexed(g_NumSphereFaces * 3, 0, 0);
+	g_ImmediateContext->DrawIndexed(SkyBox::g_NumSphereFaces * 3, 0, 0);
 
 	g_ImmediateContext->VSSetShader(g_VertexShader, nullptr, 0);
 	g_ImmediateContext->PSSetShader(g_PixelShader, nullptr, 0);
@@ -400,12 +403,12 @@ void DrawSkyBox()
 
 void UpdateSkyBox(XMFLOAT3 cameraPos)
 {
-	g_SphereWorld = XMMatrixIdentity();
+	SkyBox::g_SphereWorld = XMMatrixIdentity();
 
 	const auto scale = XMMatrixScaling(5.0f, 5.0f, 5.0f);
 	const auto translation = XMMatrixTranslation(cameraPos.x, cameraPos.y, cameraPos.z);
 
-	g_SphereWorld = g_SphereWorld * scale * translation;
+	SkyBox::g_SphereWorld = SkyBox::g_SphereWorld * scale * translation;
 }
 
 HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
@@ -691,9 +694,9 @@ HRESULT InitRenderer(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	g_ImmediateContext->PSSetConstantBuffers(5, 1, &g_FogBuffer);
 
 	hBufferDesc.ByteWidth = sizeof(FUCHI);
-	g_D3DDevice->CreateBuffer(&hBufferDesc, nullptr, &g_FuchiBuffer);
-	g_ImmediateContext->VSSetConstantBuffers(6, 1, &g_FuchiBuffer);
-	g_ImmediateContext->PSSetConstantBuffers(6, 1, &g_FuchiBuffer);
+	g_D3DDevice->CreateBuffer(&hBufferDesc, nullptr, &g_LightIndexBuffer);
+	g_ImmediateContext->VSSetConstantBuffers(6, 1, &g_LightIndexBuffer);
+	g_ImmediateContext->PSSetConstantBuffers(6, 1, &g_LightIndexBuffer);
 
 	hBufferDesc.ByteWidth = sizeof(XMFLOAT4);
 	g_D3DDevice->CreateBuffer(&hBufferDesc, nullptr, &g_CameraBuffer);
@@ -735,13 +738,13 @@ void InitSkyBox()
 
 	HRESULT hr = D3DX11CreateTextureFromFile(g_D3DDevice,
 		g_SkyBoxPath.c_str(), &imgInfo, nullptr,
-		reinterpret_cast<ID3D11Resource**>(g_SkyBoxTex.ReleaseAndGetAddressOf()), nullptr);
+		reinterpret_cast<ID3D11Resource**>(SkyBox::g_SkyBoxTex.ReleaseAndGetAddressOf()), nullptr);
 
 	D3D11_TEXTURE2D_DESC skyTexDesc{};
-	g_SkyBoxTex->GetDesc(&skyTexDesc);
+	SkyBox::g_SkyBoxTex->GetDesc(&skyTexDesc);
 	const auto srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(D3D11_SRV_DIMENSION_TEXTURECUBE, skyTexDesc.Format);
 
-	g_D3DDevice->CreateShaderResourceView(g_SkyBoxTex.Get(), &srvDesc, g_SkyBoxSrv.ReleaseAndGetAddressOf());
+	g_D3DDevice->CreateShaderResourceView(SkyBox::g_SkyBoxTex.Get(), &srvDesc, SkyBox::g_ShaderResourceView.ReleaseAndGetAddressOf());
 
 	ID3DBlob* pErrorBlob;
 	ID3DBlob* pVsBlob = nullptr;
@@ -755,7 +758,7 @@ void InitSkyBox()
 	if (FAILED(hr))
 		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), "VS", MB_OK | MB_ICONERROR);
 
-	g_D3DDevice->CreateVertexShader(pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), nullptr, &g_SkyBoxVS);
+	g_D3DDevice->CreateVertexShader(pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), nullptr, &SkyBox::g_VertexShader);
 	pVsBlob->Release();
 
 	ID3DBlob* pPsBlob = nullptr;
@@ -765,7 +768,7 @@ void InitSkyBox()
 		MessageBox(nullptr, static_cast<char*>(pErrorBlob->GetBufferPointer()), "PS", MB_OK | MB_ICONERROR);
 	}
 
-	g_D3DDevice->CreatePixelShader(pPsBlob->GetBufferPointer(), pPsBlob->GetBufferSize(), nullptr, &g_SkyBoxPS);
+	g_D3DDevice->CreatePixelShader(pPsBlob->GetBufferPointer(), pPsBlob->GetBufferSize(), nullptr, &SkyBox::g_PixelShader);
 
 	pPsBlob->Release();
 
@@ -818,16 +821,16 @@ void Present(void)
 
 void CreateSphere(int LatLines, int LongLines)
 {
-	g_NumSphereVertices = ((LatLines - 2) * LongLines) + 2;
-	g_NumSphereFaces = ((LatLines - 3) * (LongLines) * 2) + (LongLines * 2);
+	SkyBox::g_NumSphereVertices = ((LatLines - 2) * LongLines) + 2;
+	SkyBox::g_NumSphereFaces = ((LatLines - 3) * (LongLines) * 2) + (LongLines * 2);
 
-	std::vector<VERTEX_3D> vertices(g_NumSphereVertices);
+	std::vector<VERTEX_3D> vertices(SkyBox::g_NumSphereVertices);
 
 	vertices[0].Position.x = 0.0f;
 	vertices[0].Position.y = 0.0f;
 	vertices[0].Position.z = 1.0f;
 
-	for (DWORD i = 0; i < LatLines - 2; ++i)
+	for (unsigned long i = 0; i < LatLines - 2; ++i)
 	{
 		float spherePitch = (i + 1) * (3.14 / (LatLines - 1));
 		XMMATRIX Rotationx = XMMatrixRotationX(spherePitch);
@@ -843,15 +846,15 @@ void CreateSphere(int LatLines, int LongLines)
 		}
 	}
 
-	vertices[g_NumSphereVertices - 1].Position.x = 0.0f;
-	vertices[g_NumSphereVertices - 1].Position.y = 0.0f;
-	vertices[g_NumSphereVertices - 1].Position.z = -1.0f;
+	vertices[SkyBox::g_NumSphereVertices - 1].Position.x = 0.0f;
+	vertices[SkyBox::g_NumSphereVertices - 1].Position.y = 0.0f;
+	vertices[SkyBox::g_NumSphereVertices - 1].Position.z = -1.0f;
 
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VERTEX_3D) * g_NumSphereVertices;
+	vertexBufferDesc.ByteWidth = sizeof(VERTEX_3D) * SkyBox::g_NumSphereVertices;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -860,9 +863,9 @@ void CreateSphere(int LatLines, int LongLines)
 
 	ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
 	vertexBufferData.pSysMem = &vertices[0];
-	g_D3DDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &g_SkyBoxVB);
+	g_D3DDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &SkyBox::g_VertBuff);
 
-	std::vector<DWORD> indices(g_NumSphereFaces * 3);
+	std::vector<DWORD> indices(SkyBox::g_NumSphereFaces * 3);
 
 	int k = 0;
 	for (DWORD l = 0; l < LongLines - 1; ++l)
@@ -906,21 +909,21 @@ void CreateSphere(int LatLines, int LongLines)
 
 	for (DWORD l = 0; l < LongLines - 1; ++l)
 	{
-		indices[k] = g_NumSphereVertices - 1;
-		indices[k + 1] = (g_NumSphereVertices - 1) - (l + 1);
-		indices[k + 2] = (g_NumSphereVertices - 1) - (l + 2);
+		indices[k] = SkyBox::g_NumSphereVertices - 1;
+		indices[k + 1] = (SkyBox::g_NumSphereVertices - 1) - (l + 1);
+		indices[k + 2] = (SkyBox::g_NumSphereVertices - 1) - (l + 2);
 		k += 3;
 	}
 
-	indices[k] = g_NumSphereVertices - 1;
-	indices[k + 1] = (g_NumSphereVertices - 1) - LongLines;
-	indices[k + 2] = g_NumSphereVertices - 2;
+	indices[k] = SkyBox::g_NumSphereVertices - 1;
+	indices[k + 1] = (SkyBox::g_NumSphereVertices - 1) - LongLines;
+	indices[k + 2] = SkyBox::g_NumSphereVertices - 2;
 
 	D3D11_BUFFER_DESC indexBufferDesc;
 	ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
 
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(DWORD) * g_NumSphereFaces * 3;
+	indexBufferDesc.ByteWidth = sizeof(DWORD) * SkyBox::g_NumSphereFaces * 3;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;
@@ -928,7 +931,7 @@ void CreateSphere(int LatLines, int LongLines)
 	D3D11_SUBRESOURCE_DATA iinitData;
 
 	iinitData.pSysMem = &indices[0];
-	g_D3DDevice->CreateBuffer(&indexBufferDesc, &iinitData, &g_SkyBoxIB);
+	g_D3DDevice->CreateBuffer(&indexBufferDesc, &iinitData, &SkyBox::g_IdxBuff);
 }
 
 void DebugTextOut(char* text, int x, int y)

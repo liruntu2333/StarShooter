@@ -66,7 +66,7 @@ void UpdateBullet(void)
 				const float t = bullet.flyingTime / bullet.hitTime;
 				if (bullet.target != nullptr)
 				{
-					bullet.curve->SetControlPoint2(bullet.target->pos);
+					bullet.curve->SetControlPointsBack(bullet.target->pos);
 				}
 				bullet.pos = bullet.curve->GetPosition(t);
 				const XMFLOAT3 dir = bullet.curve->GetNormalizedDerivative(t);

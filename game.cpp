@@ -220,7 +220,7 @@ void DrawDepthTextures()
 		pDeviceContext->ClearDepthStencilView(dsvFront, D3D11_CLEAR_DEPTH, 1.0f, 0);
 		pDeviceContext->OMSetRenderTargets(0, nullptr, dsvFront);
 
-		SetFuchi(lightIdx + 1);
+		SetLightIndexBuff(lightIdx + 1);
 		{
 			//DrawMeshFieldToDepthTex();
 			DrawPlayerToDepthTex();
@@ -233,7 +233,7 @@ void DrawDepthTextures()
 		pDeviceContext->ClearDepthStencilView(dsvBack, D3D11_CLEAR_DEPTH, 1.0f, 0);
 		pDeviceContext->OMSetRenderTargets(0, nullptr, dsvBack);
 
-		SetFuchi(- (lightIdx + 1));
+		SetLightIndexBuff(- (lightIdx + 1));
 		{
 			//DrawMeshFieldToDepthTex();
 			DrawPlayerToDepthTex();

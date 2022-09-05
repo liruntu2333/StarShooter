@@ -62,12 +62,6 @@ cbuffer FogBuffer : register( b5 )
 	FOG			Fog;
 };
 
-cbuffer Fuchi : register(b6)
-{
-	int			fuchi;
-};
-
-
 cbuffer CameraBuffer : register(b7)
 {
 	float4 Camera;

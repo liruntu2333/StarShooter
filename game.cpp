@@ -13,7 +13,6 @@
 #include "weapon.h"
 #include "item.h"
 #include "building.h"
-#include "menu.h"
 #include "gameUI.h"
 #include "meshfield.h"
 #include "meshwall.h"
@@ -54,8 +53,6 @@ HRESULT InitGame(void)
 	InitItem();
 
 	InitEnemy();
-
-	InitMenu();
 
 	InitMeshWall(XMFLOAT3(0.0f, -80.0f, MAP_TOP), XMFLOAT3(0.0f, 0.0f, 0.0f),
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 16, 2, 80.0f, 80.0f);
@@ -122,8 +119,6 @@ void UninitGame(void)
 
 	UninitBuilding();
 
-	UninitMenu();
-
 	UninitEnemy();
 
 	UninitItem();
@@ -163,8 +158,6 @@ void UpdateGame(void)
 	UpdateItem();
 
 	UpdateEnemy();
-
-	UpdateMenu();
 
 	UpdateMeshWall();
 
@@ -279,8 +272,6 @@ void DrawGame(void)
 	DrawPlayer();
 
 	DrawWeapon();
-
-	DrawMenu();
 
 	DrawBullet();
 

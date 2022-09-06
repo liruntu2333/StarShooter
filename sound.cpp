@@ -20,14 +20,8 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 	{ static_cast<char*>("data/BGM/xDeviruchi - Title Theme .wav"), -1 },	 
 	{ static_cast<char*>("data/BGM/xDeviruchi - And The Journey Begins .wav"), -1 },	 
 	{ static_cast<char*>("data/BGM/xDeviruchi - Take some rest and eat some food.wav"), -1 },	 
-	{ static_cast<char*>("data/SE/bomb000.wav"), 0 },		 
-	{ static_cast<char*>("data/SE/defend000.wav"), 0 },		 
-	{ static_cast<char*>("data/SE/defend001.wav"), 0 },		 
-	{ static_cast<char*>("data/SE/hit000.wav"), 0 },			 
-	{ static_cast<char*>("data/SE/laser000.wav"), 0 },		 
 	{ static_cast<char*>("data/SE/lockon000.wav"), 0 },		 
 	{ static_cast<char*>("data/SE/shot000.wav"), 0 },		 
-	{ static_cast<char*>("data/SE/shot001.wav"), 0 },		 
 };
 
 BOOL InitSound(HWND hWnd)

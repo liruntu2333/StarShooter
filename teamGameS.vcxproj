@@ -150,7 +150,6 @@
     <ClInclude Include="item.h" />
     <ClInclude Include="light.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="menu.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="meshfield.h" />
     <ClInclude Include="meshwall.h" />
@@ -183,7 +182,6 @@
     <ClCompile Include="light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MathHelper.cpp" />
-    <ClCompile Include="menu.cpp" />
     <ClCompile Include="meshfield.cpp" />
     <ClCompile Include="meshwall.cpp" />
     <ClCompile Include="model.cpp" />

@@ -619,15 +619,18 @@ void UpdateLockedTarget()
 	const XMVECTOR playerPos = XMLoadFloat3(&g_Player.pos);
 	const XMVECTOR front = { sinf(dir), 0.0f, cosf(dir) };
 
-	auto disCmp = [&](const ENEMY* e1, const ENEMY* e2)
-	{
-		const float dis1 = XMVectorGetX(XMVector3LengthEst(XMLoadFloat3(&e1->pos) - playerPos));
-		const float dis2 = XMVectorGetX(XMVector3LengthEst(XMLoadFloat3(&e2->pos) - playerPos));
-		return dis1 > dis2;
-	};
+	// No need to use heap, we just want the min distance one.
+	//auto disCmp = [&](const ENEMY* e1, const ENEMY* e2)
+	//{
+	//	const float dis1 = XMVectorGetX(XMVector3LengthEst(XMLoadFloat3(&e1->pos) - playerPos));
+	//	const float dis2 = XMVectorGetX(XMVector3LengthEst(XMLoadFloat3(&e2->pos) - playerPos));
+	//	return dis1 > dis2;
+	//};
 
-	std::priority_queue<ENEMY*, std::vector<ENEMY*>, decltype(disCmp)> pq(disCmp);
+	//std::priority_queue<ENEMY*, std::vector<ENEMY*>, decltype(disCmp)> pq(disCmp);
 	ENEMY* pEnemies = GetEnemy();
+	ENEMY* target = nullptr;
+	float minDis = D3D11_FLOAT32_MAX;
 	for (int i = 0; i < MAX_ENEMY; ++i)
 	{
 		ENEMY& enemy = *(pEnemies + i);
@@ -635,17 +638,20 @@ void UpdateLockedTarget()
 			continue;
 
 		const XMVECTOR enemyPos = XMLoadFloat3(&enemy.pos);
+		const float enemyDis = XMVectorGetX(XMVector3Length(enemyPos - playerPos));
 		const XMVECTOR enemyDir = XMVector3Normalize(enemyPos - playerPos);
 
 		const float angle = XMVectorGetX(XMVector3AngleBetweenNormalsEst(enemyDir, front));
-		if ((angle) < XM_PIDIV2)       
+		if ((angle) < XM_PIDIV2 && enemyDis < minDis)       
 		{
-			pq.emplace(&enemy);
+			//pq.emplace(&enemy);
+			target = &enemy;
+			minDis = enemyDis;
 		}
 	}
-
-	if (pq.empty()) g_LockedTarget = nullptr;
-	else g_LockedTarget = pq.top();
+	g_LockedTarget = target;
+	/*if (pq.empty()) g_LockedTarget = nullptr;
+	else g_LockedTarget = pq.top();*/
 }
 
 void ShootBullets(int nBullet, ENEMY& enemy, XMFLOAT3 p0, XMFLOAT3 p2, XMVECTOR front, XMVECTOR right, XMVECTOR up)

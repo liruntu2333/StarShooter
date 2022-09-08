@@ -4,6 +4,8 @@ Reflection of object is sampled on a cube map.
 Point light shadow is rendered with dual paraboloid shadow mapping technique with quite well performance.
 Whole scene has five point light shadow maps with a resolution of 1024 in total.
 
+![alt text](https://github.com/liruntu2333/StarShooter/blob/master/ScreenShot.png)
+
 ## Platform:
 
 Any Windows device that can run with HLSL shader model 5.0.

@@ -17,3 +17,7 @@ For some reason, we use the legacy DirectX End-User Runtimes (June 2010) lib for
 https://www.microsoft.com/en-us/download/details.aspx?id=8109
 
 Need to be installed in path : C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\...
+
+## How to Play:
+
+If there are no need to build the code(neither do I want the DX11 zombie lib in my device), just click the build.exe.

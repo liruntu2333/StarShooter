@@ -23,6 +23,9 @@ Need to be installed in path : C:\Program Files (x86)\Microsoft DirectX SDK (Jun
 ## How to Play:
 
 W A D : side-move and choose branch
+
 ←↑↓→ : shooting command
+
 Left-shift : lock on target
+
 SPACE : jump
